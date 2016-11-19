@@ -15,10 +15,7 @@
  */
 package org.hellojavaer.ddr.core;
 
-import org.hellojavaer.ddr.core.datasource.AbstarctDDRDateSource;
-import org.hellojavaer.ddr.core.datasource.DataSourceManager;
-import org.hellojavaer.ddr.core.datasource.DataSourceManagerParam;
-import org.hellojavaer.ddr.core.datasource.SingleDataSourceManager;
+import org.hellojavaer.ddr.core.datasource.*;
 import org.hellojavaer.ddr.core.sharding.ShardingRouteParser;
 
 import javax.sql.DataSource;
@@ -30,8 +27,9 @@ import java.lang.reflect.Method;
  */
 public class DDRDataSource extends AbstarctDDRDateSource {
 
-    private DataSourceManager   dataSourceManager;
-    private ShardingRouteParser shardingRouteParser;
+    private DataSourceManager           dataSourceManager;
+    private ShardingRouteParser         shardingRouteParser;
+    private DistributedTransactionLevel distributedTransactionLevel;
 
     public DataSourceManager getDataSourceManager() {
         return dataSourceManager;
@@ -47,6 +45,14 @@ public class DDRDataSource extends AbstarctDDRDateSource {
 
     public void setShardingRouteParser(ShardingRouteParser shardingRouteParser) {
         this.shardingRouteParser = shardingRouteParser;
+    }
+
+    public DistributedTransactionLevel getDistributedTransactionLevel() {
+        return distributedTransactionLevel;
+    }
+
+    public void setDistributedTransactionLevel(DistributedTransactionLevel distributedTransactionLevel) {
+        this.distributedTransactionLevel = distributedTransactionLevel;
     }
 
     public String replaceSql(String sql) {
@@ -85,8 +91,7 @@ public class DDRDataSource extends AbstarctDDRDateSource {
                     try {
                         Class clazz = Class.forName("org.springframework.transaction.support.TransactionSynchronizationManager");
                         if (clazz == null) {
-                            throw new IllegalStateException(
-                                                            "masterSlaveDataSourceManager now dependency spring TransactionSynchronizationManager");
+                            throw new IllegalStateException("masterSlaveDataSourceManager dependency on spring TransactionSynchronizationManager");
                         }
                         method = clazz.getMethod("isCurrentTransactionReadOnly");
                     } catch (Exception e) {
