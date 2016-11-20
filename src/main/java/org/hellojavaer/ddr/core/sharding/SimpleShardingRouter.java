@@ -18,8 +18,7 @@ package org.hellojavaer.ddr.core.sharding;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hellojavaer.ddr.core.exception.DDRException;
-import org.hellojavaer.ddr.core.sharding.config.SimpleShardingRouterRuleBinding;
-import org.hellojavaer.ddr.core.sharding.config.SimpleShardingConfiguration;
+import org.hellojavaer.ddr.core.sharding.config.SimpleShardingRouteRuleBinding;
 
 import java.util.Collections;
 import java.util.List;
@@ -32,24 +31,23 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class SimpleShardingRouter implements ShardingRouter {
 
-    private final Log                                    logger = LogFactory.getLog(getClass());
-    private SimpleShardingConfiguration                  configuration;
-    private Map<String, SimpleShardingRouterRuleBinding> cache  = Collections.EMPTY_MAP;
+    private final Log                                   logger = LogFactory.getLog(getClass());
+    private List<SimpleShardingRouteRuleBinding>        routeRuleBindings;
+    private Map<String, SimpleShardingRouteRuleBinding> cache  = Collections.EMPTY_MAP;
 
-    public void setConfiguration(SimpleShardingConfiguration configuration) {
-        this.configuration = configuration;
-        refreshCache();
+    public List<SimpleShardingRouteRuleBinding> getRouteRuleBindings() {
+        return routeRuleBindings;
     }
 
-    public SimpleShardingConfiguration getConfiguration() {
-        return configuration;
+    public void setRouteRuleBindings(List<SimpleShardingRouteRuleBinding> routeRuleBindings) {
+        this.routeRuleBindings = routeRuleBindings;
+        refreshCache(routeRuleBindings);
     }
 
-    private void refreshCache() {
-        ConcurrentHashMap<String, SimpleShardingRouterRuleBinding> temp = new ConcurrentHashMap<String, SimpleShardingRouterRuleBinding>();
-        List<SimpleShardingRouterRuleBinding> bindings = configuration.getBindings();
-        if (bindings != null) {
-            for (SimpleShardingRouterRuleBinding binding : bindings) {
+    private void refreshCache(List<SimpleShardingRouteRuleBinding> bindings) {
+        ConcurrentHashMap<String, SimpleShardingRouteRuleBinding> temp = new ConcurrentHashMap<String, SimpleShardingRouteRuleBinding>();
+        if (bindings != null && !bindings.isEmpty()) {
+            for (SimpleShardingRouteRuleBinding binding : bindings) {
                 if (binding.getRule() == null) {
                     throw new DDRException("binding for scName:" + binding.getScName() + " tbName:"
                                            + binding.getTbName() + " sdName:" + binding.getSdName() + " can't be null");
@@ -65,7 +63,7 @@ public class SimpleShardingRouter implements ShardingRouter {
                     sb.append(scName).append('.').append(tbName);
                     putToCache(temp, sb.toString(), binding);
                 }
-                SimpleShardingRouterRuleBinding b0 = new SimpleShardingRouterRuleBinding();
+                SimpleShardingRouteRuleBinding b0 = new SimpleShardingRouteRuleBinding();
                 b0.setScName(scName);
                 b0.setTbName(tbName);
                 b0.setSdName(sdName);
@@ -76,8 +74,8 @@ public class SimpleShardingRouter implements ShardingRouter {
         this.cache = temp;
     }
 
-    private void putToCache(ConcurrentHashMap<String, SimpleShardingRouterRuleBinding> cache, String key,
-                            SimpleShardingRouterRuleBinding val) {
+    private void putToCache(ConcurrentHashMap<String, SimpleShardingRouteRuleBinding> cache, String key,
+                            SimpleShardingRouteRuleBinding val) {
         if (cache.putIfAbsent(key, val) != null) {
             throw new DDRException("conflict binding for tbName:" + val.getScName() + " tbName:" + val.getTbName()
                                    + " sdName:" + val.getSdName());
@@ -136,7 +134,7 @@ public class SimpleShardingRouter implements ShardingRouter {
         }
     }
 
-    private SimpleShardingRouterRuleBinding getBinding(String scName, String tbName) {
+    private SimpleShardingRouteRuleBinding getBinding(String scName, String tbName) {
         if (tbName == null) {
             throw new DDRException("tbName can't be empty");
         }
@@ -145,7 +143,7 @@ public class SimpleShardingRouter implements ShardingRouter {
         } else {
             StringBuilder sb = new StringBuilder();
             sb.append(scName).append('.').append(tbName);
-            SimpleShardingRouterRuleBinding binding = cache.get(sb.toString());// 全名称匹配
+            SimpleShardingRouteRuleBinding binding = cache.get(sb.toString());// 全名称匹配
             if (binding == null) {
                 binding = cache.get(tbName);
                 if (binding != null && //
@@ -174,7 +172,7 @@ public class SimpleShardingRouter implements ShardingRouter {
     public String getRouteColName(ShardingRouterContext context, String scName, String tbName) {
         scName = filter(scName);
         tbName = filter(tbName);
-        SimpleShardingRouterRuleBinding binding = getBinding(scName, tbName);
+        SimpleShardingRouteRuleBinding binding = getBinding(scName, tbName);
         if (binding == null) {
             throw new DDRException("");
         } else {
@@ -186,7 +184,7 @@ public class SimpleShardingRouter implements ShardingRouter {
     public ShardingInfo route(ShardingRouterContext context, String scName, String tbName, Long sdValue) {
         scName = filter(scName);
         tbName = filter(tbName);
-        SimpleShardingRouterRuleBinding binding = getBinding(scName, tbName);
+        SimpleShardingRouteRuleBinding binding = getBinding(scName, tbName);
         if (binding == null) {
             throw new DDRException("no binding for  scName:" + scName + " tbName:" + tbName);
         } else {

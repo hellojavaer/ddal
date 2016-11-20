@@ -21,7 +21,7 @@ import java.io.Serializable;
  *
  * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 15/11/2016.
  */
-public class SimpleShardingRouterRuleBinding implements Serializable {
+public class SimpleShardingRouteRuleBinding implements Serializable {
 
     private String                   scName;
     private String                   tbName;
