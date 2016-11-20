@@ -696,11 +696,19 @@ abstract class StatementWrapper implements PreparedStatement {
             String targetSql = replaceSql(sql, this.paramContexts.get(0).getJdbcParams());
 
             // 2. 创建 statement
+            if("prepareStatement".equals(createStatementMethodName)){
+                createStatementMethodParams[0] = targetSql;
+            }
             Statement statement = (Statement) connection.getClass().getMethod(createStatementMethodName,
                                                                               createStatementMethodParamTypes).invoke(connection,
                                                                                                                       createStatementMethodParams);
             // 2.1 回放
             List<InvokeRecord> invokeRecords = this.paramContexts.get(0).getInvokeRecords();
+
+            for (InvokeRecord invokeRecord : invokeRecords) {
+                statement.getClass().getMethod(invokeRecord.getMethodName(), invokeRecord.getParamTypes()).invoke(statement,
+                                                                                                                  invokeRecord.getParams());
+            }
 
             // 3. 重新播放执行操作
             for (int i = 1; i < paramContexts.size(); i++) {
