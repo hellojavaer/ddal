@@ -36,13 +36,8 @@ public abstract class AbstarctDDRDateSource implements DataSource {
 
     protected abstract String replaceSql(String sql, Map<Integer, Object> jdbcParam);
 
-    private String replaceSql0(String sql,  Map<Integer, Object> jdbcParam) {
-        String newSql = replaceSql(sql,null);
-        if (logger.isInfoEnabled()) {
-            logger.info(new StringBuilder().append("src sql:[").append(sql).append("] converted to:[").append(newSql).append(']').toString());
-        }
-        return newSql;
-    }
+    
+
 
     protected abstract DataSource getDataSource();
 
@@ -106,17 +101,29 @@ public abstract class AbstarctDDRDateSource implements DataSource {
 
         @Override
         public Statement createStatement() throws SQLException {
-            return connection.createStatement();
+            return new StatementWrapper(this.connection, null, "createStatement", new Object[] {}, new Class[]{}) {
+
+                @Override
+                public String replaceSql(String sql, Map<Integer, Object> jdbcParams) {
+                    return AbstarctDDRDateSource.this.replaceSql(sql, jdbcParams);
+                }
+            };
         }
 
         @Override
         public PreparedStatement prepareStatement(String sql) throws SQLException {
-            return connection.prepareStatement(sql);
+            return new StatementWrapper(this.connection, sql, "prepareStatement", new Object[] { sql }, new Class[]{String.class}) {
+
+                @Override
+                public String replaceSql(String sql, Map<Integer, Object> jdbcParams) {
+                    return AbstarctDDRDateSource.this.replaceSql(sql, jdbcParams);
+                }
+            };
         }
 
         @Override
         public CallableStatement prepareCall(String sql) throws SQLException {
-            return connection.prepareCall(sql);
+            throw new UnsupportedOperationException("not support prepareCall");
         }
 
         @Override
@@ -201,19 +208,33 @@ public abstract class AbstarctDDRDateSource implements DataSource {
 
         @Override
         public Statement createStatement(int resultSetType, int resultSetConcurrency) throws SQLException {
-            return connection.createStatement(resultSetType, resultSetConcurrency);
+            return new StatementWrapper(this.connection, null, "createStatement", new Object[] { resultSetType,
+                    resultSetConcurrency }, new Class[]{int.class, int.class}) {
+
+                @Override
+                public String replaceSql(String sql, Map<Integer, Object> jdbcParams) {
+                    return AbstarctDDRDateSource.this.replaceSql(sql, jdbcParams);
+                }
+            };
         }
 
         @Override
         public PreparedStatement prepareStatement(String sql, int resultSetType, int resultSetConcurrency)
                                                                                                           throws SQLException {
-            return connection.prepareStatement(sql, resultSetType, resultSetConcurrency);
+            return new StatementWrapper(this.connection, sql, "prepareStatement", new Object[] { sql, resultSetType,
+                    resultSetConcurrency }, new Class[]{String.class, int.class, int.class}) {
+
+                @Override
+                public String replaceSql(String sql, Map<Integer, Object> jdbcParams) {
+                    return AbstarctDDRDateSource.this.replaceSql(sql, jdbcParams);
+                }
+            };
         }
 
         @Override
         public CallableStatement prepareCall(String sql, int resultSetType, int resultSetConcurrency)
                                                                                                      throws SQLException {
-            return connection.prepareCall(sql, resultSetType, resultSetConcurrency);
+            throw new UnsupportedOperationException("not support prepareCall");
         }
 
         @Override
@@ -259,34 +280,67 @@ public abstract class AbstarctDDRDateSource implements DataSource {
         @Override
         public Statement createStatement(int resultSetType, int resultSetConcurrency, int resultSetHoldability)
                                                                                                                throws SQLException {
-            return connection.createStatement(resultSetType, resultSetConcurrency, resultSetHoldability);
+            return new StatementWrapper(this.connection, null, "createStatement", new Object[] { resultSetType,
+                    resultSetConcurrency, resultSetHoldability }, new Class[]{int.class,int.class,int.class}) {
+
+                @Override
+                public String replaceSql(String sql, Map<Integer, Object> jdbcParams) {
+                    return AbstarctDDRDateSource.this.replaceSql(sql, jdbcParams);
+                }
+            };
         }
 
         @Override
         public PreparedStatement prepareStatement(String sql, int resultSetType, int resultSetConcurrency,
                                                   int resultSetHoldability) throws SQLException {
-            return connection.prepareStatement(sql, resultSetType, resultSetConcurrency, resultSetHoldability);
+            return new StatementWrapper(this.connection, sql, "prepareStatement", new Object[] { sql, resultSetType,
+                    resultSetConcurrency, resultSetHoldability },new Class[]{String.class, int.class,int.class,int.class}) {
+
+                @Override
+                public String replaceSql(String sql, Map<Integer, Object> jdbcParams) {
+                    return AbstarctDDRDateSource.this.replaceSql(sql, jdbcParams);
+                }
+            };
         }
 
         @Override
         public CallableStatement prepareCall(String sql, int resultSetType, int resultSetConcurrency,
                                              int resultSetHoldability) throws SQLException {
-            return connection.prepareCall(sql, resultSetType, resultSetConcurrency, resultSetHoldability);
+            throw new UnsupportedOperationException("not support prepareCall");
         }
 
         @Override
         public PreparedStatement prepareStatement(String sql, int autoGeneratedKeys) throws SQLException {
-            return connection.prepareStatement(sql, autoGeneratedKeys);
+            return new StatementWrapper(this.connection, sql, "prepareStatement",
+                                        new Object[] { sql, autoGeneratedKeys },new Class[]{String.class,int.class}) {
+
+                @Override
+                public String replaceSql(String sql, Map<Integer, Object> jdbcParams) {
+                    return AbstarctDDRDateSource.this.replaceSql(sql, jdbcParams);
+                }
+            };
         }
 
         @Override
         public PreparedStatement prepareStatement(String sql, int[] columnIndexes) throws SQLException {
-            return connection.prepareStatement(sql, columnIndexes);
+            return new StatementWrapper(this.connection, sql, "prepareStatement", new Object[] { sql, columnIndexes },new Class[]{String.class, int[].class}) {
+
+                @Override
+                public String replaceSql(String sql, Map<Integer, Object> jdbcParams) {
+                    return AbstarctDDRDateSource.this.replaceSql(sql, jdbcParams);
+                }
+            };
         }
 
         @Override
         public PreparedStatement prepareStatement(String sql, String[] columnNames) throws SQLException {
-            return connection.prepareStatement(sql, columnNames);
+            return new StatementWrapper(this.connection, sql, "prepareStatement", new Object[] { sql, columnNames },new Class[]{String.class, String[].class}) {
+
+                @Override
+                public String replaceSql(String sql, Map<Integer, Object> jdbcParams) {
+                    return AbstarctDDRDateSource.this.replaceSql(sql, jdbcParams);
+                }
+            };
         }
 
         @Override
@@ -379,8 +433,5 @@ public abstract class AbstarctDDRDateSource implements DataSource {
             return connection.isWrapperFor(iface);
         }
     }
-
-
-
 
 }
