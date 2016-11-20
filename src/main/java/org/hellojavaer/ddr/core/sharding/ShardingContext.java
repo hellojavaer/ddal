@@ -15,33 +15,37 @@
  */
 package org.hellojavaer.ddr.core.sharding;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  *
  * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 15/11/2016.
  */
 public class ShardingContext {
 
-    private static final ThreadLocal th = new ThreadLocal();
+    private static final ThreadLocal<Map> routeValue = new ThreadLocal();
 
-    public static void getRouteTable(){
-    }
-
-    public static void disableConfigRoute(String scName, String tbName){
-        return ;
-    }
-
-    public static class RouteTable {
-
-        public static void putRouteValue(String scName, String tbName, String colName, Long value) {
-
+    public static void setRouteValue(String scName, String tbName, Long value) {
+        Map<String, Long> map = routeValue.get();
+        if (map == null) {
+            map = new HashMap();
+            routeValue.set(map);
         }
+        map.put(new StringBuilder().append(scName).append('.').append(tbName).toString(), value);
+    }
 
-        public static Long getRouteValue(String scName, String tbName, String colName, Long value) {
+    public static Long getRouteValue(String scName, String tbName) {
+        Map<String, Long> map = routeValue.get();
+        if (map == null) {
             return null;
+        } else {
+            return map.get(new StringBuilder().append(scName).append('.').append(tbName).toString());
         }
-
     }
 
-
+    public static void clear() {
+        routeValue.remove();
+    }
 
 }

@@ -15,6 +15,8 @@
  */
 package org.hellojavaer.ddr.core.sharding;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hellojavaer.ddr.core.exception.DDRException;
 import org.hellojavaer.ddr.core.sharding.config.SimpleShardingRouterRuleBinding;
 import org.hellojavaer.ddr.core.sharding.config.SimpleShardingConfiguration;
@@ -30,8 +32,9 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class SimpleShardingRouter implements ShardingRouter {
 
+    private final Log                                    logger = LogFactory.getLog(getClass());
     private SimpleShardingConfiguration                  configuration;
-    private Map<String, SimpleShardingRouterRuleBinding> cache = Collections.EMPTY_MAP;
+    private Map<String, SimpleShardingRouterRuleBinding> cache  = Collections.EMPTY_MAP;
 
     public void setConfiguration(SimpleShardingConfiguration configuration) {
         this.configuration = configuration;
@@ -185,12 +188,30 @@ public class SimpleShardingRouter implements ShardingRouter {
         tbName = filter(tbName);
         SimpleShardingRouterRuleBinding binding = getBinding(scName, tbName);
         if (binding == null) {
-            throw new DDRException("");
+            throw new DDRException("no binding for  scName:" + scName + " tbName:" + tbName);
         } else {
-            Object $0 = binding.getRule().parseScRoute(binding.getScName(), sdValue);
-            String sc = binding.getRule().parseScFormat(binding.getScName(), $0);
-            Object $0_ = binding.getRule().parseTbRoute(binding.getTbName(), sdValue);
-            String tb = binding.getRule().parseTbFormat(binding.getTbName(), $0_);
+            if (scName == null) {
+                scName = binding.getScName();
+            }
+            if (binding.getSdName() == null) {
+                if (sdValue != null) {
+                    logger.warn("scName:" + scName + " tbName:" + tbName + " sdName:null , sdValue expect null but "
+                                + sdValue);
+                }
+                sdValue = ShardingContext.getRouteValue(scName, tbName);
+                if (sdValue == null) {
+                    throw new DDRException("you should invoke ShardingContext to set [scName:" + scName + ",tbName:"
+                                           + tbName + "] sdName value");
+                }
+            } else {
+                if (sdValue == null) {
+                    throw new DDRException("sdValue can't be null for scName:" + scName + " and tbName:" + tbName);
+                }
+            }
+            Object $0 = binding.getRule().parseScRoute(scName, sdValue);
+            String sc = binding.getRule().parseScFormat(scName, $0);
+            Object $0_ = binding.getRule().parseTbRoute(tbName, sdValue);
+            String tb = binding.getRule().parseTbFormat(tbName, $0_);
             if (tb == null) {
                 throw new DDRException("");
             }
