@@ -41,7 +41,13 @@ import java.util.Stack;
  */
 public class JSQLSqlParser extends TablesNamesFinder implements SqlParser {
 
-    private ShardingRouter shardingRouter = null;
+    private Map<Integer, Object> jdbcParam;
+    private ShardingRouter       shardingRouter = null;
+    private int                  qmarkCount     = 0;
+
+    public JSQLSqlParser(Map<Integer, Object> jdbcParam) {
+        this.jdbcParam = jdbcParam;
+    }
 
     @Override
     public void setShardingRouter(ShardingRouter shardingRouter) {
@@ -81,6 +87,13 @@ public class JSQLSqlParser extends TablesNamesFinder implements SqlParser {
                 tableWapper.getTable().setName(info.getTbName());
                 tableWapper.setConverted(true);
             }
+        }
+    }
+
+    @Override
+    public void visit(StringValue stringValue) {
+        if ("?".equals(stringValue.getValue())) {
+            qmarkCount++;
         }
     }
 
@@ -289,6 +302,30 @@ public class JSQLSqlParser extends TablesNamesFinder implements SqlParser {
             return Long.valueOf(((StringValue) obj).getValue());
         } else if (obj instanceof HexValue) {
             return Long.parseLong(((HexValue) obj).getValue(), 16);
+        } else if (obj instanceof JdbcParameter) {
+            if (jdbcParam == null) {
+                return null;
+            } else {
+                qmarkCount++;
+                Object val = jdbcParam.get(Integer.valueOf(qmarkCount));
+                if (val == null) {
+                    return null;
+                } else {
+                    if (val instanceof Byte) {
+                        return ((Byte) val).longValue();
+                    } else if (val instanceof Short) {
+                        return ((Short) val).longValue();
+                    } else if (val instanceof Integer) {
+                        return ((Integer) val).longValue();
+                    } else if (val instanceof Long) {
+                        return ((Long) val).longValue();
+                    } else if (val instanceof String) {
+                        return Long.valueOf((String) val);
+                    } else {
+                        throw null;
+                    }
+                }
+            }
         } else {
             throw null;
         }

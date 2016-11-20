@@ -16,10 +16,12 @@
 package org.hellojavaer.ddr.core;
 
 import org.hellojavaer.ddr.core.datasource.*;
+import org.hellojavaer.ddr.core.datasource.jdbc.AbstarctDDRDateSource;
 import org.hellojavaer.ddr.core.sharding.ShardingRouteParser;
 
 import javax.sql.DataSource;
 import java.lang.reflect.Method;
+import java.util.Map;
 
 /**
  *
@@ -55,8 +57,8 @@ public class DDRDataSource extends AbstarctDDRDateSource {
         this.distributedTransactionLevel = distributedTransactionLevel;
     }
 
-    public String replaceSql(String sql) {
-        String tarSql = shardingRouteParser.parse(sql);
+    public String replaceSql(String sql, Map<Integer, Object> jdbcParam) {
+        String tarSql = shardingRouteParser.parse(sql, jdbcParam);
         return tarSql;
     }
 

@@ -15,6 +15,8 @@
  */
 package org.hellojavaer.ddr.core.sharding;
 
+import java.util.Map;
+
 /**
  *
  * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 15/11/2016.
@@ -40,11 +42,11 @@ public class ShardingRouteParser {
         this.sqlParser = sqlParser;
     }
 
-    public String parse(String sql){
-        if(sqlParser == null){
-            sqlParser = new JSQLSqlParser();
+    public String parse(String sql, Map<Integer, Object> jdbcParam) {
+        if (sqlParser == null) {
+            sqlParser = new JSQLSqlParser(jdbcParam);
         }
-        if(shardingRouter == null){
+        if (shardingRouter == null) {
             shardingRouter = new SimpleShardingRouter();
         }
         sqlParser.setShardingRouter(shardingRouter);

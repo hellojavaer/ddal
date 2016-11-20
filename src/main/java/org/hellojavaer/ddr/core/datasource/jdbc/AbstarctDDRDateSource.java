@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddr.core.datasource;
+package org.hellojavaer.ddr.core.datasource.jdbc;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -34,7 +34,15 @@ public abstract class AbstarctDDRDateSource implements DataSource {
 
     protected final Log logger = LogFactory.getLog(getClass());
 
-    protected abstract String replaceSql(String sql);
+    protected abstract String replaceSql(String sql, Map<Integer, Object> jdbcParam);
+
+    private String replaceSql0(String sql,  Map<Integer, Object> jdbcParam) {
+        String newSql = replaceSql(sql,null);
+        if (logger.isInfoEnabled()) {
+            logger.info(new StringBuilder().append("src sql:[").append(sql).append("] converted to:[").append(newSql).append(']').toString());
+        }
+        return newSql;
+    }
 
     protected abstract DataSource getDataSource();
 
@@ -45,7 +53,7 @@ public abstract class AbstarctDDRDateSource implements DataSource {
 
     @Override
     public void setLoginTimeout(int timeout) throws SQLException {
-        throw new UnsupportedOperationException("setLoginTimeout");
+        throw new SQLException("not support setLoginTimeout");
     }
 
     @Override
@@ -55,7 +63,7 @@ public abstract class AbstarctDDRDateSource implements DataSource {
 
     @Override
     public void setLogWriter(PrintWriter pw) throws SQLException {
-        throw new UnsupportedOperationException("setLogWriter");
+        throw new SQLException("not support setLogWriter");
     }
 
     @Override
@@ -80,19 +88,19 @@ public abstract class AbstarctDDRDateSource implements DataSource {
 
     @Override
     public Connection getConnection() throws SQLException {
-        return new InnerConnection(getDataSource().getConnection());
+        return new ConnectionWrapper(getDataSource().getConnection());
     }
 
     @Override
     public Connection getConnection(String username, String password) throws SQLException {
-        return new InnerConnection(getDataSource().getConnection());
+        return new ConnectionWrapper(getDataSource().getConnection());
     }
 
-    private class InnerConnection implements Connection {
+    private class ConnectionWrapper implements Connection {
 
         private Connection connection;
 
-        public InnerConnection(Connection connection) {
+        public ConnectionWrapper(Connection connection) {
             this.connection = connection;
         }
 
@@ -103,29 +111,17 @@ public abstract class AbstarctDDRDateSource implements DataSource {
 
         @Override
         public PreparedStatement prepareStatement(String sql) throws SQLException {
-            String targetSql = replaceSql(sql);
-            if (logger.isInfoEnabled()) {
-                logger.info("source sql:" + sql + " convert to:" + targetSql);
-            }
-            return connection.prepareStatement(targetSql);
+            return connection.prepareStatement(sql);
         }
 
         @Override
         public CallableStatement prepareCall(String sql) throws SQLException {
-            String targetSql = replaceSql(sql);
-            if (logger.isInfoEnabled()) {
-                logger.info("source sql:" + sql + " convert to:" + targetSql);
-            }
-            return connection.prepareCall(targetSql);
+            return connection.prepareCall(sql);
         }
 
         @Override
         public String nativeSQL(String sql) throws SQLException {
-            String targetSql = replaceSql(sql);
-            if (logger.isInfoEnabled()) {
-                logger.info("source sql:" + sql + " convert to:" + targetSql);
-            }
-            return connection.nativeSQL(targetSql);
+            return connection.nativeSQL(sql);
         }
 
         @Override
@@ -211,20 +207,12 @@ public abstract class AbstarctDDRDateSource implements DataSource {
         @Override
         public PreparedStatement prepareStatement(String sql, int resultSetType, int resultSetConcurrency)
                                                                                                           throws SQLException {
-            String targetSql = replaceSql(sql);
-            if (logger.isInfoEnabled()) {
-                logger.info("source sql:" + sql + " convert to:" + targetSql);
-            }
-            return connection.prepareStatement(targetSql, resultSetType, resultSetConcurrency);
+            return connection.prepareStatement(sql, resultSetType, resultSetConcurrency);
         }
 
         @Override
         public CallableStatement prepareCall(String sql, int resultSetType, int resultSetConcurrency)
                                                                                                      throws SQLException {
-            String targetSql = replaceSql(sql);
-            if (logger.isInfoEnabled()) {
-                logger.info("source sql:" + sql + " convert to:" + targetSql);
-            }
             return connection.prepareCall(sql, resultSetType, resultSetConcurrency);
         }
 
@@ -260,7 +248,7 @@ public abstract class AbstarctDDRDateSource implements DataSource {
 
         @Override
         public void rollback(Savepoint savepoint) throws SQLException {
-
+            connection.rollback(savepoint);
         }
 
         @Override
@@ -277,48 +265,28 @@ public abstract class AbstarctDDRDateSource implements DataSource {
         @Override
         public PreparedStatement prepareStatement(String sql, int resultSetType, int resultSetConcurrency,
                                                   int resultSetHoldability) throws SQLException {
-            String targetSql = replaceSql(sql);
-            if (logger.isInfoEnabled()) {
-                logger.info("source sql:" + sql + " convert to:" + targetSql);
-            }
-            return connection.prepareStatement(targetSql, resultSetType, resultSetConcurrency, resultSetHoldability);
+            return connection.prepareStatement(sql, resultSetType, resultSetConcurrency, resultSetHoldability);
         }
 
         @Override
         public CallableStatement prepareCall(String sql, int resultSetType, int resultSetConcurrency,
                                              int resultSetHoldability) throws SQLException {
-            String targetSql = replaceSql(sql);
-            if (logger.isInfoEnabled()) {
-                logger.info("source sql:" + sql + " convert to:" + targetSql);
-            }
-            return connection.prepareCall(targetSql, resultSetType, resultSetConcurrency, resultSetHoldability);
+            return connection.prepareCall(sql, resultSetType, resultSetConcurrency, resultSetHoldability);
         }
 
         @Override
         public PreparedStatement prepareStatement(String sql, int autoGeneratedKeys) throws SQLException {
-            String targetSql = replaceSql(sql);
-            if (logger.isInfoEnabled()) {
-                logger.info("source sql:" + sql + " convert to:" + targetSql);
-            }
-            return connection.prepareStatement(targetSql, autoGeneratedKeys);
+            return connection.prepareStatement(sql, autoGeneratedKeys);
         }
 
         @Override
         public PreparedStatement prepareStatement(String sql, int[] columnIndexes) throws SQLException {
-            String targetSql = replaceSql(sql);
-            if (logger.isInfoEnabled()) {
-                logger.info("source sql:" + sql + " convert to:" + targetSql);
-            }
-            return connection.prepareStatement(targetSql, columnIndexes);
+            return connection.prepareStatement(sql, columnIndexes);
         }
 
         @Override
         public PreparedStatement prepareStatement(String sql, String[] columnNames) throws SQLException {
-            String targetSql = replaceSql(sql);
-            if (logger.isInfoEnabled()) {
-                logger.info("source sql:" + sql + " convert to:" + targetSql);
-            }
-            return connection.prepareStatement(targetSql, columnNames);
+            return connection.prepareStatement(sql, columnNames);
         }
 
         @Override
@@ -411,5 +379,8 @@ public abstract class AbstarctDDRDateSource implements DataSource {
             return connection.isWrapperFor(iface);
         }
     }
+
+
+
 
 }
