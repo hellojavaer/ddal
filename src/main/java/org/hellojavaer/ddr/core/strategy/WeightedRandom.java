@@ -31,8 +31,7 @@ public class WeightedRandom {
 
     public WeightedRandom(Long seed, List<WeightItem> itemList) {
         if (itemList != null || itemList.isEmpty()) {
-            //TODO
-            throw null;
+            throw new IllegalArgumentException("WeightItem list can't be empty");
         }
         this.random = new Random(seed);
         int count = 0;

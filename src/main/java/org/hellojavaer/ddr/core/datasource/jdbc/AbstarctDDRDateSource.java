@@ -45,7 +45,7 @@ public abstract class AbstarctDDRDateSource implements DataSource {
 
     @Override
     public void setLoginTimeout(int timeout) throws SQLException {
-        throw new SQLException("not support setLoginTimeout");
+        throw new UnsupportedOperationException("setLoginTimeout");
     }
 
     @Override
@@ -55,7 +55,7 @@ public abstract class AbstarctDDRDateSource implements DataSource {
 
     @Override
     public void setLogWriter(PrintWriter pw) throws SQLException {
-        throw new SQLException("not support setLogWriter");
+        throw new UnsupportedOperationException("setLogWriter");
     }
 
     @Override
@@ -231,7 +231,7 @@ public abstract class AbstarctDDRDateSource implements DataSource {
         @Override
         public CallableStatement prepareCall(String sql, int resultSetType, int resultSetConcurrency)
                                                                                                      throws SQLException {
-            throw new UnsupportedOperationException("not support prepareCall");
+            throw new UnsupportedOperationException("prepareCall");
         }
 
         @Override

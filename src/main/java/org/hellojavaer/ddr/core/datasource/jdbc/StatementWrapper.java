@@ -715,7 +715,7 @@ abstract class StatementWrapper implements PreparedStatement {
             for (int i = 1; i < paramContexts.size(); i++) {
                 ParamContext context = paramContexts.get(i);
                 if (!context.getJdbcParams().isEmpty()) {
-                    throw new UnsupportedOperationException("not support addBatch now");// TODO
+                    throw new UnsupportedOperationException("addBatch");// TODO
                 } else {
                     for (InvokeRecord record : context.getInvokeRecords()) {
                         String batchSql = record.getAddBatchSql();
