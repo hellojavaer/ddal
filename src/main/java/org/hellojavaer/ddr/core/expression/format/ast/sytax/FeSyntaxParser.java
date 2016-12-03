@@ -60,14 +60,27 @@ public class FeSyntaxParser {
     }
 
     private static void assert0(FeToken curToken, FeTokenType... expTypes) {
-        if (curToken == null) {
-            throw new IllegalStateException("");
-        }
-        for (FeTokenType type : expTypes) {
-            if (curToken.getType() == type) {
-                return;
+        if (curToken != null) {
+            for (FeTokenType type : expTypes) {
+                if (curToken.getType() == type) {
+                    return;
+                }
             }
         }
-        throw new IllegalStateException("");
+        StringBuilder sb = new StringBuilder();
+        sb.append("expect type:[");
+        for (FeTokenType type : expTypes) {
+            sb.append(type.toString());
+            sb.append(",");
+        }
+        sb.deleteCharAt(sb.length() - 1);
+        sb.append("] ,but current token ");
+        if (curToken == null) {
+            sb.append("null.");
+        } else {
+            sb.append("type is ");
+            sb.append(curToken.getType().toString());
+        }
+        throw new IllegalArgumentException(sb.toString());
     }
 }
