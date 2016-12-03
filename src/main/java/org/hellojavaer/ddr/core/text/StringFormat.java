@@ -21,7 +21,7 @@ package org.hellojavaer.ddr.core.text;
  */
 public class StringFormat {
 
-    private String pattern;
+    private String  pattern;
 
     private String  repeatString = "0";
     private boolean append       = false;
@@ -85,7 +85,7 @@ public class StringFormat {
 
     public void init() {
         if (pattern.charAt(0) != '%') {
-            throw new IllegalStateException("string pattern must be start with %");
+            throw new IllegalArgumentException("string pattern must be start with %. source pattern is '" + pattern + "'");
         }
         int s = 1;
         if (pattern.charAt(1) == '-') {
@@ -102,12 +102,14 @@ public class StringFormat {
                 if (ch >= '0' && ch <= '9') {
                     this.length = (ch - '0') + length * 10;
                 } else {
-                    throw new IllegalStateException("StringFormat pattern expect digit after %");
+                    throw new IllegalArgumentException("expect digit after '%' at index " + i + ".source pattern is '"
+                                                    + pattern + "'");
                 }
             }
         }
         if (s == i) {
-            throw new IllegalStateException("StringFormat pattern expect digit after %");
+            throw new IllegalArgumentException("expect digit after % at index " + i + ". source pattern is '" + pattern
+                                            + "'");
         }
         if (ch == '.') {
             i++;
@@ -125,12 +127,13 @@ public class StringFormat {
                     sb.append(pattern.charAt(i));
                     continue;
                 } else {
-                    throw new IllegalStateException("unexpected character '" + ch + "'");
+                    throw new IllegalArgumentException("unexpected character '" + ch + "' at index " + i
+                                                    + ". source pattern is '" + pattern + "'");
                 }
             }
             if (sb.length() == 0) {
-                //TODO
-                throw null;// 没前进
+                throw new IllegalArgumentException("expected at last one character after '.' at index " + i
+                                                + ". source pattern is '" + pattern + "'");
             }
             repeatString = sb.toString();
         }
@@ -139,7 +142,7 @@ public class StringFormat {
         } else if (ch == 'S') {
             force = true;
         } else {
-            throw new IllegalStateException("unexpected end string '" + ch + "'");
+            throw new IllegalArgumentException("unexpected end string '" + ch + "'. source pattern is '" + pattern + "'");
         }
     }
 }

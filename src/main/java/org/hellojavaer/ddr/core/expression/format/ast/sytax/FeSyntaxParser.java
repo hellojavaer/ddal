@@ -27,7 +27,7 @@ import java.util.List;
  *
  * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 18/11/2016.
  */
-public class FeSytaxParser {
+public class FeSyntaxParser {
 
     public static CompoundExpression parse(String str) {
         CompoundExpression compoundExpression = new CompoundExpression();
@@ -61,15 +61,13 @@ public class FeSytaxParser {
 
     private static void assert0(FeToken curToken, FeTokenType... expTypes) {
         if (curToken == null) {
-            // TODO
-            throw null;
+            throw new IllegalStateException("");
         }
         for (FeTokenType type : expTypes) {
             if (curToken.getType() == type) {
                 return;
             }
         }
-        // TODO
-        throw null;
+        throw new IllegalStateException("");
     }
 }
