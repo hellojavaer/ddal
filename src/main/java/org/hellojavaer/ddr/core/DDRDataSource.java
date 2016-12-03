@@ -15,9 +15,12 @@
  */
 package org.hellojavaer.ddr.core;
 
-import org.hellojavaer.ddr.core.datasource.*;
+import org.hellojavaer.ddr.core.datasource.DataSourceManager;
+import org.hellojavaer.ddr.core.datasource.DataSourceManagerParam;
+import org.hellojavaer.ddr.core.datasource.DistributedTransactionLevel;
+import org.hellojavaer.ddr.core.datasource.SingleDataSourceManager;
 import org.hellojavaer.ddr.core.datasource.jdbc.AbstarctDDRDateSource;
-import org.hellojavaer.ddr.core.sharding.ShardingRouteParser;
+import org.hellojavaer.ddr.core.sharding.ShardingParser;
 
 import javax.sql.DataSource;
 import java.lang.reflect.Method;
@@ -30,7 +33,7 @@ import java.util.Map;
 public class DDRDataSource extends AbstarctDDRDateSource {
 
     private DataSourceManager           dataSourceManager;
-    private ShardingRouteParser         shardingRouteParser;
+    private ShardingParser              shardingParser;
     private DistributedTransactionLevel distributedTransactionLevel;
 
     public DataSourceManager getDataSourceManager() {
@@ -41,12 +44,12 @@ public class DDRDataSource extends AbstarctDDRDateSource {
         this.dataSourceManager = dataSourceManager;
     }
 
-    public ShardingRouteParser getShardingRouteParser() {
-        return shardingRouteParser;
+    public ShardingParser getShardingParser() {
+        return shardingParser;
     }
 
-    public void setShardingRouteParser(ShardingRouteParser shardingRouteParser) {
-        this.shardingRouteParser = shardingRouteParser;
+    public void setShardingParser(ShardingParser shardingParser) {
+        this.shardingParser = shardingParser;
     }
 
     public DistributedTransactionLevel getDistributedTransactionLevel() {
@@ -58,7 +61,7 @@ public class DDRDataSource extends AbstarctDDRDateSource {
     }
 
     public String replaceSql(String sql, Map<Integer, Object> jdbcParam) {
-        String tarSql = shardingRouteParser.parse(sql, jdbcParam);
+        String tarSql = shardingParser.parse(sql, jdbcParam);
         return tarSql;
     }
 

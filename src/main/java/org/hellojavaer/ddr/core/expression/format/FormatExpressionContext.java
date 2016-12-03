@@ -13,32 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddr.core.datasource;
-
-import java.util.Set;
+package org.hellojavaer.ddr.core.expression.format;
 
 /**
  *
- * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 19/11/2016.
+ * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 15/11/2016.
  */
-public class DataSourceManagerParam {
+public interface FormatExpressionContext {
 
-    private Set<String> scNames;
-    private boolean     readOnly;
+    void setVariable(String name, Object value);
 
-    public Set<String> getScNames() {
-        return scNames;
-    }
+    Object getVariable(String name);
 
-    public void setScNames(Set<String> scNames) {
-        this.scNames = scNames;
-    }
-
-    public boolean isReadOnly() {
-        return readOnly;
-    }
-
-    public void setReadOnly(boolean readOnly) {
-        this.readOnly = readOnly;
-    }
 }

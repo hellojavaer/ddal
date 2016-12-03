@@ -25,7 +25,7 @@ public interface DistributedTransactionLevel {
 
     boolean isLimitSameRuleForSchema();
 
-    boolean isLimitSameLogicalNameForSchame();
+    boolean isLimitSameLogicalNameForSchema();
 
     boolean isLimitSameRuleForTable();
 

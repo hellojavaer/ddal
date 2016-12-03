@@ -13,32 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddr.core.datasource;
-
-import java.util.Set;
+package org.hellojavaer.ddr.core.expression.range;
 
 /**
  *
- * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 19/11/2016.
+ * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 29/11/2016.
  */
-public class DataSourceManagerParam {
+public interface RangeItemVisitor {
 
-    private Set<String> scNames;
-    private boolean     readOnly;
-
-    public Set<String> getScNames() {
-        return scNames;
-    }
-
-    public void setScNames(Set<String> scNames) {
-        this.scNames = scNames;
-    }
-
-    public boolean isReadOnly() {
-        return readOnly;
-    }
-
-    public void setReadOnly(boolean readOnly) {
-        this.readOnly = readOnly;
-    }
+    void visit(String val);
 }

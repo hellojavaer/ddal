@@ -13,32 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddr.core.datasource;
+package org.hellojavaer.ddr.core.expression.format.ast.sytax;
 
-import java.util.Set;
+import org.hellojavaer.ddr.core.expression.format.FormatExpressionContext;
 
 /**
  *
- * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 19/11/2016.
+ * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 17/11/2016.
  */
-public class DataSourceManagerParam {
+public class FeNumber extends FeNodeImpl {
 
-    private Set<String> scNames;
-    private boolean     readOnly;
+    private Object data;
 
-    public Set<String> getScNames() {
-        return scNames;
+    public FeNumber(Object data) {
+        this.data = data;
     }
 
-    public void setScNames(Set<String> scNames) {
-        this.scNames = scNames;
-    }
-
-    public boolean isReadOnly() {
-        return readOnly;
-    }
-
-    public void setReadOnly(boolean readOnly) {
-        this.readOnly = readOnly;
+    @Override
+    public String getValue(FormatExpressionContext context) {
+        if (data == null) {
+            return "";
+        } else {
+            return data.toString();
+        }
     }
 }

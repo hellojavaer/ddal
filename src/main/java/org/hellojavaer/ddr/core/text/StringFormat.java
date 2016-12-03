@@ -33,7 +33,7 @@ public class StringFormat {
         init();
     }
 
-    public String formt(String str) {
+    public String format(String str) {
         int x = length - str.length();
         if (!force) {
             if (length > 0) {
@@ -129,6 +129,7 @@ public class StringFormat {
                 }
             }
             if (sb.length() == 0) {
+                //TODO
                 throw null;// 没前进
             }
             repeatString = sb.toString();

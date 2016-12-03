@@ -13,32 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddr.core.datasource;
+package org.hellojavaer.ddr.core.expression.format.ast.sytax;
 
-import java.util.Set;
+import org.hellojavaer.ddr.core.expression.format.ast.token.FeToken;
+import org.hellojavaer.ddr.core.expression.format.ast.token.FeTokenType;
 
 /**
  *
- * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 19/11/2016.
+ * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 18/11/2016.
  */
-public class DataSourceManagerParam {
+public class FeSytaxAssert {
 
-    private Set<String> scNames;
-    private boolean     readOnly;
+    public static void isTrue(FeToken curToken, FeTokenType... expTypes) {
 
-    public Set<String> getScNames() {
-        return scNames;
-    }
-
-    public void setScNames(Set<String> scNames) {
-        this.scNames = scNames;
-    }
-
-    public boolean isReadOnly() {
-        return readOnly;
-    }
-
-    public void setReadOnly(boolean readOnly) {
-        this.readOnly = readOnly;
     }
 }

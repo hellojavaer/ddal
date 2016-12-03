@@ -13,32 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddr.core.datasource;
-
-import java.util.Set;
+package org.hellojavaer.ddr.core.strategy;
 
 /**
  *
- * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 19/11/2016.
+ * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 23/11/2016.
  */
-public class DataSourceManagerParam {
+public class WeightItem {
 
-    private Set<String> scNames;
-    private boolean     readOnly;
+    private int    weight;
+    private Object value;
 
-    public Set<String> getScNames() {
-        return scNames;
+    public int getWeight() {
+        return weight;
     }
 
-    public void setScNames(Set<String> scNames) {
-        this.scNames = scNames;
+    public void setWeight(int weight) {
+        this.weight = weight;
     }
 
-    public boolean isReadOnly() {
-        return readOnly;
+    public Object getValue() {
+        return value;
     }
 
-    public void setReadOnly(boolean readOnly) {
-        this.readOnly = readOnly;
+    public void setValue(Object value) {
+        this.value = value;
     }
 }

@@ -36,9 +36,6 @@ public abstract class AbstarctDDRDateSource implements DataSource {
 
     protected abstract String replaceSql(String sql, Map<Integer, Object> jdbcParam);
 
-    
-
-
     protected abstract DataSource getDataSource();
 
     @Override

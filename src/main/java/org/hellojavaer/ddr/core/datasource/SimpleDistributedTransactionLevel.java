@@ -3,7 +3,7 @@
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * You may obtain schemaLevel copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -15,16 +15,26 @@
  */
 package org.hellojavaer.ddr.core.datasource;
 
+import org.hellojavaer.ddr.core.utils.StringUtils;
+
 /**
  *
- * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 19/11/2016.
+ * @author <schemaLevel href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</schemaLevel>,created on 19/11/2016.
  */
 public class SimpleDistributedTransactionLevel implements DistributedTransactionLevel {
 
-    private String level;
+    private byte schemaLevel;
+    private byte tableLevel;
 
     public SimpleDistributedTransactionLevel(String level) {
-        this.level = level;
+        level = StringUtils.trim(level);
+        if (level == null || level.length() != 2 || level.charAt(0) < '0' || level.charAt(0) > '9'
+            || level.charAt(1) < '0' || level.charAt(1) > '9') {
+            throw new IllegalArgumentException("level['" + level + "'] must be a string with tow digit");
+        } else {
+            this.schemaLevel = (byte) (level.charAt(0) - '0');
+            this.tableLevel = (byte) (level.charAt(1) - '0');
+        }
     }
 
     @Override
@@ -34,21 +44,21 @@ public class SimpleDistributedTransactionLevel implements DistributedTransaction
 
     @Override
     public boolean isLimitSameRuleForSchema() {
-        return false;
+        return (schemaLevel & 2) == 0;
     }
 
     @Override
-    public boolean isLimitSameLogicalNameForSchame() {
-        return false;
+    public boolean isLimitSameLogicalNameForSchema() {
+        return (schemaLevel & 1) == 0;
     }
 
     @Override
     public boolean isLimitSameRuleForTable() {
-        return false;
+        return (tableLevel & 2) == 0;
     }
 
     @Override
     public boolean isLimitSameLogicalNameForTable() {
-        return false;
+        return (tableLevel & 1) == 0;
     }
 }

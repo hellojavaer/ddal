@@ -33,22 +33,22 @@ public interface ShardingRouter {
 
     }
 
-    void beginExecution(ShardingRouterContext context);
+    void beginExecution(ShardingRouteParamContext context);
 
-    void endExecution(ShardingRouterContext context);
+    void endExecution(ShardingRouteParamContext context);
 
-    void beginStatement(ShardingRouterContext context, int sqlStatementType);
+    void beginStatement(ShardingRouteParamContext context, int sqlStatementType);
 
-    void endStatement(ShardingRouterContext context);
+    void endStatement(ShardingRouteParamContext context);
 
-    void beginSubSelect(ShardingRouterContext context);
+    void beginSubSelect(ShardingRouteParamContext context);
 
-    void endSubSelect(ShardingRouterContext context);
+    void endSubSelect(ShardingRouteParamContext context);
 
-    boolean isRoute(ShardingRouterContext context, String scName, String tbName);
+    boolean isRoute(ShardingRouteParamContext context, String scName, String tbName);
 
-    String getRouteColName(ShardingRouterContext context, String scName, String tbName);
+    String getRouteColName(ShardingRouteParamContext context, String scName, String tbName);
 
-    ShardingInfo route(ShardingRouterContext context, String scName, String tbName, Long sdValue);
+    ShardingInfo route(ShardingRouteParamContext context, String scName, String tbName, Long sdValue);
 
 }

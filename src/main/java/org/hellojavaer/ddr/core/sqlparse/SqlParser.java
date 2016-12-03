@@ -13,32 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddr.core.datasource;
+package org.hellojavaer.ddr.core.sqlparse;
 
-import java.util.Set;
+import org.hellojavaer.ddr.core.sharding.ShardingRouter;
+
+import java.util.Map;
 
 /**
  *
- * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 19/11/2016.
+ * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 30/11/2016.
  */
-public class DataSourceManagerParam {
+public interface SqlParser {
 
-    private Set<String> scNames;
-    private boolean     readOnly;
+    String parse(String sql, Map<Integer, Object> jdbcParams, ShardingRouter shardingRouter);
 
-    public Set<String> getScNames() {
-        return scNames;
-    }
-
-    public void setScNames(Set<String> scNames) {
-        this.scNames = scNames;
-    }
-
-    public boolean isReadOnly() {
-        return readOnly;
-    }
-
-    public void setReadOnly(boolean readOnly) {
-        this.readOnly = readOnly;
-    }
 }

@@ -279,7 +279,7 @@ abstract class StatementWrapper implements PreparedStatement {
     @Override
     public void clearParameters() throws SQLException {
         this.getCurParamContext().getJdbcParams().clear();
-        this.paramContexts.clear();
+        this.getCurParamContext().getInvokeRecords();
     }
 
     @Override
@@ -666,6 +666,7 @@ abstract class StatementWrapper implements PreparedStatement {
     @Override
     public void clearBatch() throws SQLException {
         this.paramContexts.clear();
+        this.pushNewParamConext();
     }
 
     @Override

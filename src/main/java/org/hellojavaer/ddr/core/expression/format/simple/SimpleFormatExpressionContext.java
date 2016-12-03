@@ -13,32 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddr.core.datasource;
+package org.hellojavaer.ddr.core.expression.format.simple;
 
+import org.hellojavaer.ddr.core.expression.format.FormatExpressionContext;
+
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 /**
  *
- * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 19/11/2016.
+ * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 15/11/2016.
  */
-public class DataSourceManagerParam {
+public class SimpleFormatExpressionContext implements FormatExpressionContext {
 
-    private Set<String> scNames;
-    private boolean     readOnly;
+    private Map<String, Object> map = new HashMap<String, Object>();
 
-    public Set<String> getScNames() {
-        return scNames;
+    public void setVariable(String name, Object value) {
+        map.put(name, value);
     }
 
-    public void setScNames(Set<String> scNames) {
-        this.scNames = scNames;
+    public Object getVariable(String name) {
+        return map.get(name);
     }
 
-    public boolean isReadOnly() {
-        return readOnly;
-    }
-
-    public void setReadOnly(boolean readOnly) {
-        this.readOnly = readOnly;
+    public Set<Map.Entry<String, Object>> entrySet() {
+        return map.entrySet();
     }
 }
