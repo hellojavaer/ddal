@@ -15,15 +15,11 @@
  */
 package org.hellojavaer.ddr.core;
 
-import org.hellojavaer.ddr.core.datasource.DataSourceManager;
-import org.hellojavaer.ddr.core.datasource.DataSourceManagerParam;
-import org.hellojavaer.ddr.core.datasource.DistributedTransactionLevel;
-import org.hellojavaer.ddr.core.datasource.SingleDataSourceManager;
+import org.hellojavaer.ddr.core.datasource.*;
 import org.hellojavaer.ddr.core.datasource.jdbc.AbstarctDDRDateSource;
 import org.hellojavaer.ddr.core.sharding.ShardingParser;
 
 import javax.sql.DataSource;
-import java.lang.reflect.Method;
 import java.util.Map;
 
 /**
@@ -35,6 +31,7 @@ public class DDRDataSource extends AbstarctDDRDateSource {
     private DataSourceManager           dataSourceManager;
     private ShardingParser              shardingParser;
     private DistributedTransactionLevel distributedTransactionLevel;
+    private TransactionManagerAdapter   transactionManagerAdapter;
 
     public DataSourceManager getDataSourceManager() {
         return dataSourceManager;
@@ -60,6 +57,14 @@ public class DDRDataSource extends AbstarctDDRDateSource {
         this.distributedTransactionLevel = distributedTransactionLevel;
     }
 
+    public TransactionManagerAdapter getTransactionManagerAdapter() {
+        return transactionManagerAdapter;
+    }
+
+    public void setTransactionManagerAdapter(TransactionManagerAdapter transactionManagerAdapter) {
+        this.transactionManagerAdapter = transactionManagerAdapter;
+    }
+
     public String replaceSql(String sql, Map<Integer, Object> jdbcParam) {
         String tarSql = shardingParser.parse(sql, jdbcParam);
         return tarSql;
@@ -67,46 +72,17 @@ public class DDRDataSource extends AbstarctDDRDateSource {
 
     @Override
     protected DataSource getDataSource() {
+        if (transactionManagerAdapter != null) {
+            transactionManagerAdapter.adapt();
+        }
         DataSourceManagerParam param = new DataSourceManagerParam();
         if (dataSourceManager instanceof SingleDataSourceManager) {
             param.setReadOnly(false);
         } else {
-            param.setReadOnly(isReadOnly());// FIXME
+            boolean readOnly = TransactionManager.isReadOnly();
+            param.setReadOnly(readOnly);
         }
         return dataSourceManager.getDataSource(param);
-    }
-
-    private boolean isReadOnly() {
-        try {
-            Boolean readOnly = (Boolean) getTransactionSynchronizationManagerMethod().invoke(null, null);
-            return readOnly;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    // spring
-    private Method isCurrentTransactionReadOnly = null;
-
-    private Method getTransactionSynchronizationManagerMethod() {
-        if (isCurrentTransactionReadOnly == null) {
-            synchronized (this) {
-                if (isCurrentTransactionReadOnly == null) {
-                    Method method = null;
-                    try {
-                        Class clazz = Class.forName("org.springframework.transaction.support.TransactionSynchronizationManager");
-                        if (clazz == null) {
-                            throw new IllegalStateException("masterSlaveDataSourceManager dependency on spring TransactionSynchronizationManager");
-                        }
-                        method = clazz.getMethod("isCurrentTransactionReadOnly");
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
-                    isCurrentTransactionReadOnly = method;
-                }
-            }
-        }
-        return isCurrentTransactionReadOnly;
     }
 
 }
