@@ -76,12 +76,8 @@ public class DDRDataSource extends AbstarctDDRDateSource {
             transactionManagerAdapter.adapt();
         }
         DataSourceManagerParam param = new DataSourceManagerParam();
-        if (dataSourceManager instanceof SingleDataSourceManager) {
-            param.setReadOnly(false);
-        } else {
-            boolean readOnly = TransactionManager.isReadOnly();
-            param.setReadOnly(readOnly);
-        }
+        boolean readOnly = TransactionManager.isReadOnly();
+        param.setReadOnly(readOnly);
         return dataSourceManager.getDataSource(param);
     }
 

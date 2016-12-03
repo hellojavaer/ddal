@@ -15,7 +15,6 @@
  */
 package org.hellojavaer.ddr.core.sqlparse.jsql;
 
-import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.*;
 import net.sf.jsqlparser.expression.operators.relational.*;
 import net.sf.jsqlparser.parser.CCJSqlParser;
@@ -54,56 +53,48 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
         this.sql = sql;
         this.jdbcParam = jdbcParam;
         this.shardingRouter = shardingRouter;
+        CCJSqlParser parser = new CCJSqlParser(new StringReader(sql));
         try {
-            CCJSqlParser parser = new CCJSqlParser(new StringReader(sql));
-            try {
-                statement = parser.Statement();
-            } catch (Exception ex) {
-                throw new JSQLParserException(ex);
-            }
-        } catch (JSQLParserException e) {
+            this.statement = parser.Statement();
+        } catch (Exception e) {
             throw new DDRException(e);
         }
-    }
-
-    public String parse() {
-        if (statement instanceof Select) {
-            parse((Select) statement);
-        } else if (statement instanceof Update) {
-            parse((Update) statement);
-        } else if (statement instanceof Insert) {
-            parse((Insert) statement);
-        } else if (statement instanceof Delete) {
-            parse((Delete) statement);
+        if (statement instanceof Select //
+            || statement instanceof Update//
+            || statement instanceof Insert//
+            || statement instanceof Delete) {
+            // ok
         } else {
             throw new DDRException("sql[" + sql
                                    + "] is not supported. Only support select, insert, update or delete statement");
         }
-        return statement.toString();
+    }
 
+    public String parse() {
+        try {
+            ConverterContext converterContext = new ConverterContext();
+            context.set(converterContext);
+            statement.accept(this);
+            return statement.toString();
+        } finally {
+            context.remove();
+        }
     }
 
     private void after() {
         StackContext context = this.getContext().getStack().pop();
-        for (Map.Entry<String, TableWapper> entry : context.entrySet()) {
-            TableWapper tableWapper = entry.getValue();
+        for (Map.Entry<String, TableWrapper> entry : context.entrySet()) {
+            TableWrapper tableWrapper = entry.getValue();
             if (!entry.getValue().isConverted()) {
                 ShardingInfo info = this.shardingRouter.route(this.getContext().getTableRouterContext(),
-                                                              tableWapper.getScName(), tableWapper.getTbName(), null);
-                tableWapper.getTable().setSchemaName(info.getScName());
-                tableWapper.getTable().setName(info.getTbName());
-                tableWapper.setConverted(true);
+                                                              tableWrapper.getScName(), tableWrapper.getTbName(), null);
+                tableWrapper.getTable().setSchemaName(info.getScName());
+                tableWrapper.getTable().setName(info.getTbName());
+                tableWrapper.setConverted(true);
             }
         }
     }
 
-    @Override
-    public void visit(JdbcParameter jdbcParameter) {
-        // jdbcParameter.setIndex(jdbcParameterIndex);//DEBUG
-        // jdbcParameterIndex++;
-    }
-
-    // === 一级语句
     @Override
     public void visit(Insert insert) {
         this.getContext().getStack().push(new StackContext());
@@ -116,10 +107,10 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
                 List<Expression> valueList = expressionList.getExpressions();
                 for (int i = 0; i < columns.size(); i++) {
                     Column column = columns.get(i);
-                    TableWapper tableWapper = getTableFromContext(column);
-                    if (tableWapper != null) {
+                    TableWrapper tableWrapper = getTableFromContext(column);
+                    if (tableWrapper != null) {
                         Expression expression = valueList.get(i);
-                        routeTable(tableWapper, expression);
+                        routeTable(tableWrapper, column, expression);
                     }
                 }
             }
@@ -152,10 +143,10 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
                     int count = -1;
                     for (Column col : columns) {
                         count++;
-                        TableWapper tableWapper = getTableFromContext(col);
-                        if (tableWapper != null) {
+                        TableWrapper tableWrapper = getTableFromContext(col);
+                        if (tableWrapper != null) {
                             List<Expression> expressions = update.getExpressions();
-                            routeTable(tableWapper, expressions.get(count));
+                            routeTable(tableWrapper, col, expressions.get(count));
                         }
                     }
                 }
@@ -171,31 +162,28 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
         after();
     }
 
-    // ===
     @Override
     public void visit(SubSelect subSelect) {
         this.getContext().getStack().push(new StackContext());
         subSelect.getSelectBody().accept(this);
         StackContext context = this.getContext().getStack().pop();
-        for (Map.Entry<String, TableWapper> entry : context.entrySet()) {
-            TableWapper tableWapper = entry.getValue();
+        for (Map.Entry<String, TableWrapper> entry : context.entrySet()) {
+            TableWrapper tableWrapper = entry.getValue();
             if (!entry.getValue().isConverted()) {
                 ShardingInfo info = shardingRouter.route(this.getContext().getTableRouterContext(),
-                                                         tableWapper.getScName(), tableWapper.getTbName(), null);
-                tableWapper.getTable().setSchemaName(info.getScName());
-                tableWapper.getTable().setName(info.getTbName());
-                tableWapper.setConverted(true);
+                                                         tableWrapper.getScName(), tableWrapper.getTbName(), null);
+                tableWrapper.getTable().setSchemaName(info.getScName());
+                tableWrapper.getTable().setName(info.getTbName());
+                tableWrapper.setConverted(true);
             }
         }
-        // super.visit(subSelect);////TOCHECK
     }
 
-    // not supprot == begin==
     @Override
     public void visit(IsNullExpression isNullExpression) {
         if (getTableFromContext((Column) isNullExpression.getLeftExpression()) != null) {
-            throw new DDRException("IsNullExpression for sharding colum[" + ""
-                                   + "] is not supproted, only support '=', 'in' and 'between and' operation");
+            throw new DDRException("sharding expression '" + isNullExpression.toString() + "' in sql[" + sql
+                                   + "] is not supported, only support '=', 'in' and 'between and' operation");
         }
         super.visit(isNullExpression);
     }
@@ -203,8 +191,8 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
     @Override
     public void visit(GreaterThan greaterThan) {
         if (getTableFromContext((Column) greaterThan.getLeftExpression()) != null) {
-            // TODO
-            throw null;
+            throw new DDRException("sharding expression '" + greaterThan.toString() + "' in sql[" + sql
+                                   + "] is not supported, only support '=', 'in' and 'between and' operation");
         }
         super.visit(greaterThan);
     }
@@ -212,8 +200,8 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
     @Override
     public void visit(GreaterThanEquals greaterThanEquals) {
         if (getTableFromContext((Column) greaterThanEquals.getLeftExpression()) != null) {
-            // TODO
-            throw null;
+            throw new DDRException("sharding expression '" + greaterThanEquals.toString() + "' in sql[" + sql
+                                   + "] is not supported, only support '=', 'in' and 'between and' operation");
         }
         super.visit(greaterThanEquals);
     }
@@ -221,8 +209,8 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
     @Override
     public void visit(MinorThan minorThan) {
         if (getTableFromContext((Column) minorThan.getLeftExpression()) != null) {
-            // TODO
-            throw null;
+            throw new DDRException("sharding expression '" + minorThan.toString() + "' in sql[" + sql
+                                   + "] is not supported, only support '=', 'in' and 'between and' operation");
         }
         super.visit(minorThan);
     }
@@ -230,8 +218,8 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
     @Override
     public void visit(MinorThanEquals minorThanEquals) {
         if (getTableFromContext((Column) minorThanEquals.getLeftExpression()) != null) {
-            // TODO
-            throw null;
+            throw new DDRException("sharding expression '" + minorThanEquals.toString() + "' in sql[" + sql
+                                   + "] is not supported, only support '=', 'in' and 'between and' operation");
         }
         super.visit(minorThanEquals);
     }
@@ -239,8 +227,8 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
     @Override
     public void visit(NotEqualsTo notEqualsTo) {
         if (getTableFromContext((Column) notEqualsTo.getLeftExpression()) != null) {
-            // TODO
-            throw null;
+            throw new DDRException("sharding expression '" + notEqualsTo.toString() + "' in sql[" + sql
+                                   + "] is not supported, only support '=', 'in' and 'between and' operation");
         }
         super.visit(notEqualsTo);
     }
@@ -248,14 +236,13 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
     @Override
     public void visit(LikeExpression likeExpression) {
         if (getTableFromContext((Column) likeExpression.getLeftExpression()) != null) {
-            // TODO
-            throw null;
+            throw new DDRException("sharding expression '" + likeExpression.toString() + "' in sql[" + sql
+                                   + "] is not supported, only support '=', 'in' and 'between and' operation");
         }
         super.visit(likeExpression);
     }
 
-    // not supprot == end ==
-    private TableWapper getTableFromContext(Column col) {
+    private TableWrapper getTableFromContext(Column col) {
         ConverterContext converterContext = this.getContext();
         StackContext stackContext = converterContext.getStack().peek();
         String colFullName = col.toString();
@@ -289,24 +276,24 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
             sb.append('.');
             sb.append(columnName.trim().toLowerCase());
             String key = sb.toString();
-            TableWapper tableWapper = new TableWapper(table);
-            putIntoContext(stackContext, key, tableWapper);
-            putIntoContext(stackContext, key.substring(table.getSchemaName().length() + 1), tableWapper);
+            TableWrapper tableWrapper = new TableWrapper(table);
+            putIntoContext(stackContext, key, tableWrapper);
+            putIntoContext(stackContext, key.substring(table.getSchemaName().length() + 1), tableWrapper);
             putIntoContext(stackContext, key.substring(table.getSchemaName().length() + 2 + tbAliasName.length()),
-                           tableWapper);
+                           tableWrapper);
         } else {
             StringBuilder sb = new StringBuilder();
             sb.append(tbAliasName.trim().toLowerCase());
             sb.append('.');
             sb.append(columnName.trim().toLowerCase());
             String key = sb.toString();
-            TableWapper tableWapper = new TableWapper(table);
-            putIntoContext(stackContext, key, tableWapper);
-            putIntoContext(stackContext, key.substring(tbAliasName.length() + 1), tableWapper);
+            TableWrapper tableWrapper = new TableWrapper(table);
+            putIntoContext(stackContext, key, tableWrapper);
+            putIntoContext(stackContext, key.substring(tbAliasName.length() + 1), tableWrapper);
         }
     }
 
-    private Long getLongValue(Expression obj) {
+    private Long getLongValue(Column column, Expression obj) {
         if (obj == null) {
             return null;
         }
@@ -336,28 +323,30 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
                     } else if (val instanceof String) {
                         return Long.valueOf((String) val);
                     } else {
-                        // TODO
-                        throw null;
+                        throw new DDRException("jdbc parameter type '" + val.getClass()
+                                               + "' is not supported for sharding column '" + column.toString()
+                                               + "', source sql is '" + sql + "'");
                     }
                 }
             }
         } else {
-            // TODO
-            throw null;
+            throw new DDRException("sharding column value type '" + obj.getClass()
+                                   + "' is not supported for sharding column '" + column.toString()
+                                   + "', source sql is '" + sql + "'");
         }
     }
 
-    // support
     @Override
     public void visit(InExpression inExpression) {
-        TableWapper tableWapper = getTableFromContext((Column) inExpression.getLeftExpression());
-        if (tableWapper == null) {
+        Column column = (Column) inExpression.getLeftExpression();
+        TableWrapper tableWrapper = getTableFromContext(column);
+        if (tableWrapper == null) {
             super.visit(inExpression);
             return;
         }
         if (inExpression.isNot()) {
-            throw new DDRException("sharding cloumn['" + inExpression.getLeftExpression()
-                                   + "'] not support not operation");
+            throw new DDRException("sharding expression '" + inExpression.toString()
+                                   + "' is not supported for it contains 'not', source sql is '" + sql + "'");
         }
         // 普通in模式
         ItemsList itemsList0 = inExpression.getRightItemsList();
@@ -365,11 +354,11 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
             ExpressionList itemsList = (ExpressionList) itemsList0;
             List<Expression> list = itemsList.getExpressions();
             if (list == null || list.isEmpty()) {
-                throw new DDRException("sharding cloumn['" + inExpression.getLeftExpression()
-                                       + "'] in operation must have more than one items");
+                throw new DDRException("sharding expression '" + inExpression.toString()
+                                       + "' is not supported for in-expression is empty. source sql is '" + sql + "'");
             }
             for (Expression exp : list) {
-                routeTable(tableWapper, exp);
+                routeTable(tableWrapper, column, exp);
             }
         } else {
             throw new DDRException("");
@@ -378,20 +367,22 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
 
     @Override
     public void visit(Between between) {
-        TableWapper tableWapper = getTableFromContext((Column) between.getLeftExpression());
-        if (tableWapper == null) {
+        Column column = (Column) between.getLeftExpression();
+        TableWrapper tableWrapper = getTableFromContext(column);
+        if (tableWrapper == null) {
             super.visit(between);
             return;
         }
         if (between.isNot()) {
-            throw new DDRException("sharding cloumn['" + between.getLeftExpression() + "'] not support not operation");
+            throw new DDRException("sharding expression '" + between.toString()
+                                   + "' is not supported for it contains 'not'. source sql is '" + sql + "'");
         }
         Expression begin = between.getBetweenExpressionStart();
         Expression end = between.getBetweenExpressionEnd();
-        long s = getLongValue(begin);
-        long e = getLongValue(end);
+        long s = getLongValue(column, begin);
+        long e = getLongValue(column, end);
         for (long s0 = s; s0 <= e; s0++) {
-            routeTable(tableWapper, s0);
+            routeTable(tableWrapper, column, s0);
         }
     }
 
@@ -399,38 +390,45 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
     public void visit(EqualsTo equalsTo) {
         Column column = (Column) equalsTo.getLeftExpression();
         String fullColumnName = column.toString();
-        TableWapper tableWapper = (TableWapper) this.getContext().getStack().peek().get(fullColumnName.trim().toLowerCase());
-        if (tableWapper == null) {// 不需要要路由的表
+        TableWrapper tableWrapper = this.getContext().getStack().peek().get(fullColumnName.trim().toLowerCase());
+        if (tableWrapper == null) {// 不需要路由的table
             super.visit(equalsTo);
             return;
         } else {
-            routeTable(tableWapper, equalsTo.getRightExpression());
+            routeTable(tableWrapper, column, equalsTo.getRightExpression());
         }
     }
 
-    private void routeTable(TableWapper tableWapper, Expression routeValueExpression) {
-        Long val = getLongValue(routeValueExpression);//
-        routeTable(tableWapper, val);
+    private void routeTable(TableWrapper tableWrapper, Column column, Expression routeValueExpression) {
+        Long val = getLongValue(column, routeValueExpression);//
+        routeTable(tableWrapper, column, val);
     }
 
-    private void routeTable(TableWapper tableWapper, Long val) {
-        if (tableWapper == null) {//
+    private void routeTable(TableWrapper tableWrapper, Column column, Long val) {
+        if (tableWrapper == null) {//
             return;
         }
-        if (tableWapper == AMBIGUOUS_TABLE) {
-            throw new RuntimeException("Column '" + null + "' in where clause is ambiguous");
+        if (tableWrapper == AMBIGUOUS_TABLE) {
+            throw new RuntimeException("sharding column '" + column.toString()
+                                       + "' in where clause is ambiguous. source sql is '" + sql + "'");
         }
-        ShardingInfo info = shardingRouter.route(this.getContext().getTableRouterContext(), tableWapper.getScName(),
-                                                 tableWapper.getTbName(), val);
-        if (tableWapper.isConverted()) {
-            if (!equalsIgnoreCase(info.getScName(), tableWapper.getTable().getSchemaName())
-                || !equalsIgnoreCase(info.getTbName(), tableWapper.getTable().getName())) {
-                throw new RuntimeException("多重路由");// 多重路由
+        ShardingInfo info = shardingRouter.route(this.getContext().getTableRouterContext(), tableWrapper.getScName(),
+                                                 tableWrapper.getTbName(), val);
+        if (tableWrapper.isConverted()) {// 多重路由
+            if (!equalsIgnoreCase(info.getScName(), tableWrapper.getTable().getSchemaName())
+                || !equalsIgnoreCase(info.getTbName(), tableWrapper.getTable().getName())) {
+                throw new RuntimeException(
+                                           "sharding column '"
+                                                   + column.toString()
+                                                   + "' has multiple values to route table name , but route result is conflict, conflict detail is [scName:"
+                                                   + info.getScName() + ",tbName:" + info.getTbName() + "]<->[scName:"
+                                                   + tableWrapper.getScName() + "," + tableWrapper.getTbName()
+                                                   + "] , source sql is '" + sql + "'");
             }
         } else {
-            tableWapper.getTable().setSchemaName(info.getScName());
-            tableWapper.getTable().setName(info.getTbName());
-            tableWapper.setConverted(true);
+            tableWrapper.getTable().setSchemaName(info.getScName());
+            tableWrapper.getTable().setName(info.getTbName());
+            tableWrapper.setConverted(true);
         }
     }
 
@@ -454,37 +452,37 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
         putTableToContext(table);
     }
 
-    private void putIntoContext(StackContext stackContext, String key, TableWapper tableWapper) {
-        TableWapper tableWapper0 = (TableWapper) stackContext.get(key);
-        if (tableWapper0 == null) {
-            stackContext.put(key, tableWapper);
+    private void putIntoContext(StackContext stackContext, String key, TableWrapper tableWrapper) {
+        TableWrapper tableWrapper0 = stackContext.get(key);
+        if (tableWrapper0 == null) {
+            stackContext.put(key, tableWrapper);
         } else {
             stackContext.put(key, AMBIGUOUS_TABLE);
         }
     }
 
-    private static final TableWapper             AMBIGUOUS_TABLE = new TableWapper(null, true);
+    private static final TableWrapper            AMBIGUOUS_TABLE = new TableWrapper(null, true);
 
     private static ThreadLocal<ConverterContext> context         = new ThreadLocal<ConverterContext>();
 
-    private class StackContext extends HashMap<String, TableWapper> {
+    private class StackContext extends HashMap<String, TableWrapper> {
     }
 
-    private static class TableWapper {
+    private static class TableWrapper {
 
         private boolean converted;
         private String  scName;
         private String  tbName;
         private Table   table;
 
-        public TableWapper(Table table) {
+        public TableWrapper(Table table) {
             this.converted = false;
             this.table = table;
             this.scName = table.getSchemaName();
             this.tbName = table.getName();
         }
 
-        public TableWapper(Table table, boolean converted) {
+        public TableWrapper(Table table, boolean converted) {
             this.converted = converted;
             this.table = table;
         }
@@ -546,46 +544,6 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
 
         public ShardingRouteParamContext getTableRouterContext() {
             return tableRouterContext;
-        }
-    }
-
-    private void parse(Insert insert) {
-        try {
-            ConverterContext converterContext = new ConverterContext();
-            context.set(converterContext);
-            insert.accept(this);
-        } finally {
-            context.remove();
-        }
-    }
-
-    private void parse(Delete delete) {
-        try {
-            ConverterContext converterContext = new ConverterContext();
-            context.set(converterContext);
-            delete.accept(this);
-        } finally {
-            context.remove();
-        }
-    }
-
-    private void parse(Update update) {
-        try {
-            ConverterContext converterContext = new ConverterContext();
-            context.set(converterContext);
-            update.accept(this);
-        } finally {
-            context.remove();
-        }
-    }
-
-    private void parse(Select select) {
-        try {
-            ConverterContext converterContext = new ConverterContext();
-            context.set(converterContext);
-            select.accept(this);
-        } finally {
-            context.remove();
         }
     }
 
