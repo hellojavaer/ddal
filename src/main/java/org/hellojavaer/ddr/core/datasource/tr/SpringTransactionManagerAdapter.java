@@ -79,10 +79,10 @@ public class SpringTransactionManagerAdapter implements TransactionManagerAdapte
                         if (clazz == null) {
                             throw new ClassNotFoundException("org.springframework.transaction.support.TransactionSynchronizationManager");
                         } else {
-                            method = clazz.getMethod("getIsolationLevel");
+                            method = clazz.getMethod("getCurrentTransactionIsolationLevel");
                         }
                         if (method == null) {
-                            throw new NoSuchMethodException("org.springframework.transaction.support.TransactionSynchronizationManager#getIsolationLevel");
+                            throw new NoSuchMethodException("org.springframework.transaction.support.TransactionSynchronizationManager#getCurrentTransactionIsolationLevel");
                         }
                     } catch (Exception e) {
                         throw new RuntimeException(e);
