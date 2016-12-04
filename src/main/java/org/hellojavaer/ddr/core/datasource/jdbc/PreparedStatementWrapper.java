@@ -56,6 +56,7 @@ public abstract class PreparedStatementWrapper implements PreparedStatement {
 
     private void pushNewExecutionContext() {
         ExecutionContext newContext = new ExecutionContext();
+        newContext.setInvokeRecords(new ArrayList<InvokeRecord>());
         executionContexts.add(newContext);
     }
 
