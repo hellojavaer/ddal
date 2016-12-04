@@ -39,9 +39,13 @@ public class ShardingRouteHelper {
     }
 
     private static String buildQueryKey(String scName, String tbName) {
-        return new StringBuilder().append(StringUtils.trim(scName).toLowerCase())//
-        .append('.')//
-        .append(StringUtils.trim(tbName).toLowerCase())//
-        .toString();//
+        StringBuilder sb = new StringBuilder();
+        scName = StringUtils.trim(scName);
+        if (scName != null) {
+            sb.append(scName.toLowerCase());
+        }
+        sb.append('.');
+        sb.append(StringUtils.trim(tbName).toLowerCase());
+        return sb.toString();
     }
 }
