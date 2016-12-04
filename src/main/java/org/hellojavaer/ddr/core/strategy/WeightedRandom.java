@@ -15,7 +15,6 @@
  */
 package org.hellojavaer.ddr.core.strategy;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
@@ -30,7 +29,7 @@ public class WeightedRandom {
     private InnerWeightItem[] innerWeightItems;
 
     public WeightedRandom(Long seed, List<WeightItem> itemList) {
-        if (itemList != null || itemList.isEmpty()) {
+        if (itemList == null || itemList.isEmpty()) {
             throw new IllegalArgumentException("WeightItem list can't be empty");
         }
         this.random = new Random(seed);
@@ -46,12 +45,14 @@ public class WeightedRandom {
             innerWeightItems[i++] = innerWeightItem;
         }
         allWeight = count;
-        Arrays.binarySearch(itemList.toArray(), new Object());
-
     }
 
     public Object nextValue() {
-        int i = random.nextInt() % allWeight;
+        int i = random.nextInt();
+        if (i < 0) {
+            i *= -1;
+        }
+        i %= allWeight;
         InnerWeightItem innerWeightItem = binarySearch(innerWeightItems, i);
         return innerWeightItem.getValue();
     }

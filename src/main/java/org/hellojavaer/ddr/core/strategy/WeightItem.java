@@ -24,6 +24,14 @@ public class WeightItem {
     private int    weight;
     private Object value;
 
+    public WeightItem() {
+    }
+
+    public WeightItem(int weight, Object value) {
+        this.weight = weight;
+        this.value = value;
+    }
+
     public int getWeight() {
         return weight;
     }
