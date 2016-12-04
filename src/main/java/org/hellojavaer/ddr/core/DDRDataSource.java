@@ -16,7 +16,7 @@
 package org.hellojavaer.ddr.core;
 
 import org.hellojavaer.ddr.core.datasource.*;
-import org.hellojavaer.ddr.core.datasource.jdbc.AbstarctDDRDataSource;
+import org.hellojavaer.ddr.core.datasource.jdbc.AbstractDDRDataSource;
 import org.hellojavaer.ddr.core.sharding.ShardingParser;
 
 import javax.sql.DataSource;
@@ -26,7 +26,7 @@ import java.util.Map;
  *
  * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 05/11/2016.
  */
-public class DDRDataSource extends AbstarctDDRDataSource {
+public class DDRDataSource extends AbstractDDRDataSource {
 
     private DataSourceManager           dataSourceManager;
     private ShardingParser              shardingParser;

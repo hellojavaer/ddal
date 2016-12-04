@@ -29,7 +29,7 @@ import java.util.concurrent.Executor;
  *
  * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 05/11/2016.
  */
-public abstract class AbstarctDDRDataSource implements DataSource {
+public abstract class AbstractDDRDataSource implements DataSource {
 
     protected final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -38,43 +38,39 @@ public abstract class AbstarctDDRDataSource implements DataSource {
     protected abstract DataSource getDataSource();
 
     @Override
-    public java.util.logging.Logger getParentLogger() {
-        return java.util.logging.Logger.getLogger(java.util.logging.Logger.GLOBAL_LOGGER_NAME);
+    public java.util.logging.Logger getParentLogger() throws SQLFeatureNotSupportedException {
+        return getDataSource().getParentLogger();
     }
 
     @Override
     public int getLoginTimeout() throws SQLException {
-        return 0;
+        return getDataSource().getLoginTimeout();
     }
 
     @Override
     public void setLoginTimeout(int timeout) throws SQLException {
-        throw new UnsupportedOperationException("setLoginTimeout");
+        getDataSource().setLoginTimeout(timeout);
     }
 
     @Override
-    public PrintWriter getLogWriter() {
-        throw new UnsupportedOperationException("getLogWriter");
+    public PrintWriter getLogWriter() throws SQLException {
+        return getDataSource().getLogWriter();
     }
 
     @Override
     public void setLogWriter(PrintWriter pw) throws SQLException {
-        throw new UnsupportedOperationException("setLogWriter");
+        getDataSource().setLogWriter(pw);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public <T> T unwrap(Class<T> iface) throws SQLException {
-        if (iface.isInstance(this)) {
-            return (T) this;
-        }
-        throw new SQLException("DataSource of type [" + getClass().getName() + "] cannot be unwrapped as ["
-                               + iface.getName() + "]");
+        return getDataSource().unwrap(iface);
     }
 
     @Override
     public boolean isWrapperFor(Class<?> iface) throws SQLException {
-        return iface.isInstance(this);
+        return getDataSource().isWrapperFor(iface);
     }
 
     @Override
@@ -101,7 +97,7 @@ public abstract class AbstarctDDRDataSource implements DataSource {
 
                 @Override
                 public String replaceSql(String sql, Map<Integer, Object> jdbcParams) {
-                    return AbstarctDDRDataSource.this.replaceSql(sql, jdbcParams);
+                    return AbstractDDRDataSource.this.replaceSql(sql, jdbcParams);
                 }
             };
         }
@@ -113,7 +109,7 @@ public abstract class AbstarctDDRDataSource implements DataSource {
 
                 @Override
                 public String replaceSql(String sql, Map<Integer, Object> jdbcParams) {
-                    return AbstarctDDRDataSource.this.replaceSql(sql, jdbcParams);
+                    return AbstractDDRDataSource.this.replaceSql(sql, jdbcParams);
                 }
             };
         }
@@ -210,7 +206,7 @@ public abstract class AbstarctDDRDataSource implements DataSource {
 
                 @Override
                 public String replaceSql(String sql, Map<Integer, Object> jdbcParams) {
-                    return AbstarctDDRDataSource.this.replaceSql(sql, jdbcParams);
+                    return AbstractDDRDataSource.this.replaceSql(sql, jdbcParams);
                 }
             };
         }
@@ -223,7 +219,7 @@ public abstract class AbstarctDDRDataSource implements DataSource {
 
                 @Override
                 public String replaceSql(String sql, Map<Integer, Object> jdbcParams) {
-                    return AbstarctDDRDataSource.this.replaceSql(sql, jdbcParams);
+                    return AbstractDDRDataSource.this.replaceSql(sql, jdbcParams);
                 }
             };
         }
@@ -283,7 +279,7 @@ public abstract class AbstarctDDRDataSource implements DataSource {
 
                 @Override
                 public String replaceSql(String sql, Map<Integer, Object> jdbcParams) {
-                    return AbstarctDDRDataSource.this.replaceSql(sql, jdbcParams);
+                    return AbstractDDRDataSource.this.replaceSql(sql, jdbcParams);
                 }
             };
         }
@@ -297,7 +293,7 @@ public abstract class AbstarctDDRDataSource implements DataSource {
 
                 @Override
                 public String replaceSql(String sql, Map<Integer, Object> jdbcParams) {
-                    return AbstarctDDRDataSource.this.replaceSql(sql, jdbcParams);
+                    return AbstractDDRDataSource.this.replaceSql(sql, jdbcParams);
                 }
             };
         }
@@ -315,7 +311,7 @@ public abstract class AbstarctDDRDataSource implements DataSource {
 
                 @Override
                 public String replaceSql(String sql, Map<Integer, Object> jdbcParams) {
-                    return AbstarctDDRDataSource.this.replaceSql(sql, jdbcParams);
+                    return AbstractDDRDataSource.this.replaceSql(sql, jdbcParams);
                 }
             };
         }
@@ -327,7 +323,7 @@ public abstract class AbstarctDDRDataSource implements DataSource {
 
                 @Override
                 public String replaceSql(String sql, Map<Integer, Object> jdbcParams) {
-                    return AbstarctDDRDataSource.this.replaceSql(sql, jdbcParams);
+                    return AbstractDDRDataSource.this.replaceSql(sql, jdbcParams);
                 }
             };
         }
@@ -339,7 +335,7 @@ public abstract class AbstarctDDRDataSource implements DataSource {
 
                 @Override
                 public String replaceSql(String sql, Map<Integer, Object> jdbcParams) {
-                    return AbstarctDDRDataSource.this.replaceSql(sql, jdbcParams);
+                    return AbstractDDRDataSource.this.replaceSql(sql, jdbcParams);
                 }
             };
         }
