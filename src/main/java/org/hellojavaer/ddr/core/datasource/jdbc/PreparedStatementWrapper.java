@@ -327,34 +327,28 @@ public abstract class PreparedStatementWrapper implements PreparedStatement {
             // 1. 替换 sql
             String targetSql = replaceSql(sql, this.jdbcParamterForFirstAddBatch);
             if (preparedStatement == null) {
-                synchronized (this) {
-                    if (preparedStatement == null) {
-                        // 2. 创建 preparedStatement
-                        createStatementMethodParams[0] = targetSql;
-                        PreparedStatement preparedStatement = (PreparedStatement) connection.getClass().getMethod("prepareStatement",
-                                                                                                                  createStatementMethodParamTypes).invoke(connection,
-                                                                                                                                                          createStatementMethodParams);
-                        this.preparedStatement = preparedStatement;
+                // 2. 创建 preparedStatement
+                createStatementMethodParams[0] = targetSql;
+                PreparedStatement preparedStatement = (PreparedStatement) connection.getClass().getMethod("prepareStatement",
+                                                                                                          createStatementMethodParamTypes).invoke(connection,
+                                                                                                                                                  createStatementMethodParams);
+                this.preparedStatement = preparedStatement;
 
-                    }
-                }
             }
 
             // 2.1 回放set 方法调用
-            synchronized (executionContexts) {
-                for (ExecutionContext context : executionContexts) {
-                    if (context.getStatementBatchSql() != null) {
-                        // TODO:校验是否同datasource
-                        this.preparedStatement.addBatch(context.getStatementBatchSql());
-                    } else {
-                        // TODO:校验是否同datasource
-                        for (InvokeRecord invokeRecord : context.getInvokeRecords()) {
-                            this.preparedStatement.getClass().getMethod(invokeRecord.getMethodName(),
-                                                                        invokeRecord.getParamTypes()).invoke(preparedStatement,
-                                                                                                             invokeRecord.getParams());
-                        }
-                        this.preparedStatement.addBatch();
+            for (ExecutionContext context : executionContexts) {
+                if (context.getStatementBatchSql() != null) {
+                    // TODO:校验是否同datasource
+                    this.preparedStatement.addBatch(context.getStatementBatchSql());
+                } else {
+                    // TODO:校验是否同datasource
+                    for (InvokeRecord invokeRecord : context.getInvokeRecords()) {
+                        this.preparedStatement.getClass().getMethod(invokeRecord.getMethodName(),
+                                                                    invokeRecord.getParamTypes()).invoke(preparedStatement,
+                                                                                                         invokeRecord.getParams());
                     }
+                    this.preparedStatement.addBatch();
                 }
             }
             executionContexts.clear();
@@ -445,246 +439,371 @@ public abstract class PreparedStatementWrapper implements PreparedStatement {
     @Override
     public void setObject(int parameterIndex, Object x, int targetSqlType) throws SQLException {
         setJdbcParameter(parameterIndex, x);
-        this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setObject",
-                                                                          new Object[] { parameterIndex, x },
-                                                                          new Class[] { int.class, Object.class,
-                                                                                  int.class }));
+        if (preparedStatement == null) {
+            this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setObject", new Object[] {
+                                                                     parameterIndex, x }, new Class[] { int.class,
+                                                                     Object.class, int.class }));
+        } else {
+            preparedStatement.setObject(parameterIndex, x, targetSqlType);
+        }
     }
 
     @Override
     public void setObject(int parameterIndex, Object x) throws SQLException {
         setJdbcParameter(parameterIndex, x);
-        this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setObject",
-                                                                          new Object[] { parameterIndex, x },
-                                                                          new Class[] { int.class, Object.class }));
+        if (preparedStatement == null) {
+            this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setObject", new Object[] {
+                                                                     parameterIndex, x }, new Class[] { int.class,
+                                                                     Object.class }));
+        } else {
+            preparedStatement.setObject(parameterIndex, x);
+        }
     }
 
     @Override
     public void setCharacterStream(int parameterIndex, Reader reader, int length) throws SQLException {
-        this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setCharacterStream", new Object[] {
-                                                                 parameterIndex, reader, length }, new Class[] {
-                                                                 int.class, Reader.class, int.class }));
+        if (preparedStatement == null) {
+            this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setCharacterStream", new Object[] {
+                                                                     parameterIndex, reader, length }, new Class[] {
+                                                                     int.class, Reader.class, int.class }));
+        } else {
+            preparedStatement.setCharacterStream(parameterIndex, reader, length);
+        }
     }
 
     @Override
     public void setRef(int parameterIndex, Ref x) throws SQLException {
         setJdbcParameter(parameterIndex, x);
-        this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setRef", new Object[] { parameterIndex, x },
-                                                                          new Class[] { int.class, Ref.class }));
+        if (preparedStatement == null) {
+            this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setRef", new Object[] { parameterIndex,
+                                                                     x }, new Class[] { int.class, Ref.class }));
+        } else {
+            preparedStatement.setRef(parameterIndex, x);
+        }
     }
 
     @Override
     public void setBlob(int parameterIndex, Blob x) throws SQLException {
         setJdbcParameter(parameterIndex, x);
-        this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setBlob",
-                                                                          new Object[] { parameterIndex, x },
-                                                                          new Class[] { int.class, Blob.class }));
+        if (preparedStatement == null) {
+            this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setBlob", new Object[] { parameterIndex,
+                                                                     x }, new Class[] { int.class, Blob.class }));
+        } else {
+            preparedStatement.setBlob(parameterIndex, x);
+        }
     }
 
     @Override
     public void setClob(int parameterIndex, Clob x) throws SQLException {
         setJdbcParameter(parameterIndex, x);
-        this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setClob",
-                                                                          new Object[] { parameterIndex, x },
-                                                                          new Class[] { int.class, Clob.class }));
+        if (preparedStatement == null) {
+            this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setClob", new Object[] { parameterIndex,
+                                                                     x }, new Class[] { int.class, Clob.class }));
+        } else {
+            preparedStatement.setClob(parameterIndex, x);
+        }
     }
 
     @Override
     public void setArray(int parameterIndex, Array x) throws SQLException {
         setJdbcParameter(parameterIndex, x);
-        this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setArray",
-                                                                          new Object[] { parameterIndex, x },
-                                                                          new Class[] { int.class, Array.class }));
+        if (preparedStatement == null) {
+            this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setArray", new Object[] {
+                                                                     parameterIndex, x }, new Class[] { int.class,
+                                                                     Array.class }));
+        } else {
+            preparedStatement.setArray(parameterIndex, x);
+        }
     }
 
     @Override
     public void setDate(int parameterIndex, Date x, Calendar cal) throws SQLException {
         setJdbcParameter(parameterIndex, x);
-        this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setDate",
-                                                                          new Object[] { parameterIndex, x },
-                                                                          new Class[] { int.class, Date.class,
-                                                                                  Calendar.class }));
+        if (preparedStatement == null) {
+            this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setDate", new Object[] { parameterIndex,
+                                                                     x }, new Class[] { int.class, Date.class,
+                                                                     Calendar.class }));
+        } else {
+            preparedStatement.setDate(parameterIndex, x, cal);
+        }
     }
 
     @Override
     public void setTime(int parameterIndex, Time x, Calendar cal) throws SQLException {
         setJdbcParameter(parameterIndex, x);
-        this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setTime",
-                                                                          new Object[] { parameterIndex, x },
-                                                                          new Class[] { int.class, Time.class,
-                                                                                  Calendar.class }));
+        if (preparedStatement == null) {
+            this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setTime", new Object[] { parameterIndex,
+                                                                     x }, new Class[] { int.class, Time.class,
+                                                                     Calendar.class }));
+
+        } else {
+            preparedStatement.setTime(parameterIndex, x, cal);
+        }
     }
 
     @Override
     public void setTimestamp(int parameterIndex, Timestamp x, Calendar cal) throws SQLException {
         setJdbcParameter(parameterIndex, x);
-        this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setTimestamp", new Object[] {
-                                                                 parameterIndex, x }, new Class[] { int.class,
-                                                                 Timestamp.class, Calendar.class }));
+        if (preparedStatement == null) {
+            this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setTimestamp", new Object[] {
+                                                                     parameterIndex, x }, new Class[] { int.class,
+                                                                     Timestamp.class, Calendar.class }));
+        } else {
+            preparedStatement.setTimestamp(parameterIndex, x, cal);
+        }
     }
 
     @Override
     public void setNull(int parameterIndex, int sqlType, String typeName) throws SQLException {
         setJdbcParameter(parameterIndex, null);
-        this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setNull", new Object[] { parameterIndex,
-                                                                 sqlType, typeName }, new Class[] { int.class,
-                                                                 int.class, String.class }));
+        if (preparedStatement == null) {
+            this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setNull", new Object[] { parameterIndex,
+                                                                     sqlType, typeName }, new Class[] { int.class,
+                                                                     int.class, String.class }));
+        } else {
+            preparedStatement.setNull(parameterIndex, sqlType, typeName);
+        }
     }
 
     @Override
     public void setURL(int parameterIndex, URL x) throws SQLException {
         setJdbcParameter(parameterIndex, x);
-        this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setURL", new Object[] { parameterIndex, x },
-                                                                          new Class[] { int.class, URL.class }));
+        if (preparedStatement == null) {
+            this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setURL", new Object[] { parameterIndex,
+                                                                     x }, new Class[] { int.class, URL.class }));
+        } else {
+            preparedStatement.setURL(parameterIndex, x);
+        }
     }
 
     @Override
     public void setRowId(int parameterIndex, RowId x) throws SQLException {
         setJdbcParameter(parameterIndex, x);
-        this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setRowId",
-                                                                          new Object[] { parameterIndex, x },
-                                                                          new Class[] { int.class, RowId.class }));
+        if (preparedStatement == null) {
+            this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setRowId", new Object[] {
+                                                                     parameterIndex, x }, new Class[] { int.class,
+                                                                     RowId.class }));
+        } else {
+            preparedStatement.setRowId(parameterIndex, x);
+        }
     }
 
     @Override
     public void setNString(int parameterIndex, String value) throws SQLException {
         setJdbcParameter(parameterIndex, value);
-        this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setNString", new Object[] { parameterIndex,
-                                                                 value }, new Class[] { int.class, String.class }));
+        if (preparedStatement == null) {
+            this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setNString", new Object[] {
+                                                                     parameterIndex, value }, new Class[] { int.class,
+                                                                     String.class }));
+        } else {
+            preparedStatement.setNString(parameterIndex, value);
+        }
     }
 
     @Override
     public void setNCharacterStream(int parameterIndex, Reader value, long length) throws SQLException {
-        this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setNCharacterStream", new Object[] {
-                                                                 parameterIndex, value, length }, new Class[] {
-                                                                 int.class, Reader.class }));
+        if (preparedStatement == null) {
+            this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setNCharacterStream", new Object[] {
+                                                                     parameterIndex, value, length }, new Class[] {
+                                                                     int.class, Reader.class }));
+        } else {
+            preparedStatement.setNCharacterStream(parameterIndex, value, length);
+        }
     }
 
     @Override
     public void setNClob(int parameterIndex, NClob value) throws SQLException {
         setJdbcParameter(parameterIndex, value);
-        this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setNClob", new Object[] { parameterIndex,
-                                                                 value }, new Class[] { int.class, NClob.class }));
+        if (preparedStatement == null) {
+            this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setNClob", new Object[] {
+                                                                     parameterIndex, value }, new Class[] { int.class,
+                                                                     NClob.class }));
+        } else {
+            preparedStatement.setNClob(parameterIndex, value);
+        }
     }
 
     @Override
     public void setClob(int parameterIndex, Reader reader, long length) throws SQLException {
         setJdbcParameter(parameterIndex, length);
-        this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setClob", new Object[] { parameterIndex,
-                                                                 reader, length }, new Class[] { int.class,
-                                                                 Reader.class, long.class }));
+        if (preparedStatement == null) {
+            this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setClob", new Object[] { parameterIndex,
+                                                                     reader, length }, new Class[] { int.class,
+                                                                     Reader.class, long.class }));
+        } else {
+            preparedStatement.setClob(parameterIndex, reader, length);
+        }
     }
 
     @Override
     public void setBlob(int parameterIndex, InputStream inputStream, long length) throws SQLException {
-        this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setBlob", new Object[] { parameterIndex,
-                                                                 inputStream, length }, new Class[] { int.class,
-                                                                 InputStream.class, long.class }));
+        if (preparedStatement == null) {
+            this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setBlob", new Object[] { parameterIndex,
+                                                                     inputStream, length }, new Class[] { int.class,
+                                                                     InputStream.class, long.class }));
+        } else {
+            preparedStatement.setBlob(parameterIndex, inputStream, length);
+        }
     }
 
     @Override
     public void setNClob(int parameterIndex, Reader reader, long length) throws SQLException {
-        this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setNClob", new Object[] { parameterIndex,
-                                                                 reader, length }, new Class[] { int.class,
-                                                                 Reader.class, long.class }));
+        if (preparedStatement == null) {
+            this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setNClob", new Object[] {
+                                                                     parameterIndex, reader, length }, new Class[] {
+                                                                     int.class, Reader.class, long.class }));
+        } else {
+            preparedStatement.setNClob(parameterIndex, reader, length);
+        }
     }
 
     @Override
     public void setSQLXML(int parameterIndex, SQLXML xmlObject) throws SQLException {
-        this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setSQLXML", new Object[] { parameterIndex,
-                                                                 xmlObject }, new Class[] { int.class, SQLXML.class }));
+        if (preparedStatement == null) {
+            this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setSQLXML", new Object[] {
+                                                                     parameterIndex, xmlObject }, new Class[] {
+                                                                     int.class, SQLXML.class }));
+        } else {
+            preparedStatement.setSQLXML(parameterIndex, xmlObject);
+        }
     }
 
     @Override
     public void setObject(int parameterIndex, Object x, int targetSqlType, int scaleOrLength) throws SQLException {
         setJdbcParameter(parameterIndex, x);
-        this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setObject", new Object[] { parameterIndex,
-                                                                 x, targetSqlType, scaleOrLength }, new Class[] {
-                                                                 int.class, Object.class, int.class, int.class }));
+        if (preparedStatement == null) {
+            this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setObject", new Object[] {
+                                                                     parameterIndex, x, targetSqlType, scaleOrLength },
+                                                                              new Class[] { int.class, Object.class,
+                                                                                      int.class, int.class }));
+        } else {
+            preparedStatement.setObject(parameterIndex, x, targetSqlType, scaleOrLength);
+        }
     }
 
     @Override
     public void setAsciiStream(int parameterIndex, InputStream x, long length) throws SQLException {
-
-        this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setAsciiStream", new Object[] {
-                                                                 parameterIndex, x, length }, new Class[] { int.class,
-                                                                 InputStream.class, long.class }));
+        if (preparedStatement == null) {
+            this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setAsciiStream", new Object[] {
+                                                                     parameterIndex, x, length }, new Class[] {
+                                                                     int.class, InputStream.class, long.class }));
+        } else {
+            preparedStatement.setAsciiStream(parameterIndex, x, length);
+        }
     }
 
     @Override
     public void setBinaryStream(int parameterIndex, InputStream x, long length) throws SQLException {
-        this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setBinaryStream", new Object[] {
-                                                                 parameterIndex, x, length }, new Class[] { int.class,
-                                                                 InputStream.class, long.class }));
+        if (preparedStatement == null) {
+            this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setBinaryStream", new Object[] {
+                                                                     parameterIndex, x, length }, new Class[] {
+                                                                     int.class, InputStream.class, long.class }));
+        } else {
+            preparedStatement.setBinaryStream(parameterIndex, x, length);
+        }
     }
 
     @Override
     public void setCharacterStream(int parameterIndex, Reader reader, long length) throws SQLException {
-        this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setCharacterStream", new Object[] {
-                                                                 parameterIndex, reader, length }, new Class[] {
-                                                                 int.class, Reader.class, long.class }));
+        if (preparedStatement == null) {
+            this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setCharacterStream", new Object[] {
+                                                                     parameterIndex, reader, length }, new Class[] {
+                                                                     int.class, Reader.class, long.class }));
+        } else {
+            preparedStatement.setCharacterStream(parameterIndex, reader, length);
+        }
     }
 
     @Override
     public void setAsciiStream(int parameterIndex, InputStream x) throws SQLException {
-        this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setAsciiStream", new Object[] {
-                                                                 parameterIndex, x }, new Class[] { int.class,
-                                                                 InputStream.class }));
+        if (preparedStatement == null) {
+            this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setAsciiStream", new Object[] {
+                                                                     parameterIndex, x }, new Class[] { int.class,
+                                                                     InputStream.class }));
+        } else {
+            preparedStatement.setAsciiStream(parameterIndex, x);
+        }
     }
 
     @Override
     public void setBinaryStream(int parameterIndex, InputStream x) throws SQLException {
-        this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setBinaryStream", new Object[] {
-                                                                 parameterIndex, x }, new Class[] { int.class,
-                                                                 InputStream.class }));
+        if (preparedStatement == null) {
+            this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setBinaryStream", new Object[] {
+                                                                     parameterIndex, x }, new Class[] { int.class,
+                                                                     InputStream.class }));
+        } else {
+            preparedStatement.setBinaryStream(parameterIndex, x);
+        }
     }
 
     @Override
     public void setCharacterStream(int parameterIndex, Reader reader) throws SQLException {
-        this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setCharacterStream", new Object[] {
-                                                                 parameterIndex, reader }, new Class[] { int.class,
-                                                                 Reader.class }));
+        if (preparedStatement == null) {
+            this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setCharacterStream", new Object[] {
+                                                                     parameterIndex, reader }, new Class[] { int.class,
+                                                                     Reader.class }));
+        } else {
+            preparedStatement.setCharacterStream(parameterIndex, reader);
+        }
     }
 
     @Override
     public void setNCharacterStream(int parameterIndex, Reader value) throws SQLException {
-        this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setNCharacterStream", new Object[] {
-                                                                 parameterIndex, value }, new Class[] { int.class,
-                                                                 Reader.class }));
+        if (preparedStatement == null) {
+            this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setNCharacterStream", new Object[] {
+                                                                     parameterIndex, value }, new Class[] { int.class,
+                                                                     Reader.class }));
+        } else {
+            preparedStatement.setNCharacterStream(parameterIndex, value);
+        }
     }
 
     @Override
     public void setClob(int parameterIndex, Reader reader) throws SQLException {
-        this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setClob", new Object[] { parameterIndex,
-                                                                 reader }, new Class[] { int.class, Reader.class }));
+        if (preparedStatement == null) {
+            this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setClob", new Object[] { parameterIndex,
+                                                                     reader }, new Class[] { int.class, Reader.class }));
+        } else {
+            preparedStatement.setClob(parameterIndex, reader);
+        }
     }
 
     @Override
     public void setBlob(int parameterIndex, InputStream inputStream) throws SQLException {
-        this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setBlob", new Object[] { parameterIndex,
-                                                                 inputStream }, new Class[] { int.class,
-                                                                 InputStream.class }));
+        if (preparedStatement == null) {
+            this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setBlob", new Object[] { parameterIndex,
+                                                                     inputStream }, new Class[] { int.class,
+                                                                     InputStream.class }));
+        } else {
+            preparedStatement.setBlob(parameterIndex, inputStream);
+        }
     }
 
     @Override
     public void setNClob(int parameterIndex, Reader reader) throws SQLException {
-        this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setNClob", new Object[] { parameterIndex,
-                                                                 reader }, new Class[] { int.class, Reader.class }));
+        if (preparedStatement == null) {
+            this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setNClob", new Object[] {
+                                                                     parameterIndex, reader }, new Class[] { int.class,
+                                                                     Reader.class }));
+        } else {
+            preparedStatement.setNClob(parameterIndex, reader);
+        }
     }
 
     @Override
     public void setQueryTimeout(int seconds) throws SQLException {
-        this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setQueryTimeout", new Object[] { seconds },
-                                                                          new Class[] { int.class }));
+        if (preparedStatement == null) {
+            this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setQueryTimeout",
+                                                                              new Object[] { seconds },
+                                                                              new Class[] { int.class }));
+        } else {
+            preparedStatement.setQueryTimeout(seconds);
+        }
     }
 
     private void setJdbcParameter(int index, Object val) {
         if (preparedStatement == null) {
-            synchronized (this) {
-                if (preparedStatement == null) {
-                    this.jdbcParamterForFirstAddBatch.put(index, val);
-                }
-            }
+            this.jdbcParamterForFirstAddBatch.put(index, val);
         }
         this.jdbcParameter.put(index, val);
     }
@@ -692,130 +811,204 @@ public abstract class PreparedStatementWrapper implements PreparedStatement {
     @Override
     public void setNull(int parameterIndex, int sqlType) throws SQLException {
         setJdbcParameter(parameterIndex, sqlType);
-        this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setNull", new Object[] { parameterIndex,
-                                                                 sqlType }, new Class[] { int.class, int.class }));
+        if (preparedStatement == null) {
+            this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setNull", new Object[] { parameterIndex,
+                                                                     sqlType }, new Class[] { int.class, int.class }));
+        } else {
+            preparedStatement.setNull(parameterIndex, sqlType);
+        }
     }
 
     @Override
     public void setBoolean(int parameterIndex, boolean x) throws SQLException {
         setJdbcParameter(parameterIndex, x);
-        this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setBoolean", new Object[] { parameterIndex,
-                                                                 x }, new Class[] { int.class, boolean.class }));
+        if (preparedStatement == null) {
+            this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setBoolean", new Object[] {
+                                                                     parameterIndex, x }, new Class[] { int.class,
+                                                                     boolean.class }));
+        } else {
+            preparedStatement.setBoolean(parameterIndex, x);
+        }
     }
 
     @Override
     public void setByte(int parameterIndex, byte x) throws SQLException {
         setJdbcParameter(parameterIndex, x);
-        this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setByte",
-                                                                          new Object[] { parameterIndex, x },
-                                                                          new Class[] { int.class, byte.class }));
+        if (preparedStatement == null) {
+            this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setByte", new Object[] { parameterIndex,
+                                                                     x }, new Class[] { int.class, byte.class }));
+        } else {
+            preparedStatement.setByte(parameterIndex, x);
+        }
     }
 
     @Override
     public void setShort(int parameterIndex, short x) throws SQLException {
         setJdbcParameter(parameterIndex, x);
-        this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setShort",
-                                                                          new Object[] { parameterIndex, x },
-                                                                          new Class[] { int.class, short.class }));
+        if (preparedStatement == null) {
+            this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setShort", new Object[] {
+                                                                     parameterIndex, x }, new Class[] { int.class,
+                                                                     short.class }));
+        } else {
+            preparedStatement.setShort(parameterIndex, x);
+        }
     }
 
     @Override
     public void setInt(int parameterIndex, int x) throws SQLException {
         setJdbcParameter(parameterIndex, x);
-        this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setInt", new Object[] { parameterIndex, x },
-                                                                          new Class[] { int.class, int.class }));
+        if (preparedStatement == null) {
+            this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setInt", new Object[] { parameterIndex,
+                                                                     x }, new Class[] { int.class, int.class }));
+        } else {
+            preparedStatement.setInt(parameterIndex, x);
+        }
     }
 
     @Override
     public void setLong(int parameterIndex, long x) throws SQLException {
         setJdbcParameter(parameterIndex, x);
-        this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setLong",
-                                                                          new Object[] { parameterIndex, x },
-                                                                          new Class[] { int.class, long.class }));
+        if (preparedStatement == null) {
+            this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setLong", new Object[] { parameterIndex,
+                                                                     x }, new Class[] { int.class, long.class }));
+        } else {
+            preparedStatement.setLong(parameterIndex, x);
+        }
     }
 
     @Override
     public void setFloat(int parameterIndex, float x) throws SQLException {
         setJdbcParameter(parameterIndex, x);
-        this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setFloat",
-                                                                          new Object[] { parameterIndex, x },
-                                                                          new Class[] { int.class, float.class }));
+        if (preparedStatement == null) {
+
+            this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setFloat", new Object[] {
+                                                                     parameterIndex, x }, new Class[] { int.class,
+                                                                     float.class }));
+        } else {
+            preparedStatement.setFloat(parameterIndex, x);
+        }
+
     }
 
     @Override
     public void setDouble(int parameterIndex, double x) throws SQLException {
         setJdbcParameter(parameterIndex, x);
-        this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setDouble",
-                                                                          new Object[] { parameterIndex, x },
-                                                                          new Class[] { int.class, double.class }));
+        if (preparedStatement == null) {
+            this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setDouble", new Object[] {
+                                                                     parameterIndex, x }, new Class[] { int.class,
+                                                                     double.class }));
+        } else {
+            preparedStatement.setDouble(parameterIndex, x);
+        }
     }
 
     @Override
     public void setBigDecimal(int parameterIndex, BigDecimal x) throws SQLException {
         setJdbcParameter(parameterIndex, x);
-        this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setBigDecimal", new Object[] {
-                                                                 parameterIndex, x }, new Class[] { int.class,
-                                                                 BigDecimal.class }));
+        if (preparedStatement == null) {
+            this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setBigDecimal", new Object[] {
+                                                                     parameterIndex, x }, new Class[] { int.class,
+                                                                     BigDecimal.class }));
+        } else {
+            preparedStatement.setBigDecimal(parameterIndex, x);
+        }
+
     }
 
     @Override
     public void setString(int parameterIndex, String x) throws SQLException {
         setJdbcParameter(parameterIndex, x);
-        this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setString",
-                                                                          new Object[] { parameterIndex, x },
-                                                                          new Class[] { int.class, String.class }));
+        setJdbcParameter(parameterIndex, x);
+        if (preparedStatement == null) {
+            this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setString", new Object[] {
+                                                                     parameterIndex, x }, new Class[] { int.class,
+                                                                     String.class }));
+        } else {
+            preparedStatement.setString(parameterIndex, x);
+        }
     }
 
     @Override
     public void setBytes(int parameterIndex, byte[] x) throws SQLException {
         setJdbcParameter(parameterIndex, x);
-        this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setBytes",
-                                                                          new Object[] { parameterIndex, x },
-                                                                          new Class[] { int.class, byte[].class }));
+        setJdbcParameter(parameterIndex, x);
+        if (preparedStatement == null) {
+            this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setBytes", new Object[] {
+                                                                     parameterIndex, x }, new Class[] { int.class,
+                                                                     byte[].class }));
+        } else {
+            preparedStatement.setBytes(parameterIndex, x);
+        }
     }
 
     @Override
     public void setDate(int parameterIndex, Date x) throws SQLException {
         setJdbcParameter(parameterIndex, x);
-        this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setDate",
-                                                                          new Object[] { parameterIndex, x },
-                                                                          new Class[] { int.class, Date.class }));
+        setJdbcParameter(parameterIndex, x);
+        if (preparedStatement == null) {
+            this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setDate", new Object[] { parameterIndex,
+                                                                     x }, new Class[] { int.class, Date.class }));
+        } else {
+            preparedStatement.setDate(parameterIndex, x);
+        }
     }
 
     @Override
     public void setTime(int parameterIndex, Time x) throws SQLException {
         setJdbcParameter(parameterIndex, x);
-        this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setTime",
-                                                                          new Object[] { parameterIndex, x },
-                                                                          new Class[] { int.class, Time.class }));
+        setJdbcParameter(parameterIndex, x);
+        if (preparedStatement == null) {
+            this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setTime", new Object[] { parameterIndex,
+                                                                     x }, new Class[] { int.class, Time.class }));
+        } else {
+            preparedStatement.setTime(parameterIndex, x);
+        }
     }
 
     @Override
     public void setTimestamp(int parameterIndex, Timestamp x) throws SQLException {
         setJdbcParameter(parameterIndex, x);
-        this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setTimestamp", new Object[] {
-                                                                 parameterIndex, x }, new Class[] { int.class,
-                                                                 Timestamp.class }));
+        setJdbcParameter(parameterIndex, x);
+        if (preparedStatement == null) {
+            this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setTimestamp", new Object[] {
+                                                                     parameterIndex, x }, new Class[] { int.class,
+                                                                     Timestamp.class }));
+        } else {
+            preparedStatement.setTimestamp(parameterIndex, x);
+        }
     }
 
     @Override
     public void setAsciiStream(int parameterIndex, InputStream x, int length) throws SQLException {
-        this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setAsciiStream", new Object[] {
-                                                                 parameterIndex, x }, new Class[] { int.class,
-                                                                 InputStream.class, int.class }));
+        if (preparedStatement == null) {
+            this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setAsciiStream", new Object[] {
+                                                                     parameterIndex, x }, new Class[] { int.class,
+                                                                     InputStream.class, int.class }));
+        } else {
+            preparedStatement.setAsciiStream(parameterIndex, x, length);
+        }
+
     }
 
     @Override
     public void setUnicodeStream(int parameterIndex, InputStream x, int length) throws SQLException {
-        this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setUnicodeStream", new Object[] {
-                                                                 parameterIndex, x }, new Class[] { int.class,
-                                                                 InputStream.class, int.class }));
+        if (preparedStatement == null) {
+            this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setUnicodeStream", new Object[] {
+                                                                     parameterIndex, x }, new Class[] { int.class,
+                                                                     InputStream.class, int.class }));
+        } else {
+            preparedStatement.setUnicodeStream(parameterIndex, x, length);
+        }
     }
 
     @Override
     public void setBinaryStream(int parameterIndex, InputStream x, int length) throws SQLException {
-        this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setBinaryStream", new Object[] {
-                                                                 parameterIndex, x }, new Class[] { int.class,
-                                                                 InputStream.class, int.class }));
+        if (preparedStatement == null) {
+            this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setBinaryStream", new Object[] {
+                                                                     parameterIndex, x }, new Class[] { int.class,
+                                                                     InputStream.class, int.class }));
+        } else {
+            preparedStatement.setBinaryStream(parameterIndex, x, length);
+        }
     }
 }
