@@ -189,29 +189,138 @@ public abstract class PreparedStatementWrapper implements PreparedStatement {
         this.preparedStatement.close();
     }
 
+    private StatementProperty statementProperty = new StatementProperty();
+
+    private class StatementProperty {
+
+        private int maxFieldSize;
+        private int maxRows;
+        private int fetchDirection;
+        private int fetchSize;
+
+        public int getMaxFieldSize() {
+            return maxFieldSize;
+        }
+
+        public void setMaxFieldSize(int maxFieldSize) {
+            this.maxFieldSize = maxFieldSize;
+        }
+
+        public int getMaxRows() {
+            return maxRows;
+        }
+
+        public void setMaxRows(int maxRows) {
+            this.maxRows = maxRows;
+        }
+
+        public int getFetchDirection() {
+            return fetchDirection;
+        }
+
+        public void setFetchDirection(int fetchDirection) {
+            this.fetchDirection = fetchDirection;
+        }
+
+        public int getFetchSize() {
+            return fetchSize;
+        }
+
+        public void setFetchSize(int fetchSize) {
+            this.fetchSize = fetchSize;
+        }
+    }
+
     @Override
     public int getMaxFieldSize() throws SQLException {
-        return this.preparedStatement.getMaxFieldSize();
+        if (preparedStatement == null) {
+            return statementProperty.getMaxFieldSize();
+        } else {
+            return this.preparedStatement.getMaxFieldSize();
+        }
     }
 
     @Override
     public void setMaxFieldSize(int max) throws SQLException {
-        this.preparedStatement.setMaxFieldSize(max);
+        if (preparedStatement == null) {
+            statementProperty.setMaxFieldSize(max);
+            this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setMaxFieldSize", new Object[] { max },
+                                                                              new Class[] { int.class }));
+        } else {
+            this.preparedStatement.setMaxFieldSize(max);
+        }
     }
 
     @Override
     public int getMaxRows() throws SQLException {
-        return this.preparedStatement.getMaxRows();
+        if (preparedStatement == null) {
+            return statementProperty.getMaxRows();
+        } else {
+            return this.preparedStatement.getMaxRows();
+        }
     }
 
     @Override
     public void setMaxRows(int max) throws SQLException {
-        this.preparedStatement.setMaxRows(max);
+        if (preparedStatement == null) {
+            statementProperty.setMaxRows(max);
+            this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setMaxRows", new Object[] { max },
+                                                                              new Class[] { int.class }));
+        } else {
+            this.preparedStatement.setMaxRows(max);
+        }
+    }
+
+    @Override
+    public void setFetchDirection(int direction) throws SQLException {
+        if (preparedStatement == null) {
+            statementProperty.setFetchDirection(direction);
+            this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setFetchDirection",
+                                                                              new Object[] { direction },
+                                                                              new Class[] { int.class }));
+        } else {
+            this.preparedStatement.setFetchDirection(direction);
+        }
+    }
+
+    @Override
+    public int getFetchDirection() throws SQLException {
+        if (preparedStatement == null) {
+            return statementProperty.getFetchDirection();
+        } else {
+            return this.preparedStatement.getFetchDirection();
+        }
+    }
+
+    @Override
+    public void setFetchSize(int rows) throws SQLException {
+        if (preparedStatement == null) {
+            statementProperty.setFetchSize(rows);
+            this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setFetchSize", new Object[] { rows },
+                                                                              new Class[] { int.class }));
+        } else {
+            this.preparedStatement.setFetchSize(rows);
+        }
+    }
+
+    @Override
+    public int getFetchSize() throws SQLException {
+        if (preparedStatement == null) {
+            return statementProperty.getFetchSize();
+        } else {
+            return this.preparedStatement.getFetchSize();
+        }
     }
 
     @Override
     public void setEscapeProcessing(boolean enable) throws SQLException {
-        this.preparedStatement.setEscapeProcessing(enable);
+        if (preparedStatement == null) {
+            this.getCurParamContext().getInvokeRecords().add(new InvokeRecord("setEscapeProcessing",
+                                                                              new Object[] { enable },
+                                                                              new Class[] { boolean.class }));
+        } else {
+            this.preparedStatement.setEscapeProcessing(enable);
+        }
     }
 
     @Override
@@ -258,26 +367,6 @@ public abstract class PreparedStatementWrapper implements PreparedStatement {
     @Override
     public boolean getMoreResults() throws SQLException {
         return this.preparedStatement.getMoreResults();
-    }
-
-    @Override
-    public void setFetchDirection(int direction) throws SQLException {
-        this.preparedStatement.setFetchDirection(direction);
-    }
-
-    @Override
-    public int getFetchDirection() throws SQLException {
-        return this.preparedStatement.getFetchDirection();
-    }
-
-    @Override
-    public void setFetchSize(int rows) throws SQLException {
-        this.preparedStatement.setFetchSize(rows);
-    }
-
-    @Override
-    public int getFetchSize() throws SQLException {
-        return this.preparedStatement.getFetchSize();
     }
 
     @Override
