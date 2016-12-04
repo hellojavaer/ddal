@@ -15,8 +15,8 @@
  */
 package org.hellojavaer.ddr.core.datasource.jdbc;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
 import java.io.PrintWriter;
@@ -24,7 +24,6 @@ import java.sql.*;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executor;
-import java.util.logging.Logger;
 
 /**
  *
@@ -32,11 +31,16 @@ import java.util.logging.Logger;
  */
 public abstract class AbstarctDDRDateSource implements DataSource {
 
-    protected final Log logger = LogFactory.getLog(getClass());
+    protected final Logger logger = LoggerFactory.getLogger(getClass());
 
     protected abstract String replaceSql(String sql, Map<Integer, Object> jdbcParam);
 
     protected abstract DataSource getDataSource();
+
+    @Override
+    public java.util.logging.Logger getParentLogger() {
+        return java.util.logging.Logger.getLogger(java.util.logging.Logger.GLOBAL_LOGGER_NAME);
+    }
 
     @Override
     public int getLoginTimeout() throws SQLException {
@@ -74,11 +78,6 @@ public abstract class AbstarctDDRDateSource implements DataSource {
     }
 
     @Override
-    public Logger getParentLogger() {
-        return Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
-    }
-
-    @Override
     public Connection getConnection() throws SQLException {
         return new ConnectionWrapper(getDataSource().getConnection());
     }
@@ -98,7 +97,7 @@ public abstract class AbstarctDDRDateSource implements DataSource {
 
         @Override
         public Statement createStatement() throws SQLException {
-            return new StatementWrapper(this.connection, null, "createStatement", new Object[] {}, new Class[]{}) {
+            return new StatementWrapper(this.connection, connection.createStatement()) {
 
                 @Override
                 public String replaceSql(String sql, Map<Integer, Object> jdbcParams) {
@@ -109,7 +108,8 @@ public abstract class AbstarctDDRDateSource implements DataSource {
 
         @Override
         public PreparedStatement prepareStatement(String sql) throws SQLException {
-            return new StatementWrapper(this.connection, sql, "prepareStatement", new Object[] { sql }, new Class[]{String.class}) {
+            return new PreparedStatementWrapper(this, this.connection, sql, new Object[] { sql },
+                                                new Class[] { String.class }) {
 
                 @Override
                 public String replaceSql(String sql, Map<Integer, Object> jdbcParams) {
@@ -120,7 +120,7 @@ public abstract class AbstarctDDRDateSource implements DataSource {
 
         @Override
         public CallableStatement prepareCall(String sql) throws SQLException {
-            throw new UnsupportedOperationException("not support prepareCall");
+            throw new UnsupportedOperationException("prepareCall");
         }
 
         @Override
@@ -205,8 +205,8 @@ public abstract class AbstarctDDRDateSource implements DataSource {
 
         @Override
         public Statement createStatement(int resultSetType, int resultSetConcurrency) throws SQLException {
-            return new StatementWrapper(this.connection, null, "createStatement", new Object[] { resultSetType,
-                    resultSetConcurrency }, new Class[]{int.class, int.class}) {
+            return new StatementWrapper(this.connection, this.connection.createStatement(resultSetType,
+                                                                                         resultSetConcurrency)) {
 
                 @Override
                 public String replaceSql(String sql, Map<Integer, Object> jdbcParams) {
@@ -218,8 +218,8 @@ public abstract class AbstarctDDRDateSource implements DataSource {
         @Override
         public PreparedStatement prepareStatement(String sql, int resultSetType, int resultSetConcurrency)
                                                                                                           throws SQLException {
-            return new StatementWrapper(this.connection, sql, "prepareStatement", new Object[] { sql, resultSetType,
-                    resultSetConcurrency }, new Class[]{String.class, int.class, int.class}) {
+            return new PreparedStatementWrapper(this, this.connection, sql, new Object[] { sql, resultSetType,
+                    resultSetConcurrency }, new Class[] { String.class, int.class, int.class }) {
 
                 @Override
                 public String replaceSql(String sql, Map<Integer, Object> jdbcParams) {
@@ -277,8 +277,9 @@ public abstract class AbstarctDDRDateSource implements DataSource {
         @Override
         public Statement createStatement(int resultSetType, int resultSetConcurrency, int resultSetHoldability)
                                                                                                                throws SQLException {
-            return new StatementWrapper(this.connection, null, "createStatement", new Object[] { resultSetType,
-                    resultSetConcurrency, resultSetHoldability }, new Class[]{int.class,int.class,int.class}) {
+            return new StatementWrapper(this.connection, this.connection.createStatement(resultSetType,
+                                                                                         resultSetConcurrency,
+                                                                                         resultSetHoldability)) {
 
                 @Override
                 public String replaceSql(String sql, Map<Integer, Object> jdbcParams) {
@@ -290,8 +291,9 @@ public abstract class AbstarctDDRDateSource implements DataSource {
         @Override
         public PreparedStatement prepareStatement(String sql, int resultSetType, int resultSetConcurrency,
                                                   int resultSetHoldability) throws SQLException {
-            return new StatementWrapper(this.connection, sql, "prepareStatement", new Object[] { sql, resultSetType,
-                    resultSetConcurrency, resultSetHoldability },new Class[]{String.class, int.class,int.class,int.class}) {
+            return new PreparedStatementWrapper(this, this.connection, sql, new Object[] { sql, resultSetType,
+                    resultSetConcurrency, resultSetHoldability }, new Class[] { String.class, int.class, int.class,
+                    int.class }) {
 
                 @Override
                 public String replaceSql(String sql, Map<Integer, Object> jdbcParams) {
@@ -303,13 +305,13 @@ public abstract class AbstarctDDRDateSource implements DataSource {
         @Override
         public CallableStatement prepareCall(String sql, int resultSetType, int resultSetConcurrency,
                                              int resultSetHoldability) throws SQLException {
-            throw new UnsupportedOperationException("not support prepareCall");
+            throw new UnsupportedOperationException("prepareCall");
         }
 
         @Override
         public PreparedStatement prepareStatement(String sql, int autoGeneratedKeys) throws SQLException {
-            return new StatementWrapper(this.connection, sql, "prepareStatement",
-                                        new Object[] { sql, autoGeneratedKeys },new Class[]{String.class,int.class}) {
+            return new PreparedStatementWrapper(this, this.connection, sql, new Object[] { sql, autoGeneratedKeys },
+                                                new Class[] { String.class, int.class }) {
 
                 @Override
                 public String replaceSql(String sql, Map<Integer, Object> jdbcParams) {
@@ -320,7 +322,8 @@ public abstract class AbstarctDDRDateSource implements DataSource {
 
         @Override
         public PreparedStatement prepareStatement(String sql, int[] columnIndexes) throws SQLException {
-            return new StatementWrapper(this.connection, sql, "prepareStatement", new Object[] { sql, columnIndexes },new Class[]{String.class, int[].class}) {
+            return new PreparedStatementWrapper(this, this.connection, sql, new Object[] { sql, columnIndexes },
+                                                new Class[] { String.class, int[].class }) {
 
                 @Override
                 public String replaceSql(String sql, Map<Integer, Object> jdbcParams) {
@@ -331,7 +334,8 @@ public abstract class AbstarctDDRDateSource implements DataSource {
 
         @Override
         public PreparedStatement prepareStatement(String sql, String[] columnNames) throws SQLException {
-            return new StatementWrapper(this.connection, sql, "prepareStatement", new Object[] { sql, columnNames },new Class[]{String.class, String[].class}) {
+            return new PreparedStatementWrapper(this, this.connection, sql, new Object[] { sql, columnNames },
+                                                new Class[] { String.class, String[].class }) {
 
                 @Override
                 public String replaceSql(String sql, Map<Integer, Object> jdbcParams) {
