@@ -32,11 +32,13 @@ import java.util.*;
  */
 public class ReadWriteDataSourceManager implements DataSourceManager {
 
-    private static final String              DEFAULT_SCHEMA           = "*";
+    private static final String              DEFAULT_SCHEMA                = "*";
+
     private List<WriteOnlyDataSourceBinding> writeOnlyDataSources;
     private List<ReadOnlyDataSourceBinding>  readOnlyDataSources;
-    private Map<String, WeightedRandom>      readOnlyDataSourceCache  = null;
-    private Map<String, DataSource>          writeOnlyDataSourceCache = null;
+
+    private Map<String, WeightedRandom>      readOnlyDataSourceQueryCache  = null;
+    private Map<String, DataSource>          writeOnlyDataSourceQueryCache = null;
 
     public List<WriteOnlyDataSourceBinding> getWriteOnlyDataSources() {
         return writeOnlyDataSources;
@@ -58,13 +60,13 @@ public class ReadWriteDataSourceManager implements DataSourceManager {
 
     private void initWriteOnlyDataSource(List<WriteOnlyDataSourceBinding> bindings) {
         if (bindings == null || bindings.isEmpty()) {
-            throw new IllegalArgumentException("writeOnlyDataSourceCache can't be empty");
+            throw new IllegalArgumentException("writeOnlyDataSourceQueryCache can't be empty");
         }
         final Map<String, DataSource> dataSourceMap = new HashMap<String, DataSource>();
         for (final WriteOnlyDataSourceBinding binding : bindings) {
             String schemasString = StringUtils.trim(binding.getScNames());
             if (schemasString == null) {
-                throw new IllegalArgumentException("scNames of writeOnlyDataSourceCache can't be empty");
+                throw new IllegalArgumentException("scNames of writeOnlyDataSourceQueryCache can't be empty");
             }
             if (DEFAULT_SCHEMA.equals(schemasString)) {
                 buildWriteOnlyDataSource(dataSourceMap, DEFAULT_SCHEMA, binding.getDataSource());
@@ -81,7 +83,7 @@ public class ReadWriteDataSourceManager implements DataSourceManager {
         if (dataSourceMap.isEmpty()) {
             // TODO log.warning
         } else {
-            this.writeOnlyDataSourceCache = dataSourceMap;
+            this.writeOnlyDataSourceQueryCache = dataSourceMap;
         }
     }
 
@@ -106,13 +108,13 @@ public class ReadWriteDataSourceManager implements DataSourceManager {
 
     private void initReadOnlyDataSource(List<ReadOnlyDataSourceBinding> bindings) {
         if (bindings == null || bindings.isEmpty()) {
-            throw new IllegalArgumentException("readOnlyDataSourceCache can't be empty");
+            throw new IllegalArgumentException("readOnlyDataSourceQueryCache can't be empty");
         }
         final Map<String, WeightedRandom> dataSourceMap = new HashMap<String, WeightedRandom>();
         for (final ReadOnlyDataSourceBinding binding : bindings) {
             String schemasString = StringUtils.trim(binding.getScNames());
             if (schemasString == null) {
-                throw new IllegalArgumentException("scNames of readOnlyDataSourceCache can't be empty");
+                throw new IllegalArgumentException("scNames of readOnlyDataSourceQueryCache can't be empty");
             }
             if (DEFAULT_SCHEMA.equals(schemasString)) {
                 buildReadOnlyDataSource(dataSourceMap, DEFAULT_SCHEMA, binding.getDataSources());
@@ -129,7 +131,7 @@ public class ReadWriteDataSourceManager implements DataSourceManager {
         if (dataSourceMap.isEmpty()) {
             // TODO log.warning
         } else {
-            this.readOnlyDataSourceCache = dataSourceMap;
+            this.readOnlyDataSourceQueryCache = dataSourceMap;
         }
     }
 
@@ -152,10 +154,12 @@ public class ReadWriteDataSourceManager implements DataSourceManager {
             List<WeightItem> itemList = new ArrayList<WeightItem>();
             for (WeightedDataSource weightedDataSource : dataSources) {
                 if (weightedDataSource.getWeight() == null) {
-                    throw new IllegalArgumentException("weight can't be null for schema '" + schema + "' of readOnlyDataSources");
+                    throw new IllegalArgumentException("weight can't be null for schema '" + schema
+                                                       + "' of readOnlyDataSources");
                 }
                 if (weightedDataSource.getDataSource() == null) {
-                    throw new IllegalArgumentException("datasource can't be null for schema '" + schema + "' of readOnlyDataSources");
+                    throw new IllegalArgumentException("datasource can't be null for schema '" + schema
+                                                       + "' of readOnlyDataSources");
                 }
                 WeightItem weightItem = new WeightItem();
                 weightItem.setWeight(weightedDataSource.getWeight());
@@ -175,27 +179,26 @@ public class ReadWriteDataSourceManager implements DataSourceManager {
             scNames = DEFAULT_SCHEMA;
         }
         if (readOnly) {
-            if (this.readOnlyDataSourceCache == null) {
+            if (this.readOnlyDataSourceQueryCache == null) {
                 throw new IllegalStateException("no readOnlyDataSource is configured");
             } else {
-                WeightedRandom weightedRandom = this.readOnlyDataSourceCache.get(scNames);
+                WeightedRandom weightedRandom = this.readOnlyDataSourceQueryCache.get(scNames);
                 if (weightedRandom == null) {
-                    weightedRandom = this.readOnlyDataSourceCache.get(DEFAULT_SCHEMA);
+                    weightedRandom = this.readOnlyDataSourceQueryCache.get(DEFAULT_SCHEMA);
                 }
                 if (weightedRandom == null) {
-                    throw new IllegalStateException("no readOnlyDataSource is configured for schemas:'" + scNames
-                                                    + "'");
+                    throw new IllegalStateException("no readOnlyDataSource is configured for schemas:'" + scNames + "'");
                 } else {
                     return (DataSource) weightedRandom.nextValue();
                 }
             }
         } else {
-            if (this.writeOnlyDataSourceCache == null) {
+            if (this.writeOnlyDataSourceQueryCache == null) {
                 throw new IllegalStateException("no writeOnlyDataSource is configured");
             } else {
-                DataSource dataSource = this.writeOnlyDataSourceCache.get(scNames);
+                DataSource dataSource = this.writeOnlyDataSourceQueryCache.get(scNames);
                 if (dataSource == null) {
-                    dataSource = this.writeOnlyDataSourceCache.get(DEFAULT_SCHEMA);
+                    dataSource = this.writeOnlyDataSourceQueryCache.get(DEFAULT_SCHEMA);
                 }
                 if (dataSource == null) {
                     throw new IllegalStateException("no writeOnlyDataSource is configured for schemas:'" + scNames
@@ -229,4 +232,5 @@ public class ReadWriteDataSourceManager implements DataSourceManager {
             return sb.toString();
         }
     }
+
 }

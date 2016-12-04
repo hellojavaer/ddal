@@ -23,8 +23,17 @@ import javax.sql.DataSource;
  */
 public class WeightedDataSource {
 
+    private boolean    alive = true;
     private DataSource dataSource;
     private Integer    weight;
+
+    public boolean isAlive() {
+        return alive;
+    }
+
+    public void setAlive(boolean alive) {
+        this.alive = alive;
+    }
 
     public DataSource getDataSource() {
         return dataSource;
@@ -41,4 +50,5 @@ public class WeightedDataSource {
     public void setWeight(Integer weight) {
         this.weight = weight;
     }
+
 }

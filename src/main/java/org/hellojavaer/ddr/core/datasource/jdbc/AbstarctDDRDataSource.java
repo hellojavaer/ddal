@@ -29,7 +29,7 @@ import java.util.concurrent.Executor;
  *
  * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 05/11/2016.
  */
-public abstract class AbstarctDDRDateSource implements DataSource {
+public abstract class AbstarctDDRDataSource implements DataSource {
 
     protected final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -101,7 +101,7 @@ public abstract class AbstarctDDRDateSource implements DataSource {
 
                 @Override
                 public String replaceSql(String sql, Map<Integer, Object> jdbcParams) {
-                    return AbstarctDDRDateSource.this.replaceSql(sql, jdbcParams);
+                    return AbstarctDDRDataSource.this.replaceSql(sql, jdbcParams);
                 }
             };
         }
@@ -113,7 +113,7 @@ public abstract class AbstarctDDRDateSource implements DataSource {
 
                 @Override
                 public String replaceSql(String sql, Map<Integer, Object> jdbcParams) {
-                    return AbstarctDDRDateSource.this.replaceSql(sql, jdbcParams);
+                    return AbstarctDDRDataSource.this.replaceSql(sql, jdbcParams);
                 }
             };
         }
@@ -210,7 +210,7 @@ public abstract class AbstarctDDRDateSource implements DataSource {
 
                 @Override
                 public String replaceSql(String sql, Map<Integer, Object> jdbcParams) {
-                    return AbstarctDDRDateSource.this.replaceSql(sql, jdbcParams);
+                    return AbstarctDDRDataSource.this.replaceSql(sql, jdbcParams);
                 }
             };
         }
@@ -223,7 +223,7 @@ public abstract class AbstarctDDRDateSource implements DataSource {
 
                 @Override
                 public String replaceSql(String sql, Map<Integer, Object> jdbcParams) {
-                    return AbstarctDDRDateSource.this.replaceSql(sql, jdbcParams);
+                    return AbstarctDDRDataSource.this.replaceSql(sql, jdbcParams);
                 }
             };
         }
@@ -283,7 +283,7 @@ public abstract class AbstarctDDRDateSource implements DataSource {
 
                 @Override
                 public String replaceSql(String sql, Map<Integer, Object> jdbcParams) {
-                    return AbstarctDDRDateSource.this.replaceSql(sql, jdbcParams);
+                    return AbstarctDDRDataSource.this.replaceSql(sql, jdbcParams);
                 }
             };
         }
@@ -297,7 +297,7 @@ public abstract class AbstarctDDRDateSource implements DataSource {
 
                 @Override
                 public String replaceSql(String sql, Map<Integer, Object> jdbcParams) {
-                    return AbstarctDDRDateSource.this.replaceSql(sql, jdbcParams);
+                    return AbstarctDDRDataSource.this.replaceSql(sql, jdbcParams);
                 }
             };
         }
@@ -315,7 +315,7 @@ public abstract class AbstarctDDRDateSource implements DataSource {
 
                 @Override
                 public String replaceSql(String sql, Map<Integer, Object> jdbcParams) {
-                    return AbstarctDDRDateSource.this.replaceSql(sql, jdbcParams);
+                    return AbstarctDDRDataSource.this.replaceSql(sql, jdbcParams);
                 }
             };
         }
@@ -327,7 +327,7 @@ public abstract class AbstarctDDRDateSource implements DataSource {
 
                 @Override
                 public String replaceSql(String sql, Map<Integer, Object> jdbcParams) {
-                    return AbstarctDDRDateSource.this.replaceSql(sql, jdbcParams);
+                    return AbstarctDDRDataSource.this.replaceSql(sql, jdbcParams);
                 }
             };
         }
@@ -339,7 +339,7 @@ public abstract class AbstarctDDRDateSource implements DataSource {
 
                 @Override
                 public String replaceSql(String sql, Map<Integer, Object> jdbcParams) {
-                    return AbstarctDDRDateSource.this.replaceSql(sql, jdbcParams);
+                    return AbstarctDDRDataSource.this.replaceSql(sql, jdbcParams);
                 }
             };
         }
