@@ -60,7 +60,9 @@ public class SimpleShardingRouter implements ShardingRouter {
                 final String tbName = filter(binding.getTbName());
                 final String sdName = filter(binding.getSdName());
                 final String sdScanValues = StringUtils.trim(binding.getSdScanValues());
-
+                if (scName == null) {
+                    throw new DDRException("scName can't be empty");
+                }
                 if (tbName == null) {
                     throw new DDRException("tbName can't be empty");
                 }

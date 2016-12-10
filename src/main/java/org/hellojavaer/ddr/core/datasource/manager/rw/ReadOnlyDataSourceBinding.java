@@ -15,6 +15,8 @@
  */
 package org.hellojavaer.ddr.core.datasource.manager.rw;
 
+import org.hellojavaer.ddr.core.datasource.WeightedDataSource;
+
 import java.util.List;
 
 /**

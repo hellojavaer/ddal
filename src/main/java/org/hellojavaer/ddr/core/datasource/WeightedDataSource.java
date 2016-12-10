@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddr.core.datasource.manager.rw;
+package org.hellojavaer.ddr.core.datasource;
 
 import javax.sql.DataSource;
 

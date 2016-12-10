@@ -18,6 +18,7 @@ package org.hellojavaer.ddr.core.datasource.manager.rw;
 import org.hellojavaer.ddr.core.datasource.DataSourceSchemasBinding;
 import org.hellojavaer.ddr.core.datasource.manager.DataSourceManager;
 import org.hellojavaer.ddr.core.datasource.manager.DataSourceParam;
+import org.hellojavaer.ddr.core.datasource.WeightedDataSource;
 import org.hellojavaer.ddr.core.expression.range.RangeExpression;
 import org.hellojavaer.ddr.core.expression.range.RangeItemVisitor;
 import org.hellojavaer.ddr.core.strategy.WeightItem;
