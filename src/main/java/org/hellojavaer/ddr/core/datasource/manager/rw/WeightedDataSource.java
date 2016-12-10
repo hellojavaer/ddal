@@ -13,17 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddr.core.datasource.manage;
+package org.hellojavaer.ddr.core.datasource.manager.rw;
 
 import javax.sql.DataSource;
 
 /**
  *
- * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 19/11/2016.
+ * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 23/11/2016.
  */
-public class SingleDataSourceManager implements DataSourceManager {
+public class WeightedDataSource {
 
+    private boolean    alive = true;
     private DataSource dataSource;
+    private Integer    weight;
+
+    public boolean isAlive() {
+        return alive;
+    }
+
+    public void setAlive(boolean alive) {
+        this.alive = alive;
+    }
 
     public DataSource getDataSource() {
         return dataSource;
@@ -33,8 +43,12 @@ public class SingleDataSourceManager implements DataSourceManager {
         this.dataSource = dataSource;
     }
 
-    @Override
-    public DataSource getDataSource(DataSourceParam param) {
-        return this.getDataSource();
+    public Integer getWeight() {
+        return weight;
     }
+
+    public void setWeight(Integer weight) {
+        this.weight = weight;
+    }
+
 }

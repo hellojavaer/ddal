@@ -15,13 +15,13 @@
  */
 package org.hellojavaer.ddr.core.datasource.jdbc;
 
-import org.hellojavaer.ddr.core.datasource.manage.DataSourceManager;
-import org.hellojavaer.ddr.core.datasource.manage.DataSourceParam;
+import org.hellojavaer.ddr.core.datasource.DataSourceSchemasBinding;
+import org.hellojavaer.ddr.core.datasource.manager.DataSourceManager;
+import org.hellojavaer.ddr.core.datasource.manager.DataSourceParam;
 import org.hellojavaer.ddr.core.datasource.tr.DistributedTransactionLevel;
 import org.hellojavaer.ddr.core.datasource.tr.TransactionManagerAdapter;
 import org.hellojavaer.ddr.core.sharding.ShardingParser;
 
-import javax.sql.DataSource;
 import java.util.Map;
 
 /**
@@ -29,8 +29,6 @@ import java.util.Map;
  * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 10/12/2016.
  */
 public class SimpleDDRDataSource extends AbstractSimpleDDRDataSource {
-
-
 
     private DataSourceManager           dataSourceManager;
     private ShardingParser              shardingParser;
@@ -69,13 +67,12 @@ public class SimpleDDRDataSource extends AbstractSimpleDDRDataSource {
         this.transactionManagerAdapter = transactionManagerAdapter;
     }
 
-    public String replaceSql(String sql, Map<Integer, Object> jdbcParam) {
-        String tarSql = shardingParser.parse(sql, jdbcParam);
-        return tarSql;
+    public DDRDataSource.ReplacedResult replaceSql(String sql, Map<Integer, Object> jdbcParam) {
+        return shardingParser.parse(sql, jdbcParam);
     }
 
     @Override
-    public DataSource getDataSource(DataSourceParam param) {
+    public DataSourceSchemasBinding getDataSource(DataSourceParam param) {
         return dataSourceManager.getDataSource(param);
     }
 

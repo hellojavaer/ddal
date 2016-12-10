@@ -27,16 +27,14 @@ import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.select.SubSelect;
 import net.sf.jsqlparser.statement.update.Update;
 import net.sf.jsqlparser.util.JSQLBaseVisitor;
+import org.hellojavaer.ddr.core.datasource.jdbc.DDRDataSource;
 import org.hellojavaer.ddr.core.exception.DDRException;
 import org.hellojavaer.ddr.core.sharding.ShardingInfo;
 import org.hellojavaer.ddr.core.sharding.ShardingRouteParamContext;
 import org.hellojavaer.ddr.core.sharding.ShardingRouter;
 
 import java.io.StringReader;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Stack;
+import java.util.*;
 
 /**
  *
@@ -48,6 +46,7 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
     private Map<Integer, Object> jdbcParam;
     private ShardingRouter       shardingRouter;
     private Statement            statement;
+    private Set<String>          schemas = new HashSet<>();
 
     public JSQLParserAdapter(String sql, Map<Integer, Object> jdbcParam, ShardingRouter shardingRouter) {
         this.sql = sql;
@@ -70,12 +69,40 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
         }
     }
 
-    public String parse() {
+    private class InnerReplacedResult implements DDRDataSource.ReplacedResult {
+
+        private String       sql;
+        private Set<String> schemas;
+
+        @Override
+        public String getSql() {
+            return sql;
+        }
+
+        public void setSql(String sql) {
+            this.sql = sql;
+        }
+
+        @Override
+        public Set<String> getSchemas() {
+            return schemas;
+        }
+
+        public void setSchemas(Set<String> schemas) {
+            this.schemas = schemas;
+        }
+    }
+
+    public DDRDataSource.ReplacedResult parse() {
         try {
             ConverterContext converterContext = new ConverterContext();
             context.set(converterContext);
             statement.accept(this);
-            return statement.toString();
+            String targetSql = statement.toString();
+            InnerReplacedResult replacedResult = new InnerReplacedResult();
+            replacedResult.setSql(targetSql);
+            replacedResult.setSchemas(schemas);
+            return replacedResult;
         } finally {
             context.remove();
         }
@@ -91,6 +118,7 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
                 tableWrapper.getTable().setSchemaName(info.getScName());
                 tableWrapper.getTable().setName(info.getTbName());
                 tableWrapper.setConverted(true);
+                schemas.add(info.getScName());
             }
         }
     }
@@ -175,6 +203,7 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
                 tableWrapper.getTable().setSchemaName(info.getScName());
                 tableWrapper.getTable().setName(info.getTbName());
                 tableWrapper.setConverted(true);
+                schemas.add(info.getScName());
             }
         }
     }
@@ -429,6 +458,7 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
             tableWrapper.getTable().setSchemaName(info.getScName());
             tableWrapper.getTable().setName(info.getTbName());
             tableWrapper.setConverted(true);
+            schemas.add(info.getScName());
         }
     }
 

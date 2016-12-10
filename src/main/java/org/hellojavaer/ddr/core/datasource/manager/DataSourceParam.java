@@ -13,32 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddr.core.datasource.manage.rw;
+package org.hellojavaer.ddr.core.datasource.manager;
 
-import java.util.List;
+import java.util.Set;
 
 /**
  *
  * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 19/11/2016.
  */
-public class ReadOnlyDataSourceBinding {
+public class DataSourceParam {
 
-    private String                   scNames;
-    private List<WeightedDataSource> dataSources;
+    private Set<String> scNames;
+    private boolean      readOnly;
 
-    public String getScNames() {
+    public Set<String> getScNames() {
         return scNames;
     }
 
-    public void setScNames(String scNames) {
+    public void setScNames(Set<String> scNames) {
         this.scNames = scNames;
     }
 
-    public List<WeightedDataSource> getDataSources() {
-        return dataSources;
+    public boolean isReadOnly() {
+        return readOnly;
     }
 
-    public void setDataSources(List<WeightedDataSource> dataSources) {
-        this.dataSources = dataSources;
+    public void setReadOnly(boolean readOnly) {
+        this.readOnly = readOnly;
     }
 }

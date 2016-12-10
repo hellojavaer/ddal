@@ -15,7 +15,7 @@
  */
 package org.hellojavaer.ddr.core.datasource.monitor;
 
-import org.hellojavaer.ddr.core.datasource.manage.rw.WeightedDataSource;
+import org.hellojavaer.ddr.core.datasource.manager.rw.WeightedDataSource;
 
 import javax.sql.DataSource;
 import java.io.PrintWriter;

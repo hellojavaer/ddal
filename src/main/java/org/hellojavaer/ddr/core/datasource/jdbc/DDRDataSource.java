@@ -15,21 +15,28 @@
  */
 package org.hellojavaer.ddr.core.datasource.jdbc;
 
-import org.hellojavaer.ddr.core.datasource.manage.DataSourceParam;
+import org.hellojavaer.ddr.core.datasource.DataSourceSchemasBinding;
+import org.hellojavaer.ddr.core.datasource.manager.DataSourceParam;
 
 import javax.sql.DataSource;
 import java.util.Map;
+import java.util.Set;
 
 /**
  *
  * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 09/12/2016.
  */
-public interface DDRDataSource extends  DataSource {
+public interface DDRDataSource extends DataSource {
 
+    interface ReplacedResult {
 
+        String getSql();
 
-    String replaceSql(String sql, Map<Integer, Object> jdbcParam);
+        Set<String> getSchemas();
+    }
 
-    DataSource getDataSource(DataSourceParam param);
+    ReplacedResult replaceSql(String sql, Map<Integer, Object> jdbcParam);
+
+    DataSourceSchemasBinding getDataSource(DataSourceParam param);
 
 }

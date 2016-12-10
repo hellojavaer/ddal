@@ -13,25 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddr.core.datasource.manage.rw;
+package org.hellojavaer.ddr.core.datasource;
 
 import javax.sql.DataSource;
+import java.util.Set;
 
 /**
  *
- * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 19/11/2016.
+ * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 10/12/2016.
  */
-public class WriteOnlyDataSourceBinding {
+public class DataSourceSchemasBinding {
 
-    private String     scNames;
-    private DataSource dataSource;
+    private DataSource  dataSource;
+    private Set<String> schemas;
 
-    public String getScNames() {
-        return scNames;
+    public DataSourceSchemasBinding() {
     }
 
-    public void setScNames(String scNames) {
-        this.scNames = scNames;
+    public DataSourceSchemasBinding(DataSource dataSource, Set<String> schemas) {
+        this.dataSource = dataSource;
+        this.schemas = schemas;
     }
 
     public DataSource getDataSource() {
@@ -40,5 +41,13 @@ public class WriteOnlyDataSourceBinding {
 
     public void setDataSource(DataSource dataSource) {
         this.dataSource = dataSource;
+    }
+
+    public Set<String> getSchemas() {
+        return schemas;
+    }
+
+    public void setSchemas(Set<String> schemas) {
+        this.schemas = schemas;
     }
 }

@@ -15,7 +15,8 @@
  */
 package org.hellojavaer.ddr.core.datasource.jdbc;
 
-import org.hellojavaer.ddr.core.datasource.manage.DataSourceParam;
+import org.hellojavaer.ddr.core.datasource.DataSourceSchemasBinding;
+import org.hellojavaer.ddr.core.datasource.manager.DataSourceParam;
 import org.hellojavaer.ddr.core.datasource.tr.TransactionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import javax.sql.DataSource;
 import java.io.PrintWriter;
 import java.sql.*;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executor;
@@ -33,20 +35,28 @@ import java.util.concurrent.Executor;
  */
 public abstract class AbstractSimpleDDRDataSource implements DDRDataSource {
 
-    protected final Logger logger = LoggerFactory.getLogger(getClass());
+    protected final Logger           logger = LoggerFactory.getLogger(getClass());
 
-    private DataSource     dataSource;
-    private boolean        readOnly;
+    private boolean                  readOnly;
+    private DataSourceSchemasBinding dataSourceSchemasBinding;
+
+    private boolean isCrossDataSource0(List<String> schemas) {
+        if (dataSourceSchemasBinding == null) {
+            throw null;// TODO
+        } else {
+            return dataSourceSchemasBinding.getSchemas().containsAll(schemas);
+        }
+    }
 
     private DataSource getDataSource0() {
-        if (dataSource == null) {
+        if (dataSourceSchemasBinding == null) {
             synchronized (this) {
-                if (dataSource == null) {
+                if (dataSourceSchemasBinding == null) {
                     DataSourceParam param = new DataSourceParam();
                     readOnly = TransactionManager.isReadOnly();
                     param.setReadOnly(readOnly);
-                    dataSource = getDataSource(param);
-                    if (dataSource == null) {
+                    dataSourceSchemasBinding = getDataSource(param);
+                    if (dataSourceSchemasBinding == null) {
                         throw new IllegalStateException(
                                                         "[SimpleDDRDataSource] no datasource is configured for readOnly:"
                                                                 + readOnly);
@@ -57,7 +67,7 @@ public abstract class AbstractSimpleDDRDataSource implements DDRDataSource {
                 }
             }
         }
-        return dataSource;
+        return dataSourceSchemasBinding.getDataSource();
     }
 
     @Override
@@ -125,11 +135,21 @@ public abstract class AbstractSimpleDDRDataSource implements DDRDataSource {
 
         @Override
         public Statement createStatement() throws SQLException {
-            return new StatementWrapper(connection.createStatement()) {
+            return new StatementWrapper(isReadOnly0()) {
 
                 @Override
-                public String replaceSql(String sql, Map<Integer, Object> jdbcParams) {
+                public DDRDataSource.ReplacedResult replaceSql(String sql, Map<Integer, Object> jdbcParams) {
                     return AbstractSimpleDDRDataSource.this.replaceSql(sql, jdbcParams);
+                }
+
+                @Override
+                public boolean isCrossDataSource(List<String> schemas) {
+                    return isCrossDataSource0(schemas);
+                }
+
+                @Override
+                public Statement getStatement(DataSourceParam param) throws SQLException {
+                    return null;
                 }
             };
         }
@@ -139,12 +159,17 @@ public abstract class AbstractSimpleDDRDataSource implements DDRDataSource {
             return new PreparedStatementWrapper(sql, isReadOnly0()) {
 
                 @Override
-                public String replaceSql(String sql, Map<Integer, Object> jdbcParams) {
+                public DDRDataSource.ReplacedResult replaceSql(String sql, Map<Integer, Object> jdbcParams) {
                     return replaceSql(sql, jdbcParams);
                 }
 
                 @Override
-                public PreparedStatement getPreparedStatement(DataSourceParam param, String routedSql) {
+                public boolean isCrossDataSource(List<String> schemas) {
+                    return isCrossDataSource0(schemas);
+                }
+
+                @Override
+                public PreparedStatement getStatement(DataSourceParam param, String routedSql) {
                     try {
                         return getConnection0().prepareStatement(routedSql);
                     } catch (SQLException e) {
@@ -241,11 +266,21 @@ public abstract class AbstractSimpleDDRDataSource implements DDRDataSource {
 
         @Override
         public Statement createStatement(int resultSetType, int resultSetConcurrency) throws SQLException {
-            return new StatementWrapper(this.connection.createStatement(resultSetType, resultSetConcurrency)) {
+            return new StatementWrapper(isReadOnly0()) {
 
                 @Override
-                public String replaceSql(String sql, Map<Integer, Object> jdbcParams) {
+                public DDRDataSource.ReplacedResult replaceSql(String sql, Map<Integer, Object> jdbcParams) {
                     return AbstractSimpleDDRDataSource.this.replaceSql(sql, jdbcParams);
+                }
+
+                @Override
+                public boolean isCrossDataSource(List<String> schemas) {
+                    return isCrossDataSource0(schemas);
+                }
+
+                @Override
+                public Statement getStatement(DataSourceParam param) throws SQLException {
+                    return null;
                 }
             };
         }
@@ -256,12 +291,17 @@ public abstract class AbstractSimpleDDRDataSource implements DDRDataSource {
             return new PreparedStatementWrapper(sql, isReadOnly0()) {
 
                 @Override
-                public String replaceSql(String sql, Map<Integer, Object> jdbcParams) {
+                public DDRDataSource.ReplacedResult replaceSql(String sql, Map<Integer, Object> jdbcParams) {
                     return replaceSql(sql, jdbcParams);
                 }
 
                 @Override
-                public PreparedStatement getPreparedStatement(DataSourceParam param, String routedSql) {
+                public boolean isCrossDataSource(List<String> schemas) {
+                    return isCrossDataSource0(schemas);
+                }
+
+                @Override
+                public PreparedStatement getStatement(DataSourceParam param, String routedSql) {
                     try {
                         return getConnection0().prepareStatement(routedSql, resultSetType, resultSetConcurrency);
                     } catch (SQLException e) {
@@ -320,12 +360,21 @@ public abstract class AbstractSimpleDDRDataSource implements DDRDataSource {
         @Override
         public Statement createStatement(int resultSetType, int resultSetConcurrency, int resultSetHoldability)
                                                                                                                throws SQLException {
-            return new StatementWrapper(this.connection.createStatement(resultSetType, resultSetConcurrency,
-                                                                        resultSetHoldability)) {
+            return new StatementWrapper(isReadOnly0()) {
 
                 @Override
-                public String replaceSql(String sql, Map<Integer, Object> jdbcParams) {
+                public DDRDataSource.ReplacedResult replaceSql(String sql, Map<Integer, Object> jdbcParams) {
                     return AbstractSimpleDDRDataSource.this.replaceSql(sql, jdbcParams);
+                }
+
+                @Override
+                public boolean isCrossDataSource(List<String> schemas) {
+                    return isCrossDataSource0(schemas);
+                }
+
+                @Override
+                public Statement getStatement(DataSourceParam param) throws SQLException {
+                    return null;
                 }
             };
         }
@@ -336,12 +385,17 @@ public abstract class AbstractSimpleDDRDataSource implements DDRDataSource {
             return new PreparedStatementWrapper(sql, isReadOnly0()) {
 
                 @Override
-                public String replaceSql(String sql, Map<Integer, Object> jdbcParams) {
+                public DDRDataSource.ReplacedResult replaceSql(String sql, Map<Integer, Object> jdbcParams) {
                     return replaceSql(sql, jdbcParams);
                 }
 
                 @Override
-                public PreparedStatement getPreparedStatement(DataSourceParam param, String routedSql) {
+                public boolean isCrossDataSource(List<String> schemas) {
+                    return isCrossDataSource0(schemas);
+                }
+
+                @Override
+                public PreparedStatement getStatement(DataSourceParam param, String routedSql) {
                     try {
                         return getConnection0().prepareStatement(routedSql, resultSetType, resultSetConcurrency,
                                                                  resultSetHoldability);
@@ -363,12 +417,17 @@ public abstract class AbstractSimpleDDRDataSource implements DDRDataSource {
             return new PreparedStatementWrapper(sql, isReadOnly0()) {
 
                 @Override
-                public String replaceSql(String sql, Map<Integer, Object> jdbcParams) {
+                public DDRDataSource.ReplacedResult replaceSql(String sql, Map<Integer, Object> jdbcParams) {
                     return replaceSql(sql, jdbcParams);
                 }
 
                 @Override
-                public PreparedStatement getPreparedStatement(DataSourceParam param, String routedSql) {
+                public boolean isCrossDataSource(List<String> schemas) {
+                    return isCrossDataSource0(schemas);
+                }
+
+                @Override
+                public PreparedStatement getStatement(DataSourceParam param, String routedSql) {
                     try {
                         return getConnection0().prepareStatement(routedSql, autoGeneratedKeys);
                     } catch (SQLException e) {
@@ -383,12 +442,17 @@ public abstract class AbstractSimpleDDRDataSource implements DDRDataSource {
             return new PreparedStatementWrapper(sql, isReadOnly0()) {
 
                 @Override
-                public String replaceSql(String sql, Map<Integer, Object> jdbcParams) {
+                public DDRDataSource.ReplacedResult replaceSql(String sql, Map<Integer, Object> jdbcParams) {
                     return replaceSql(sql, jdbcParams);
                 }
 
                 @Override
-                public PreparedStatement getPreparedStatement(DataSourceParam param, String routedSql) {
+                public boolean isCrossDataSource(List<String> schemas) {
+                    return isCrossDataSource0(schemas);
+                }
+
+                @Override
+                public PreparedStatement getStatement(DataSourceParam param, String routedSql) {
                     try {
                         return getConnection0().prepareStatement(routedSql, columnIndexes);
                     } catch (SQLException e) {
@@ -403,12 +467,17 @@ public abstract class AbstractSimpleDDRDataSource implements DDRDataSource {
             return new PreparedStatementWrapper(sql, isReadOnly0()) {
 
                 @Override
-                public String replaceSql(String sql, Map<Integer, Object> jdbcParams) {
+                public DDRDataSource.ReplacedResult replaceSql(String sql, Map<Integer, Object> jdbcParams) {
                     return replaceSql(sql, jdbcParams);
                 }
 
                 @Override
-                public PreparedStatement getPreparedStatement(DataSourceParam param, String routedSql) {
+                public boolean isCrossDataSource(List<String> schemas) {
+                    return isCrossDataSource0(schemas);
+                }
+
+                @Override
+                public PreparedStatement getStatement(DataSourceParam param, String routedSql) {
                     try {
                         return getConnection0().prepareStatement(routedSql, columnNames);
                     } catch (SQLException e) {

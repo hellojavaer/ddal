@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddr.core.datasource.manage;
+package org.hellojavaer.ddr.core.datasource.manager;
 
-import javax.sql.DataSource;
+import org.hellojavaer.ddr.core.datasource.DataSourceSchemasBinding;
 
 /**
  *
@@ -23,6 +23,6 @@ import javax.sql.DataSource;
  */
 public interface DataSourceManager {
 
-    DataSource getDataSource(DataSourceParam param);
+    DataSourceSchemasBinding getDataSource(DataSourceParam param);
 
 }
