@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddr.core.datasource.rw;
+package org.hellojavaer.ddr.core.datasource.manage.rw;
 
-import org.hellojavaer.ddr.core.datasource.DataSourceManager;
-import org.hellojavaer.ddr.core.datasource.DataSourceManagerParam;
+import org.hellojavaer.ddr.core.datasource.manage.DataSourceManager;
+import org.hellojavaer.ddr.core.datasource.manage.DataSourceParam;
 import org.hellojavaer.ddr.core.expression.range.RangeExpression;
 import org.hellojavaer.ddr.core.expression.range.RangeItemVisitor;
 import org.hellojavaer.ddr.core.strategy.WeightItem;
@@ -172,7 +172,7 @@ public class ReadWriteDataSourceManager implements DataSourceManager {
     }
 
     @Override
-    public DataSource getDataSource(DataSourceManagerParam param) {
+    public DataSource getDataSource(DataSourceParam param) {
         String scNames = buildQueryKey(param.getScNames());
         boolean readOnly = param.isReadOnly();
         if (scNames == null) {

@@ -13,32 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddr.core.datasource.rw;
-
-import java.util.List;
+package org.hellojavaer.ddr.core.datasource.tr;
 
 /**
  *
  * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 19/11/2016.
  */
-public class ReadOnlyDataSourceBinding {
+public interface DistributedTransactionLevel {
 
-    private String                   scNames;
-    private List<WeightedDataSource> dataSources;
+    boolean isLimitSameDataSource();
 
-    public String getScNames() {
-        return scNames;
-    }
+    boolean isLimitSameRuleForSchema();
 
-    public void setScNames(String scNames) {
-        this.scNames = scNames;
-    }
+    boolean isLimitSameLogicalNameForSchema();
 
-    public List<WeightedDataSource> getDataSources() {
-        return dataSources;
-    }
+    boolean isLimitSameRuleForTable();
 
-    public void setDataSources(List<WeightedDataSource> dataSources) {
-        this.dataSources = dataSources;
-    }
+    boolean isLimitSameLogicalNameForTable();
+
 }

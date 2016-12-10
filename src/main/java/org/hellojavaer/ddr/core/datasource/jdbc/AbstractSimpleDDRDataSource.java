@@ -15,6 +15,8 @@
  */
 package org.hellojavaer.ddr.core.datasource.jdbc;
 
+import org.hellojavaer.ddr.core.datasource.manage.DataSourceParam;
+import org.hellojavaer.ddr.core.datasource.tr.TransactionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,89 +29,127 @@ import java.util.concurrent.Executor;
 
 /**
  *
- * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 05/11/2016.
+ * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 09/12/2016.
  */
-public abstract class AbstractDDRDataSource implements DataSource {
+public abstract class AbstractSimpleDDRDataSource implements DDRDataSource {
 
     protected final Logger logger = LoggerFactory.getLogger(getClass());
 
-    protected abstract String replaceSql(String sql, Map<Integer, Object> jdbcParam);
+    private DataSource     dataSource;
+    private boolean        readOnly;
 
-    protected abstract DataSource getDataSource();
+    private DataSource getDataSource0() {
+        if (dataSource == null) {
+            synchronized (this) {
+                if (dataSource == null) {
+                    DataSourceParam param = new DataSourceParam();
+                    readOnly = TransactionManager.isReadOnly();
+                    param.setReadOnly(readOnly);
+                    dataSource = getDataSource(param);
+                    if (dataSource == null) {
+                        throw new IllegalStateException(
+                                                        "[SimpleDDRDataSource] no datasource is configured for readOnly:"
+                                                                + readOnly);
+                    }
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("[SimpleDDRDataSource] initialize datasource with readOnly:" + readOnly);
+                    }
+                }
+            }
+        }
+        return dataSource;
+    }
 
     @Override
     public java.util.logging.Logger getParentLogger() throws SQLFeatureNotSupportedException {
-        return getDataSource().getParentLogger();
+        return getDataSource0().getParentLogger();
     }
 
     @Override
     public int getLoginTimeout() throws SQLException {
-        return getDataSource().getLoginTimeout();
+        return getDataSource0().getLoginTimeout();
     }
 
     @Override
     public void setLoginTimeout(int timeout) throws SQLException {
-        getDataSource().setLoginTimeout(timeout);
+        getDataSource0().setLoginTimeout(timeout);
     }
 
     @Override
     public PrintWriter getLogWriter() throws SQLException {
-        return getDataSource().getLogWriter();
+        return getDataSource0().getLogWriter();
     }
 
     @Override
     public void setLogWriter(PrintWriter pw) throws SQLException {
-        getDataSource().setLogWriter(pw);
+        getDataSource0().setLogWriter(pw);
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public <T> T unwrap(Class<T> iface) throws SQLException {
-        return getDataSource().unwrap(iface);
+        return getDataSource0().unwrap(iface);
     }
 
     @Override
     public boolean isWrapperFor(Class<?> iface) throws SQLException {
-        return getDataSource().isWrapperFor(iface);
+        return getDataSource0().isWrapperFor(iface);
     }
 
     @Override
     public Connection getConnection() throws SQLException {
-        return new ConnectionWrapper(getDataSource().getConnection());
+        return new ConnectionWrapper(getDataSource0().getConnection(), readOnly);
     }
 
     @Override
     public Connection getConnection(String username, String password) throws SQLException {
-        return new ConnectionWrapper(getDataSource().getConnection());
+        return new ConnectionWrapper(getDataSource0().getConnection(), readOnly);
     }
 
     private class ConnectionWrapper implements Connection {
 
+        private boolean    readOnly;
         private Connection connection;
 
-        public ConnectionWrapper(Connection connection) {
+        private boolean isReadOnly0() {
+            return readOnly;
+        }
+
+        private Connection getConnection0() {
+            return connection;
+        }
+
+        public ConnectionWrapper(Connection connection, boolean readOnly) {
             this.connection = connection;
+            this.readOnly = readOnly;
         }
 
         @Override
         public Statement createStatement() throws SQLException {
-            return new StatementWrapper(this.connection, connection.createStatement()) {
+            return new StatementWrapper(connection.createStatement()) {
 
                 @Override
                 public String replaceSql(String sql, Map<Integer, Object> jdbcParams) {
-                    return AbstractDDRDataSource.this.replaceSql(sql, jdbcParams);
+                    return AbstractSimpleDDRDataSource.this.replaceSql(sql, jdbcParams);
                 }
             };
         }
 
         @Override
-        public PreparedStatement prepareStatement(String sql) throws SQLException {
-            return new PreparedStatementWrapper(this, this.connection, sql, new Object[] { sql },
-                                                new Class[] { String.class }) {
+        public PreparedStatement prepareStatement(final String sql) throws SQLException {
+            return new PreparedStatementWrapper(sql, isReadOnly0()) {
 
                 @Override
                 public String replaceSql(String sql, Map<Integer, Object> jdbcParams) {
-                    return AbstractDDRDataSource.this.replaceSql(sql, jdbcParams);
+                    return replaceSql(sql, jdbcParams);
+                }
+
+                @Override
+                public PreparedStatement getPreparedStatement(DataSourceParam param, String routedSql) {
+                    try {
+                        return getConnection0().prepareStatement(routedSql);
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
             };
         }
@@ -201,25 +241,32 @@ public abstract class AbstractDDRDataSource implements DataSource {
 
         @Override
         public Statement createStatement(int resultSetType, int resultSetConcurrency) throws SQLException {
-            return new StatementWrapper(this.connection, this.connection.createStatement(resultSetType,
-                                                                                         resultSetConcurrency)) {
+            return new StatementWrapper(this.connection.createStatement(resultSetType, resultSetConcurrency)) {
 
                 @Override
                 public String replaceSql(String sql, Map<Integer, Object> jdbcParams) {
-                    return AbstractDDRDataSource.this.replaceSql(sql, jdbcParams);
+                    return AbstractSimpleDDRDataSource.this.replaceSql(sql, jdbcParams);
                 }
             };
         }
 
         @Override
-        public PreparedStatement prepareStatement(String sql, int resultSetType, int resultSetConcurrency)
-                                                                                                          throws SQLException {
-            return new PreparedStatementWrapper(this, this.connection, sql, new Object[] { sql, resultSetType,
-                    resultSetConcurrency }, new Class[] { String.class, int.class, int.class }) {
+        public PreparedStatement prepareStatement(String sql, final int resultSetType, final int resultSetConcurrency)
+                                                                                                                      throws SQLException {
+            return new PreparedStatementWrapper(sql, isReadOnly0()) {
 
                 @Override
                 public String replaceSql(String sql, Map<Integer, Object> jdbcParams) {
-                    return AbstractDDRDataSource.this.replaceSql(sql, jdbcParams);
+                    return replaceSql(sql, jdbcParams);
+                }
+
+                @Override
+                public PreparedStatement getPreparedStatement(DataSourceParam param, String routedSql) {
+                    try {
+                        return getConnection0().prepareStatement(routedSql, resultSetType, resultSetConcurrency);
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
             };
         }
@@ -273,27 +320,34 @@ public abstract class AbstractDDRDataSource implements DataSource {
         @Override
         public Statement createStatement(int resultSetType, int resultSetConcurrency, int resultSetHoldability)
                                                                                                                throws SQLException {
-            return new StatementWrapper(this.connection, this.connection.createStatement(resultSetType,
-                                                                                         resultSetConcurrency,
-                                                                                         resultSetHoldability)) {
+            return new StatementWrapper(this.connection.createStatement(resultSetType, resultSetConcurrency,
+                                                                        resultSetHoldability)) {
 
                 @Override
                 public String replaceSql(String sql, Map<Integer, Object> jdbcParams) {
-                    return AbstractDDRDataSource.this.replaceSql(sql, jdbcParams);
+                    return AbstractSimpleDDRDataSource.this.replaceSql(sql, jdbcParams);
                 }
             };
         }
 
         @Override
-        public PreparedStatement prepareStatement(String sql, int resultSetType, int resultSetConcurrency,
-                                                  int resultSetHoldability) throws SQLException {
-            return new PreparedStatementWrapper(this, this.connection, sql, new Object[] { sql, resultSetType,
-                    resultSetConcurrency, resultSetHoldability }, new Class[] { String.class, int.class, int.class,
-                    int.class }) {
+        public PreparedStatement prepareStatement(String sql, final int resultSetType, final int resultSetConcurrency,
+                                                  final int resultSetHoldability) throws SQLException {
+            return new PreparedStatementWrapper(sql, isReadOnly0()) {
 
                 @Override
                 public String replaceSql(String sql, Map<Integer, Object> jdbcParams) {
-                    return AbstractDDRDataSource.this.replaceSql(sql, jdbcParams);
+                    return replaceSql(sql, jdbcParams);
+                }
+
+                @Override
+                public PreparedStatement getPreparedStatement(DataSourceParam param, String routedSql) {
+                    try {
+                        return getConnection0().prepareStatement(routedSql, resultSetType, resultSetConcurrency,
+                                                                 resultSetHoldability);
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
             };
         }
@@ -305,37 +359,61 @@ public abstract class AbstractDDRDataSource implements DataSource {
         }
 
         @Override
-        public PreparedStatement prepareStatement(String sql, int autoGeneratedKeys) throws SQLException {
-            return new PreparedStatementWrapper(this, this.connection, sql, new Object[] { sql, autoGeneratedKeys },
-                                                new Class[] { String.class, int.class }) {
+        public PreparedStatement prepareStatement(String sql, final int autoGeneratedKeys) throws SQLException {
+            return new PreparedStatementWrapper(sql, isReadOnly0()) {
 
                 @Override
                 public String replaceSql(String sql, Map<Integer, Object> jdbcParams) {
-                    return AbstractDDRDataSource.this.replaceSql(sql, jdbcParams);
+                    return replaceSql(sql, jdbcParams);
+                }
+
+                @Override
+                public PreparedStatement getPreparedStatement(DataSourceParam param, String routedSql) {
+                    try {
+                        return getConnection0().prepareStatement(routedSql, autoGeneratedKeys);
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
             };
         }
 
         @Override
-        public PreparedStatement prepareStatement(String sql, int[] columnIndexes) throws SQLException {
-            return new PreparedStatementWrapper(this, this.connection, sql, new Object[] { sql, columnIndexes },
-                                                new Class[] { String.class, int[].class }) {
+        public PreparedStatement prepareStatement(String sql, final int[] columnIndexes) throws SQLException {
+            return new PreparedStatementWrapper(sql, isReadOnly0()) {
 
                 @Override
                 public String replaceSql(String sql, Map<Integer, Object> jdbcParams) {
-                    return AbstractDDRDataSource.this.replaceSql(sql, jdbcParams);
+                    return replaceSql(sql, jdbcParams);
+                }
+
+                @Override
+                public PreparedStatement getPreparedStatement(DataSourceParam param, String routedSql) {
+                    try {
+                        return getConnection0().prepareStatement(routedSql, columnIndexes);
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
             };
         }
 
         @Override
-        public PreparedStatement prepareStatement(String sql, String[] columnNames) throws SQLException {
-            return new PreparedStatementWrapper(this, this.connection, sql, new Object[] { sql, columnNames },
-                                                new Class[] { String.class, String[].class }) {
+        public PreparedStatement prepareStatement(String sql, final String[] columnNames) throws SQLException {
+            return new PreparedStatementWrapper(sql, isReadOnly0()) {
 
                 @Override
                 public String replaceSql(String sql, Map<Integer, Object> jdbcParams) {
-                    return AbstractDDRDataSource.this.replaceSql(sql, jdbcParams);
+                    return replaceSql(sql, jdbcParams);
+                }
+
+                @Override
+                public PreparedStatement getPreparedStatement(DataSourceParam param, String routedSql) {
+                    try {
+                        return getConnection0().prepareStatement(routedSql, columnNames);
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
             };
         }

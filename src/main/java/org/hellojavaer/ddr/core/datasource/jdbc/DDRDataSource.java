@@ -13,32 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddr.core.datasource;
+package org.hellojavaer.ddr.core.datasource.jdbc;
 
-import java.util.Set;
+import org.hellojavaer.ddr.core.datasource.manage.DataSourceParam;
+
+import javax.sql.DataSource;
+import java.util.Map;
 
 /**
  *
- * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 19/11/2016.
+ * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 09/12/2016.
  */
-public class DataSourceManagerParam {
+public interface DDRDataSource extends  DataSource {
 
-    private Set<String> scNames;
-    private boolean     readOnly;
 
-    public Set<String> getScNames() {
-        return scNames;
-    }
 
-    public void setScNames(Set<String> scNames) {
-        this.scNames = scNames;
-    }
+    String replaceSql(String sql, Map<Integer, Object> jdbcParam);
 
-    public boolean isReadOnly() {
-        return readOnly;
-    }
+    DataSource getDataSource(DataSourceParam param);
 
-    public void setReadOnly(boolean readOnly) {
-        this.readOnly = readOnly;
-    }
 }

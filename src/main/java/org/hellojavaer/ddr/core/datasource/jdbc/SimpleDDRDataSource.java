@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddr.core;
+package org.hellojavaer.ddr.core.datasource.jdbc;
 
-import org.hellojavaer.ddr.core.datasource.*;
-import org.hellojavaer.ddr.core.datasource.jdbc.AbstractDDRDataSource;
+import org.hellojavaer.ddr.core.datasource.manage.DataSourceManager;
+import org.hellojavaer.ddr.core.datasource.manage.DataSourceParam;
+import org.hellojavaer.ddr.core.datasource.tr.DistributedTransactionLevel;
+import org.hellojavaer.ddr.core.datasource.tr.TransactionManagerAdapter;
 import org.hellojavaer.ddr.core.sharding.ShardingParser;
 
 import javax.sql.DataSource;
@@ -24,9 +26,11 @@ import java.util.Map;
 
 /**
  *
- * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 05/11/2016.
+ * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 10/12/2016.
  */
-public class DDRDataSource extends AbstractDDRDataSource {
+public class SimpleDDRDataSource extends AbstractSimpleDDRDataSource {
+
+
 
     private DataSourceManager           dataSourceManager;
     private ShardingParser              shardingParser;
@@ -71,13 +75,7 @@ public class DDRDataSource extends AbstractDDRDataSource {
     }
 
     @Override
-    protected DataSource getDataSource() {
-        if (transactionManagerAdapter != null) {
-            transactionManagerAdapter.adapt();
-        }
-        DataSourceManagerParam param = new DataSourceManagerParam();
-        boolean readOnly = TransactionManager.isReadOnly();
-        param.setReadOnly(readOnly);
+    public DataSource getDataSource(DataSourceParam param) {
         return dataSourceManager.getDataSource(param);
     }
 

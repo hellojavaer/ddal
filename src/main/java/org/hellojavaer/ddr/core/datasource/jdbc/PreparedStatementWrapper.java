@@ -15,6 +15,8 @@
  */
 package org.hellojavaer.ddr.core.datasource.jdbc;
 
+import org.hellojavaer.ddr.core.datasource.manage.DataSourceParam;
+
 import java.io.InputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
@@ -29,22 +31,19 @@ import java.util.*;
  */
 public abstract class PreparedStatementWrapper implements PreparedStatement {
 
-    private Connection           connectionWrapper;
-    private Connection           connection;
     private PreparedStatement    preparedStatement;
     private String               sql;
-    private Object[]             createStatementMethodParams;
-    private Class[]              createStatementMethodParamTypes;
-    private Map<Integer, Object> jdbcParamterForFirstAddBatch = new HashMap<Integer, Object>();
-    private Map<Integer, Object> jdbcParameter                = new HashMap<Integer, Object>();
+    private Map<Integer, Object> jdbcParameterForFirstAddBatch = new HashMap<Integer, Object>();
+    private Map<Integer, Object> jdbcParameter                 = new HashMap<Integer, Object>();
+    private boolean              readOnly;
 
-    public PreparedStatementWrapper(Connection connectionWrapper, Connection connection, String sql,
-                                    Object[] createStatementMethodParams, Class[] createStatementMethodParamTypes) {
-        this.connectionWrapper = connectionWrapper;
-        this.connection = connection;
+    public abstract String replaceSql(String sql, Map<Integer, Object> jdbcParams);
+
+    public abstract PreparedStatement getPreparedStatement(DataSourceParam param, String routedSql);
+
+    public PreparedStatementWrapper(String sql, boolean readOnly) {
         this.sql = sql;
-        this.createStatementMethodParams = createStatementMethodParams;
-        this.createStatementMethodParamTypes = createStatementMethodParamTypes;
+        this.readOnly = readOnly;
         this.pushNewExecutionContext();
     }
 
@@ -125,8 +124,6 @@ public abstract class PreparedStatementWrapper implements PreparedStatement {
         }
     }
 
-    public abstract String replaceSql(String sql, Map<Integer, Object> jdbcParams);
-
     @Override
     public ResultSet executeQuery() throws SQLException {
         playbackInvocation(this.sql);
@@ -141,7 +138,7 @@ public abstract class PreparedStatementWrapper implements PreparedStatement {
 
     @Override
     public void clearParameters() throws SQLException {
-        this.jdbcParamterForFirstAddBatch.clear();
+        this.jdbcParameterForFirstAddBatch.clear();
         this.jdbcParameter.clear();
         Iterator<ExecutionContext> it = executionContexts.iterator();
         while (it.hasNext()) {
@@ -399,7 +396,7 @@ public abstract class PreparedStatementWrapper implements PreparedStatement {
 
     @Override
     public Connection getConnection() throws SQLException {
-        return this.connectionWrapper;
+        return this.preparedStatement.getConnection();// TODO
     }
 
     @Override
@@ -415,15 +412,15 @@ public abstract class PreparedStatementWrapper implements PreparedStatement {
     private String playbackInvocation(String sql) throws SQLException {
         try {
             // 1. 替换 sql
-            String targetSql = replaceSql(sql, this.jdbcParamterForFirstAddBatch);
+            String targetSql = replaceSql(sql, this.jdbcParameterForFirstAddBatch);
             if (preparedStatement == null) {
                 // 2. 创建 preparedStatement
-                createStatementMethodParams[0] = targetSql;
-                PreparedStatement preparedStatement = (PreparedStatement) connection.getClass().getMethod("prepareStatement",
-                                                                                                          createStatementMethodParamTypes).invoke(connection,
-                                                                                                                                                  createStatementMethodParams);
-                this.preparedStatement = preparedStatement;
-
+                if (this.preparedStatement == null) {
+                    DataSourceParam param = new DataSourceParam();
+                    param.setReadOnly(readOnly);
+                    param.setScNames(null);// TODO
+                    this.preparedStatement = getPreparedStatement(param, targetSql);
+                }
             }
 
             // 2.1 回放set 方法调用
@@ -893,7 +890,7 @@ public abstract class PreparedStatementWrapper implements PreparedStatement {
 
     private void setJdbcParameter(int index, Object val) {
         if (preparedStatement == null) {
-            this.jdbcParamterForFirstAddBatch.put(index, val);
+            this.jdbcParameterForFirstAddBatch.put(index, val);
         }
         this.jdbcParameter.put(index, val);
     }

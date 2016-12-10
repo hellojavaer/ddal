@@ -24,11 +24,9 @@ import java.util.Map;
  */
 public abstract class StatementWrapper implements Statement {
 
-    private Connection connection;
     private Statement  statement;
 
-    public StatementWrapper(Connection connection, Statement statement) {
-        this.connection = connection;
+    public StatementWrapper(Statement statement) {
         this.statement = statement;
     }
 
@@ -170,7 +168,7 @@ public abstract class StatementWrapper implements Statement {
 
     @Override
     public Connection getConnection() throws SQLException {
-        return this.connection;
+        return statement.getConnection();
     }
 
     @Override

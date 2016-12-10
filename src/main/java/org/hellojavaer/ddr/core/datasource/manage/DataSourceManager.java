@@ -13,14 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddr.core.datasource;
+package org.hellojavaer.ddr.core.datasource.manage;
+
+import javax.sql.DataSource;
 
 /**
  *
- * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 03/12/2016.
+ * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 19/11/2016.
  */
-public interface TransactionManagerAdapter {
+public interface DataSourceManager {
 
-    void adapt();
+    DataSource getDataSource(DataSourceParam param);
 
 }
