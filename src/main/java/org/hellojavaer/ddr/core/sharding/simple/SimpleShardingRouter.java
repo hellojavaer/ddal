@@ -66,11 +66,9 @@ public class SimpleShardingRouter implements ShardingRouter {
                 if (tbName == null) {
                     throw new DDRException("tbName can't be empty");
                 }
-                if (scName != null) {
-                    StringBuilder sb = new StringBuilder();
-                    sb.append(scName).append('.').append(tbName);
-                    putToCache(temp, sb.toString(), binding);
-                }
+                StringBuilder sb = new StringBuilder();
+                sb.append(scName).append('.').append(tbName);
+                putToCache(temp, sb.toString(), binding);
                 final SimpleShardingRouteRuleBinding b0 = new SimpleShardingRouteRuleBinding();
                 b0.setScName(scName);
                 b0.setTbName(tbName);
