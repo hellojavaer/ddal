@@ -28,8 +28,8 @@ import java.util.Set;
  */
 public abstract class StatementWrapper implements Statement {
 
-    private Statement statement;
-    private boolean   readOnly;
+    protected Statement statement;
+    protected boolean   readOnly;
 
     public StatementWrapper(boolean readOnly) {
         this.readOnly = readOnly;
@@ -208,37 +208,45 @@ public abstract class StatementWrapper implements Statement {
             DataSourceParam param = new DataSourceParam();
             param.setReadOnly(readOnly);
             param.setScNames(replacedResult.getSchemas());
-            statement = getStatement(param);
-            if (tag != null && prop != null) {
-                if (tag.isEscapeProcessing()) {
-                    statement.setEscapeProcessing(prop.isEscapeProcessing());
-                }
-                if (tag.isFetchDirection()) {
-                    statement.setFetchDirection(prop.getFetchDirection());
-                }
-                if (tag.isMaxFieldSize()) {
-                    statement.setMaxFieldSize(prop.getMaxFieldSize());
-                }
-                if (tag.isFetchSize()) {
-                    statement.setFetchSize(prop.getFetchSize());
-                }
-                if (tag.isPoolable()) {
-                    statement.setPoolable(prop.isPoolable());
-                }
-                if (tag.isMaxRows()) {
-                    statement.setMaxRows(prop.getMaxRows());
-                }
-                if (tag.isQueryTimeout()) {
-                    statement.setQueryTimeout(prop.getQueryTimeout());
-                }
-                if (tag.isCloseOnCompletion()) {
-                    if (prop.isCloseOnCompletion()) {
-                        statement.closeOnCompletion();
-                    }
+            initStatement(param, null);
+            playbackInvocation(statement);
+        }
+        return replacedResult.getSql();
+    }
+
+    protected void initStatement(DataSourceParam param, String sql) throws  SQLException{
+        statement = getStatement(param);
+    }
+
+    protected void playbackInvocation(Statement statement) throws SQLException {
+        if (tag != null && prop != null) {
+            if (tag.isEscapeProcessing()) {
+                statement.setEscapeProcessing(prop.isEscapeProcessing());
+            }
+            if (tag.isFetchDirection()) {
+                statement.setFetchDirection(prop.getFetchDirection());
+            }
+            if (tag.isMaxFieldSize()) {
+                statement.setMaxFieldSize(prop.getMaxFieldSize());
+            }
+            if (tag.isFetchSize()) {
+                statement.setFetchSize(prop.getFetchSize());
+            }
+            if (tag.isPoolable()) {
+                statement.setPoolable(prop.isPoolable());
+            }
+            if (tag.isMaxRows()) {
+                statement.setMaxRows(prop.getMaxRows());
+            }
+            if (tag.isQueryTimeout()) {
+                statement.setQueryTimeout(prop.getQueryTimeout());
+            }
+            if (tag.isCloseOnCompletion()) {
+                if (prop.isCloseOnCompletion()) {
+                    statement.closeOnCompletion();
                 }
             }
         }
-        return replacedResult.getSql();
     }
 
     @Override
