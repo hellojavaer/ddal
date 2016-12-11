@@ -127,16 +127,30 @@ public abstract class PreparedStatementWrapper extends StatementWrapper implemen
         }
     }
 
+    // ////pre
     @Override
     public ResultSet executeQuery() throws SQLException {
-        initPreparedStatement(this.sql);
+        initPreparedStatement();
         return this.preparedStatement.executeQuery();
     }
 
     @Override
     public int executeUpdate() throws SQLException {
-        initPreparedStatement(this.sql);
+        initPreparedStatement();
         return this.preparedStatement.executeUpdate();
+    }
+
+    @Override
+    public boolean execute() throws SQLException {
+        initPreparedStatement();
+        return preparedStatement.execute();
+    }
+
+    // PreparedStatement Override
+    @Override
+    public int[] executeBatch() throws SQLException {
+        initPreparedStatement();
+        return preparedStatement.executeBatch();
     }
 
     @Override
@@ -153,9 +167,10 @@ public abstract class PreparedStatementWrapper extends StatementWrapper implemen
     }
 
     @Override
-    public boolean execute() throws SQLException {
-        this.initPreparedStatement(this.sql);
-        return this.preparedStatement.execute();
+    public void clearBatch() throws SQLException {
+        this.executionContexts.clear();
+        this.pushNewExecutionContext();
+        super.clearBatch();
     }
 
     @Override
@@ -164,34 +179,38 @@ public abstract class PreparedStatementWrapper extends StatementWrapper implemen
     }
 
     @Override
+    public void addBatch(String sql) throws SQLException {
+        this.pushNewExecutionContext(sql);
+    }
+
+    @Override
     public ParameterMetaData getParameterMetaData() throws SQLException {
-        throw new UnsupportedOperationException("getParameterMetaData");
+        if (preparedStatement != null) {
+            return preparedStatement.getParameterMetaData();
+        } else {
+            throw new DDRException("Can't invoke 'getParameterMetaData()' before preparedStatement is initialized");
+        }
     }
 
     @Override
     public int getUpdateCount() throws SQLException {
-        return this.preparedStatement.getUpdateCount();
+        if (preparedStatement != null) {
+            return preparedStatement.getUpdateCount();
+        } else {
+            throw new DDRException("Can't invoke 'getUpdateCount()' before preparedStatement is initialized");
+        }
     }
 
     @Override
     public int getResultSetConcurrency() throws SQLException {
-        return this.preparedStatement.getResultSetConcurrency();
+        if (preparedStatement != null) {
+            return this.preparedStatement.getResultSetConcurrency();
+        } else {
+            throw new DDRException("Can't invoke 'getResultSetConcurrency()' before preparedStatement is initialized");
+        }
     }
 
-    @Override
-    public void clearBatch() throws SQLException {
-        this.executionContexts.clear();
-        this.pushNewExecutionContext();
-        super.clearBatch();
-    }
-
-    @Override
-    public int[] executeBatch() throws SQLException {
-        this.initPreparedStatement(this.sql);
-        return this.preparedStatement.executeBatch();
-    }
-
-    private void initPreparedStatement(String sql) throws SQLException {
+    private void initPreparedStatement() throws SQLException {
         // 1. replace sql
         DDRDataSource.ReplacedResult replacedResult = replaceSql(sql, this.jdbcParameterForFirstAddBatch);
         // 2. check if crossing datasource
@@ -813,18 +832,19 @@ public abstract class PreparedStatementWrapper extends StatementWrapper implemen
         }
     }
 
+    //
+    @Override
+    public Statement getStatement(DataSourceParam param) throws SQLException {
+        return this.statement;
+    }
+
+    // 特殊处理
     @Override
     public ResultSetMetaData getMetaData() throws SQLException {
         if (preparedStatement != null) {
             return preparedStatement.getMetaData();
         } else {
-            throw new DDRException("Can't invoke 'getMetaData()' before preparedStatement is initialized");
+            return null;
         }
-    }
-
-    //
-    @Override
-    public Statement getStatement(DataSourceParam param) throws SQLException {
-        return this.statement;
     }
 }
