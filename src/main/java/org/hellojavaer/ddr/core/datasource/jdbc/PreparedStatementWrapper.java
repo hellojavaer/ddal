@@ -16,6 +16,7 @@
 package org.hellojavaer.ddr.core.datasource.jdbc;
 
 import org.hellojavaer.ddr.core.datasource.manager.DataSourceParam;
+import org.hellojavaer.ddr.core.exception.DDRException;
 
 import java.io.InputStream;
 import java.io.Reader;
@@ -42,7 +43,7 @@ public abstract class PreparedStatementWrapper implements PreparedStatement {
 
     public abstract PreparedStatement getStatement(DataSourceParam param, String routedSql) throws SQLException;
 
-    public abstract boolean isCrossDataSource(List<String> schemas);
+    public abstract boolean isCrossDataSource(Set<String> schemas);
 
     public PreparedStatementWrapper(String sql, boolean readOnly) {
         this.sql = sql;
@@ -414,10 +415,14 @@ public abstract class PreparedStatementWrapper implements PreparedStatement {
 
     private String playbackInvocation(String sql) throws SQLException {
         try {
-            // 1. 替换 sql
+            // 1. replace sql
             DDRDataSource.ReplacedResult replacedResult = replaceSql(sql, this.jdbcParameterForFirstAddBatch);
+            // 2. check if crossing datasource
+            if (isCrossDataSource(replacedResult.getSchemas())) {
+                throw new DDRException("Sql '" + sql + "' query cross datasource");
+            }
             if (statement == null) {
-                // 2. 创建 statement
+                // 3. init statement if not
                 if (statement == null) {
                     DataSourceParam param = new DataSourceParam();
                     param.setReadOnly(readOnly);
@@ -426,13 +431,11 @@ public abstract class PreparedStatementWrapper implements PreparedStatement {
                 }
             }
 
-            // 2.1 回放set 方法调用
+            // 3.1 回放set方法调用
             for (ExecutionContext context : executionContexts) {
                 if (context.getStatementBatchSql() != null) {
-                    // TODO:校验是否同datasource
                     statement.addBatch(context.getStatementBatchSql());
                 } else {
-                    // TODO:校验是否同datasource
                     for (InvokeRecord invokeRecord : context.getInvokeRecords()) {
                         statement.getClass().getMethod(invokeRecord.getMethodName(), invokeRecord.getParamTypes()).invoke(statement,
                                                                                                                           invokeRecord.getParams());
@@ -442,7 +445,6 @@ public abstract class PreparedStatementWrapper implements PreparedStatement {
             }
             executionContexts.clear();
             return replacedResult.getSql();
-
         } catch (Exception e) {
             throw new SQLException(e);
         }

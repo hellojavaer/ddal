@@ -24,9 +24,9 @@ import org.slf4j.LoggerFactory;
 import javax.sql.DataSource;
 import java.io.PrintWriter;
 import java.sql.*;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.Executor;
 
 /**
@@ -40,7 +40,7 @@ public abstract class AbstractSimpleDDRDataSource implements DDRDataSource {
     private boolean                  readOnly;
     private DataSourceSchemasBinding dataSourceSchemasBinding;
 
-    private boolean isCrossDataSource0(List<String> schemas) {
+    private boolean isCrossDataSource0(Set<String> schemas) {
         if (dataSourceSchemasBinding == null) {
             throw null;// TODO
         } else {
@@ -143,7 +143,7 @@ public abstract class AbstractSimpleDDRDataSource implements DDRDataSource {
                 }
 
                 @Override
-                public boolean isCrossDataSource(List<String> schemas) {
+                public boolean isCrossDataSource(Set<String> schemas) {
                     return isCrossDataSource0(schemas);
                 }
 
@@ -164,7 +164,7 @@ public abstract class AbstractSimpleDDRDataSource implements DDRDataSource {
                 }
 
                 @Override
-                public boolean isCrossDataSource(List<String> schemas) {
+                public boolean isCrossDataSource(Set<String> schemas) {
                     return isCrossDataSource0(schemas);
                 }
 
@@ -274,7 +274,7 @@ public abstract class AbstractSimpleDDRDataSource implements DDRDataSource {
                 }
 
                 @Override
-                public boolean isCrossDataSource(List<String> schemas) {
+                public boolean isCrossDataSource(Set<String> schemas) {
                     return isCrossDataSource0(schemas);
                 }
 
@@ -296,7 +296,7 @@ public abstract class AbstractSimpleDDRDataSource implements DDRDataSource {
                 }
 
                 @Override
-                public boolean isCrossDataSource(List<String> schemas) {
+                public boolean isCrossDataSource(Set<String> schemas) {
                     return isCrossDataSource0(schemas);
                 }
 
@@ -368,7 +368,7 @@ public abstract class AbstractSimpleDDRDataSource implements DDRDataSource {
                 }
 
                 @Override
-                public boolean isCrossDataSource(List<String> schemas) {
+                public boolean isCrossDataSource(Set<String> schemas) {
                     return isCrossDataSource0(schemas);
                 }
 
@@ -390,7 +390,7 @@ public abstract class AbstractSimpleDDRDataSource implements DDRDataSource {
                 }
 
                 @Override
-                public boolean isCrossDataSource(List<String> schemas) {
+                public boolean isCrossDataSource(Set<String> schemas) {
                     return isCrossDataSource0(schemas);
                 }
 
@@ -422,7 +422,7 @@ public abstract class AbstractSimpleDDRDataSource implements DDRDataSource {
                 }
 
                 @Override
-                public boolean isCrossDataSource(List<String> schemas) {
+                public boolean isCrossDataSource(Set<String> schemas) {
                     return isCrossDataSource0(schemas);
                 }
 
@@ -447,7 +447,7 @@ public abstract class AbstractSimpleDDRDataSource implements DDRDataSource {
                 }
 
                 @Override
-                public boolean isCrossDataSource(List<String> schemas) {
+                public boolean isCrossDataSource(Set<String> schemas) {
                     return isCrossDataSource0(schemas);
                 }
 
@@ -472,7 +472,7 @@ public abstract class AbstractSimpleDDRDataSource implements DDRDataSource {
                 }
 
                 @Override
-                public boolean isCrossDataSource(List<String> schemas) {
+                public boolean isCrossDataSource(Set<String> schemas) {
                     return isCrossDataSource0(schemas);
                 }
 

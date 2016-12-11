@@ -198,7 +198,12 @@ public abstract class StatementWrapper implements Statement {
     }
 
     private String initStatementAndConvertSql(String sql) throws SQLException {
+        // 1. replace sql
         DDRDataSource.ReplacedResult replacedResult = replaceSql(sql, null);
+        // 2. check if crossing datasource
+        if (isCrossDataSource(replacedResult.getSchemas())) {
+            throw new DDRException("Sql '" + sql + "' query cross datasource");
+        }
         if (statement == null) {
             DataSourceParam param = new DataSourceParam();
             param.setReadOnly(readOnly);
@@ -232,9 +237,6 @@ public abstract class StatementWrapper implements Statement {
                     }
                 }
             }
-        }
-        if (isCrossDataSource(replacedResult.getSchemas())) {
-            throw new DDRException("Sql '" + sql + "' query cross datasource");
         }
         return replacedResult.getSql();
     }
