@@ -19,14 +19,12 @@ import org.hellojavaer.ddr.core.datasource.manager.DataSourceParam;
 import org.hellojavaer.ddr.core.exception.DDRException;
 
 import java.sql.*;
-import java.util.Map;
-import java.util.Set;
 
 /**
  *
  * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 20/11/2016.
  */
-public abstract class StatementWrapper implements Statement {
+public abstract class StatementWrapper implements DDRStatement {
 
     protected Statement statement;
     protected boolean   readOnly;
@@ -35,12 +33,6 @@ public abstract class StatementWrapper implements Statement {
         this.readOnly = readOnly;
     }
 
-    public abstract DDRDataSource.ReplacedResult replaceSql(String sql, Map<Integer, Object> jdbcParams)
-                                                                                                        throws SQLException;
-
-    public abstract boolean isCrossDataSource(Set<String> schemas);
-
-    public abstract Statement getStatement(DataSourceParam param) throws SQLException;
 
     private StatementProperty prop = new StatementProperty();
     private InvocationTag     tag  = new InvocationTag();
@@ -214,8 +206,8 @@ public abstract class StatementWrapper implements Statement {
         return replacedResult.getSql();
     }
 
-    protected void initStatement(DataSourceParam param, String sql) throws  SQLException{
-        statement = getStatement(param);
+    protected void initStatement(DataSourceParam param, String sql) throws SQLException {
+        statement = getStatement(param, null);
     }
 
     protected void playbackInvocation(Statement statement) throws SQLException {

@@ -30,19 +30,12 @@ import java.util.*;
  *
  * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 20/11/2016.
  */
-public abstract class PreparedStatementWrapper extends StatementWrapper implements PreparedStatement {
+public abstract class PreparedStatementWrapper extends StatementWrapper implements DDRPreparedStatement {
 
     private PreparedStatement    preparedStatement;
     private String               sql;
     private Map<Integer, Object> jdbcParameterForFirstAddBatch = new HashMap<Integer, Object>();
     private Map<Integer, Object> jdbcParameter                 = new HashMap<Integer, Object>();
-
-    public abstract DDRDataSource.ReplacedResult replaceSql(String sql, Map<Integer, Object> jdbcParams)
-                                                                                                        throws SQLException;
-
-    public abstract PreparedStatement getPreparedStatement(DataSourceParam param, String routedSql) throws SQLException;
-
-    public abstract boolean isCrossDataSource(Set<String> schemas);
 
     public PreparedStatementWrapper(String sql, boolean readOnly) {
         super(readOnly);
@@ -231,7 +224,7 @@ public abstract class PreparedStatementWrapper extends StatementWrapper implemen
 
     @Override
     protected void initStatement(DataSourceParam param, String sql) throws SQLException {
-        preparedStatement = getPreparedStatement(param, sql);
+        preparedStatement = (PreparedStatement) getStatement(param, sql);
         statement = preparedStatement;
     }
 
@@ -830,12 +823,6 @@ public abstract class PreparedStatementWrapper extends StatementWrapper implemen
         } else {
             preparedStatement.setBinaryStream(parameterIndex, x, length);
         }
-    }
-
-    //
-    @Override
-    public Statement getStatement(DataSourceParam param) throws SQLException {
-        return this.statement;
     }
 
     // 特殊处理
