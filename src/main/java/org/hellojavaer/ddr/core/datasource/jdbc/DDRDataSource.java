@@ -39,4 +39,6 @@ public interface DDRDataSource extends DataSource {
 
     DataSourceSchemasBinding getDataSource(DataSourceParam param);
 
+    boolean isCrossDataSource(Set<String> schemas);
+
 }

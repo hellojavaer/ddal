@@ -38,10 +38,11 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
     protected final Logger           logger = LoggerFactory.getLogger(getClass());
 
     private DataSourceSchemasBinding dataSourceSchemasBinding;
-    private DataSourceProperty       prop   = new DataSourceProperty();
+    private InnerDataSourceProperty  prop   = new InnerDataSourceProperty();
     private InvocationTag            tag    = new InvocationTag();
 
-    private boolean isCrossDataSource0(Set<String> schemas) {
+    @Override
+    public boolean isCrossDataSource(Set<String> schemas) {
         if (dataSourceSchemasBinding == null) {
             return false;
         } else {
@@ -49,7 +50,11 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
         }
     }
 
-    private class DataSourceProperty {
+    private boolean isCrossDataSource0(Set<String> schemas) {
+        return isCrossDataSource(schemas);
+    }
+
+    private class InnerDataSourceProperty {
 
         private int         loginTimeout;
         private PrintWriter logWriter;
