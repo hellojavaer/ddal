@@ -178,11 +178,12 @@ public abstract class PreparedStatementWrapper extends StatementWrapper implemen
             DataSourceParam param = new DataSourceParam();
             param.setReadOnly(readOnly);
             param.setScNames(replacedResult.getSchemas());
+            // 初始化statement
             initStatementIfAbsent(param, replacedResult.getSql());
+            // 动作回放
             super.playbackInvocation(statement);
+            playbackSetJdbcParamInvocation(preparedStatement, jdbcParamInvocationList);
         }
-        // 4. 动作回放
-        playbackSetJdbcParamInvocation(preparedStatement, jdbcParamInvocationList);
     }
 
     @Override
@@ -447,7 +448,7 @@ public abstract class PreparedStatementWrapper extends StatementWrapper implemen
                     preparedStatement.setSQLXML(index, (java.sql.SQLXML) params[0]);
                     break;
                 default:
-                    throw new DDRException("Unknown jdbc setter method '" + method + "'");
+                    throw new DDRException("Unknown setter method '" + method + "'");
             }
         }
         jdbcParamInvocationList = null;
