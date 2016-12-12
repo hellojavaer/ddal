@@ -200,13 +200,13 @@ public abstract class StatementWrapper implements DDRStatement {
             DataSourceParam param = new DataSourceParam();
             param.setReadOnly(readOnly);
             param.setScNames(replacedResult.getSchemas());
-            initStatement(param, null);
+            initStatementIfAbsent(param, null);
             playbackInvocation(statement);
         }
         return replacedResult.getSql();
     }
 
-    protected void initStatement(DataSourceParam param, String sql) throws SQLException {
+    protected void initStatementIfAbsent(DataSourceParam param, String sql) throws SQLException {
         statement = getStatement(param, null);
     }
 
