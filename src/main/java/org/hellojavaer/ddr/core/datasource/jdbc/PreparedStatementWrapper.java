@@ -18,6 +18,7 @@ package org.hellojavaer.ddr.core.datasource.jdbc;
 import org.hellojavaer.ddr.core.datasource.manager.DataSourceParam;
 import org.hellojavaer.ddr.core.exception.CrossDataSourceException;
 import org.hellojavaer.ddr.core.exception.DDRException;
+import org.hellojavaer.ddr.core.exception.UninitializedStatusException;
 
 import java.sql.*;
 import java.util.*;
@@ -136,7 +137,8 @@ public abstract class PreparedStatementWrapper extends StatementWrapper implemen
         if (preparedStatement != null) {
             super.addBatch(sql);
         } else {
-            throw new DDRException("Can't invoke 'addBatch(String sql)' before preparedStatement is initialized");
+            throw new UninitializedStatusException(
+                                                   "Can't invoke 'addBatch(String sql)' before preparedStatement is initialized");
         }
     }
 
@@ -145,7 +147,8 @@ public abstract class PreparedStatementWrapper extends StatementWrapper implemen
         if (preparedStatement != null) {
             return preparedStatement.getParameterMetaData();
         } else {
-            throw new DDRException("Can't invoke 'getParameterMetaData()' before preparedStatement is initialized");
+            throw new UninitializedStatusException(
+                                                   "Can't invoke 'getParameterMetaData()' before preparedStatement is initialized");
         }
     }
 
@@ -154,7 +157,8 @@ public abstract class PreparedStatementWrapper extends StatementWrapper implemen
         if (preparedStatement != null) {
             return preparedStatement.getUpdateCount();
         } else {
-            throw new DDRException("Can't invoke 'getUpdateCount()' before preparedStatement is initialized");
+            throw new UninitializedStatusException(
+                                                   "Can't invoke 'getUpdateCount()' before preparedStatement is initialized");
         }
     }
 
@@ -163,7 +167,8 @@ public abstract class PreparedStatementWrapper extends StatementWrapper implemen
         if (preparedStatement != null) {
             return this.preparedStatement.getResultSetConcurrency();
         } else {
-            throw new DDRException("Can't invoke 'getResultSetConcurrency()' before preparedStatement is initialized");
+            throw new UninitializedStatusException(
+                                                   "Can't invoke 'getResultSetConcurrency()' before preparedStatement is initialized");
         }
     }
 

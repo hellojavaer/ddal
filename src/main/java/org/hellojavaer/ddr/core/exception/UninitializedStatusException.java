@@ -19,6 +19,25 @@ package org.hellojavaer.ddr.core.exception;
  *
  * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 13/12/2016.
  */
-public class UninitializedException extends DDRException {
+public class UninitializedStatusException extends DDRException {
 
+    public UninitializedStatusException() {
+    }
+
+    public UninitializedStatusException(String message) {
+        super(message);
+    }
+
+    public UninitializedStatusException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public UninitializedStatusException(Throwable cause) {
+        super(cause);
+    }
+
+    public UninitializedStatusException(String message, Throwable cause, boolean enableSuppression,
+                                        boolean writableStackTrace) {
+        super(message, cause, enableSuppression, writableStackTrace);
+    }
 }
