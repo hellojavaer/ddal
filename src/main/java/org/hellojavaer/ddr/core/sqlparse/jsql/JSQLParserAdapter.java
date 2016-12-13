@@ -71,7 +71,7 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
 
     private class InnerReplacedResult implements DDRDataSource.ReplacedResult {
 
-        private String       sql;
+        private String      sql;
         private Set<String> schemas;
 
         @Override
@@ -378,19 +378,14 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
                                    + "' is not supported for it contains 'not', source sql is '" + sql + "'");
         }
         // 普通in模式
-        ItemsList itemsList0 = inExpression.getRightItemsList();
-        if (itemsList0 instanceof ExpressionList) {
-            ExpressionList itemsList = (ExpressionList) itemsList0;
-            List<Expression> list = itemsList.getExpressions();
-            if (list == null || list.isEmpty()) {
-                throw new DDRException("sharding expression '" + inExpression.toString()
-                                       + "' is not supported for in-expression is empty. source sql is '" + sql + "'");
-            }
-            for (Expression exp : list) {
-                routeTable(tableWrapper, column, exp);
-            }
-        } else {
-            throw new DDRException("");
+        ExpressionList itemsList = (ExpressionList) inExpression.getRightItemsList();
+        List<Expression> list = itemsList.getExpressions();
+        if (list == null || list.isEmpty()) {
+            throw new DDRException("sharding expression '" + inExpression.toString()
+                                   + "' is not supported for in-expression is empty. source sql is '" + sql + "'");
+        }
+        for (Expression exp : list) {
+            routeTable(tableWrapper, column, exp);
         }
     }
 

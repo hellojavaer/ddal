@@ -102,7 +102,16 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
         if (dataSourceSchemasBinding == null) {
             dataSourceSchemasBinding = this.getDataSource(param);
             if (dataSourceSchemasBinding == null) {
-                throw new DDRException("");// TODO
+                StringBuilder scNames = new StringBuilder("");
+                for (String item : param.getScNames()) {
+                    scNames.append(item);
+                    scNames.append(',');
+                }
+                if (scNames.length() > 0) {
+                    scNames.deleteCharAt(scNames.length() - 1);
+                }
+                throw new DDRException("No datasource binding for parameter[readOnly:" + param.isReadOnly()
+                                       + ",scNames:'" + scNames.toString() + "']");
             } else {
                 if (tag.isLoginTimeout()) {
                     dataSourceSchemasBinding.getDataSource().setLoginTimeout(prop.getLoginTimeout());
@@ -110,7 +119,7 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
                 if (tag.isLogWriter()) {
                     dataSourceSchemasBinding.getDataSource().setLogWriter(prop.getLogWriter());
                 }
-                logger.debug("");// TODO
+                logger.debug("");
             }
         }
         return dataSourceSchemasBinding.getDataSource();
