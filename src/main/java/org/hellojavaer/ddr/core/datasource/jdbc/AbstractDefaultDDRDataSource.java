@@ -16,6 +16,10 @@
 package org.hellojavaer.ddr.core.datasource.jdbc;
 
 import org.hellojavaer.ddr.core.datasource.DataSourceSchemasBinding;
+import org.hellojavaer.ddr.core.datasource.jdbc.init.UninitializedConnectionProcessor;
+import org.hellojavaer.ddr.core.datasource.jdbc.init.UninitializedDataSourceProcessor;
+import org.hellojavaer.ddr.core.datasource.jdbc.property.ConnectionProperty;
+import org.hellojavaer.ddr.core.datasource.jdbc.property.DataSourceProperty;
 import org.hellojavaer.ddr.core.datasource.manager.DataSourceParam;
 import org.hellojavaer.ddr.core.exception.DDRException;
 import org.slf4j.Logger;
@@ -137,8 +141,17 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
         } else if (dataSourceSchemasBinding != null) {
             return dataSourceSchemasBinding.getDataSource().getLoginTimeout();
         } else {
-            throw new DDRException(
-                                   "Can't invoke 'getLoginTimeout()' before 'setLoginTimeout(int timeout)' is invoked or datasource is initialized");
+            if (UninitializedDataSourceProcessor.isSetDefaultValue(DataSourceProperty.loginTimeout)) {
+                int val = ((Number) UninitializedDataSourceProcessor.getDefaultValue(DataSourceProperty.loginTimeout)).intValue();
+                if (UninitializedDataSourceProcessor.isSyncDefaultValue(DataSourceProperty.loginTimeout)) {
+                    prop.setLoginTimeout(val);
+                    tag.setLoginTimeout(true);
+                }
+                return val;
+            } else {
+                throw new DDRException(
+                                       "Can't invoke 'getLoginTimeout()' before 'setLoginTimeout(int timeout)' is invoked or datasource is initialized");
+            }
         }
     }
 
@@ -155,8 +168,17 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
         } else if (dataSourceSchemasBinding != null) {
             return dataSourceSchemasBinding.getDataSource().getLogWriter();
         } else {
-            throw new DDRException(
-                                   "Can't invoke 'getLogWriter()' before 'setLogWriter(PrintWriter pw)' is invoked or datasource is initialized");
+            if (UninitializedDataSourceProcessor.isSetDefaultValue(DataSourceProperty.logWriter)) {
+                PrintWriter val = (PrintWriter) UninitializedDataSourceProcessor.getDefaultValue(DataSourceProperty.logWriter);
+                if (UninitializedDataSourceProcessor.isSyncDefaultValue(DataSourceProperty.logWriter)) {
+                    prop.setLogWriter(val);
+                    tag.setLogWriter(true);
+                }
+                return val;
+            } else {
+                throw new DDRException(
+                                       "Can't invoke 'getLogWriter()' before 'setLogWriter(PrintWriter pw)' is invoked or datasource is initialized");
+            }
         }
     }
 
@@ -204,7 +226,7 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
 
     private abstract class ConnectionWrapper implements Connection {
 
-        private class ConnectionProperty {
+        private class ConnectionPropertyBean {
 
             private boolean               readOnly;
             private boolean               autoCommit;
@@ -213,6 +235,7 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
             private Map<String, Class<?>> typeMap;
             private int                   holdability;
             private String                schema;
+            private DatabaseMetaData      metaData;
 
             public boolean isReadOnly() {
                 return readOnly;
@@ -269,9 +292,17 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
             public void setSchema(String schema) {
                 this.schema = schema;
             }
+
+            public DatabaseMetaData getMetaData() {
+                return metaData;
+            }
+
+            public void setMetaData(DatabaseMetaData metaData) {
+                this.metaData = metaData;
+            }
         }
 
-        private class InvokedTag {
+        private class InvocationTag {
 
             private boolean readOnly;
             private boolean autoCommit;
@@ -280,6 +311,7 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
             private boolean typeMap;
             private boolean holdability;
             private boolean schema;
+            private boolean metaData;
 
             public boolean isReadOnly() {
                 return readOnly;
@@ -336,11 +368,19 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
             public void setSchema(boolean schema) {
                 this.schema = schema;
             }
+
+            public boolean isMetaData() {
+                return metaData;
+            }
+
+            public void setMetaData(boolean metaData) {
+                this.metaData = metaData;
+            }
         }
 
-        private Connection         connection;
-        private ConnectionProperty prop = new ConnectionProperty();
-        private InvokedTag         tag  = new InvokedTag();
+        private Connection             connection;
+        private ConnectionPropertyBean prop = new ConnectionPropertyBean();
+        private InvocationTag          tag  = new InvocationTag();
 
         private boolean isReadOnly0() {
             return prop.isReadOnly();
@@ -392,8 +432,10 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
                 }
 
                 @Override
-                public Statement getStatement(DataSourceParam param, String sql) throws SQLException {
-                    return getConnection0(param).createStatement();
+                public ConnectionStatementBean getStatement(DataSourceParam param, String sql) throws SQLException {
+                    Connection connection = getConnection0(param);
+                    Statement statement = connection.createStatement();
+                    return new ConnectionStatementBean(ConnectionWrapper.this, statement);
                 }
             };
         }
@@ -414,9 +456,11 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
                 }
 
                 @Override
-                public PreparedStatement getStatement(DataSourceParam param, String routedSql) throws SQLException {
-                    return getConnection0(param).prepareStatement(routedSql);
-
+                public ConnectionStatementBean getStatement(DataSourceParam param, String routedSql)
+                                                                                                    throws SQLException {
+                    Connection connection = getConnection0(param);
+                    Statement statement = connection.prepareStatement(routedSql);
+                    return new ConnectionStatementBean(ConnectionWrapper.this, statement);
                 }
             };
         }
@@ -437,8 +481,10 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
                 }
 
                 @Override
-                public Statement getStatement(DataSourceParam param, String sql) throws SQLException {
-                    return getConnection0(param).createStatement(resultSetType, resultSetConcurrency);
+                public ConnectionStatementBean getStatement(DataSourceParam param, String sql) throws SQLException {
+                    Connection connection = getConnection0(param);
+                    Statement statement = connection.createStatement(resultSetType, resultSetConcurrency);
+                    return new ConnectionStatementBean(ConnectionWrapper.this, statement);
                 }
             };
         }
@@ -460,8 +506,10 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
                 }
 
                 @Override
-                public PreparedStatement getStatement(DataSourceParam param, String routedSql) throws SQLException {
-                    return getConnection0(param).prepareStatement(routedSql, resultSetType, resultSetConcurrency);
+                public ConnectionStatementBean getStatement(DataSourceParam param, String routedSql) throws SQLException {
+                    Connection connection = getConnection0(param);
+                    Statement statement = connection.prepareStatement(routedSql, resultSetType, resultSetConcurrency);
+                    return new ConnectionStatementBean(ConnectionWrapper.this, statement);
                 }
             };
         }
@@ -483,9 +531,11 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
                 }
 
                 @Override
-                public Statement getStatement(DataSourceParam param, String sql) throws SQLException {
-                    return getConnection0(param).createStatement(resultSetType, resultSetConcurrency,
-                                                                 resultSetHoldability);
+                public ConnectionStatementBean getStatement(DataSourceParam param, String sql) throws SQLException {
+                    Connection connection = getConnection0(param);
+                    Statement statement = connection.createStatement(resultSetType, resultSetConcurrency,
+                                                                     resultSetHoldability);
+                    return new ConnectionStatementBean(ConnectionWrapper.this, statement);
                 }
             };
         }
@@ -507,9 +557,12 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
                 }
 
                 @Override
-                public PreparedStatement getStatement(DataSourceParam param, String routedSql) throws SQLException {
-                    return getConnection0(param).prepareStatement(routedSql, resultSetType, resultSetConcurrency,
-                                                                  resultSetHoldability);
+                public ConnectionStatementBean getStatement(DataSourceParam param, String routedSql)
+                                                                                                    throws SQLException {
+                    Connection connection = getConnection0(param);
+                    Statement statement = connection.prepareStatement(routedSql, resultSetType, resultSetConcurrency,
+                                                                      resultSetHoldability);
+                    return new ConnectionStatementBean(ConnectionWrapper.this, statement);
                 }
             };
         }
@@ -530,8 +583,10 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
                 }
 
                 @Override
-                public PreparedStatement getStatement(DataSourceParam param, String routedSql) throws SQLException {
-                    return getConnection0(param).prepareStatement(routedSql, autoGeneratedKeys);
+                public ConnectionStatementBean getStatement(DataSourceParam param, String routedSql) throws SQLException {
+                    Connection connection = getConnection0(param);
+                    Statement statement = connection.prepareStatement(routedSql, autoGeneratedKeys);
+                    return new ConnectionStatementBean(ConnectionWrapper.this, statement);
                 }
             };
         }
@@ -552,8 +607,10 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
                 }
 
                 @Override
-                public PreparedStatement getStatement(DataSourceParam param, String routedSql) throws SQLException {
-                    return getConnection0(param).prepareStatement(routedSql, columnIndexes);
+                public ConnectionStatementBean getStatement(DataSourceParam param, String routedSql) throws SQLException {
+                    Connection connection = getConnection0(param);
+                    Statement statement = connection.prepareStatement(routedSql, columnIndexes);
+                    return new ConnectionStatementBean(ConnectionWrapper.this, statement);
                 }
             };
         }
@@ -574,8 +631,10 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
                 }
 
                 @Override
-                public PreparedStatement getStatement(DataSourceParam param, String routedSql) throws SQLException {
-                    return getConnection0(param).prepareStatement(routedSql, columnNames);
+                public ConnectionStatementBean getStatement(DataSourceParam param, String routedSql) throws SQLException {
+                    Connection connection = getConnection0(param);
+                    Statement statement = connection.prepareStatement(routedSql, columnNames);
+                    return new ConnectionStatementBean(ConnectionWrapper.this, statement);
                 }
             };
         }
@@ -602,15 +661,6 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
         }
 
         @Override
-        public boolean isReadOnly() throws SQLException {
-            if (tag.isReadOnly()) {
-                return prop.isReadOnly();
-            } else {
-                throw new DDRException("Can't invoke 'isReadOnly()' before 'setReadOnly(boolean readOnly)' is invoked");
-            }
-        }
-
-        @Override
         public void setCatalog(String catalog) throws SQLException {
             if (connection != null) {
                 connection.setCatalog(catalog);
@@ -621,37 +671,12 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
         }
 
         @Override
-        public String getCatalog() throws SQLException {
-            if (connection != null) {
-                return connection.getCatalog();
-            } else if (tag.isCatalog()) {
-                return prop.getCatalog();
-            } else {
-                throw new DDRException(
-                                       "Can't invoke 'getCatalog()' before 'setCatalog(String catalog)' is invoked or connection is initialized");
-            }
-        }
-
-        @Override
         public void setTransactionIsolation(int level) throws SQLException {
             if (connection != null) {
                 connection.setTransactionIsolation(level);
             } else {
                 tag.setTransactionIsolation(true);
                 prop.setTransactionIsolation(level);
-            }
-        }
-
-        @Override
-        public int getTransactionIsolation() throws SQLException {
-            if (connection != null) {
-                return connection.getTransactionIsolation();
-            } else if (tag.isTransactionIsolation()) {
-                return prop.getTransactionIsolation();
-
-            } else {
-                throw new DDRException(
-                                       "Can't invoke 'getTransactionIsolation()' before 'setTransactionIsolation(int level)' is invoked or connection is initialized");
             }
         }
 
@@ -684,37 +709,12 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
         }
 
         @Override
-        public Map<String, Class<?>> getTypeMap() throws SQLException {
-            if (connection != null) {
-                return connection.getTypeMap();
-            } else if (tag.isTypeMap()) {
-                return prop.getTypeMap();
-
-            } else {
-                throw new DDRException(
-                                       "Can't invoke 'getTypeMap()' before 'setTypeMap(Map<String, Class<?>> map)' is invoked or connection is initialized");
-            }
-        }
-
-        @Override
         public void setHoldability(int holdability) throws SQLException {
             if (connection != null) {
                 connection.setHoldability(holdability);
             } else {
                 tag.setHoldability(true);
                 prop.setHoldability(holdability);
-            }
-        }
-
-        @Override
-        public int getHoldability() throws SQLException {
-            if (connection != null) {
-                return connection.getHoldability();
-            } else if (tag.isHoldability()) {
-                return prop.getHoldability();
-            } else {
-                throw new DDRException(
-                                       "Can't invoke 'getHoldability()' before 'setHoldability(int holdability)' is invoked or connection is initialized");
             }
         }
 
@@ -728,20 +728,7 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
             }
         }
 
-        @Override
-        public String getSchema() throws SQLException {
-            if (connection != null) {
-                return connection.getSchema();
-            } else if (tag.isSchema()) {
-                return prop.getSchema();
-            } else {
-                throw new DDRException(
-                                       "Can't invoke 'getSchema()' before 'setSchema(String schema)' is invoked or connection is initialized");
-            }
-        }
-
         // 初始化后才能调动的方法
-
         @Override
         public void setClientInfo(String name, String value) throws SQLClientInfoException {
             if (connection != null) {
@@ -788,7 +775,6 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
                 throw new DDRException(
                                        "Can't invoke 'setNetworkTimeout(Executor executor, int milliseconds)' before connection is initialized");
             }
-
         }
 
         @Override
@@ -797,16 +783,6 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
                 return connection.getNetworkTimeout();
             } else {
                 throw new DDRException("Can't invoke 'getNetworkTimeout()' before connection is initialized");
-            }
-        }
-
-        @Override
-        public DatabaseMetaData getMetaData() throws SQLException {
-            if (connection != null) {
-                return connection.getMetaData();
-            } else {
-                return null;// FIXME
-                // throw new DDRException("Can't invoke 'getMetaData()' before connection is initialized");
             }
         }
 
@@ -1000,7 +976,150 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
             throw new UnsupportedOperationException("prepareCall");
         }
 
-        // ////特殊处理的方法
+        @Override
+        public boolean isReadOnly() throws SQLException {
+            if (connection != null) {
+                return connection.isReadOnly();
+            } else if (tag.isReadOnly()) {
+                return prop.isReadOnly();
+            } else {
+                if (UninitializedConnectionProcessor.isSetDefaultValue(ConnectionProperty.readOnly)) {
+                    boolean val = (boolean) UninitializedConnectionProcessor.getDefaultValue(ConnectionProperty.readOnly);
+                    if (UninitializedConnectionProcessor.isSyncDefaultValue(ConnectionProperty.readOnly)) {
+                        prop.setReadOnly(val);
+                        tag.setReadOnly(true);
+                    }
+                    return val;
+                } else {
+                    throw new DDRException(
+                                           "Can't invoke 'isReadOnly()' before 'setReadOnly(boolean readOnly)' is invoked");
+                }
+            }
+        }
+
+        @Override
+        public String getCatalog() throws SQLException {
+            if (connection != null) {
+                return connection.getCatalog();
+            } else if (tag.isCatalog()) {
+                return prop.getCatalog();
+            } else {
+                if (UninitializedConnectionProcessor.isSetDefaultValue(ConnectionProperty.catalog)) {
+                    String val = (String) UninitializedConnectionProcessor.getDefaultValue(ConnectionProperty.catalog);
+                    if (UninitializedConnectionProcessor.isSyncDefaultValue(ConnectionProperty.catalog)) {
+                        prop.setCatalog(val);
+                        tag.setCatalog(true);
+                    }
+                    return val;
+                } else {
+                    throw new DDRException(
+                                           "Can't invoke 'getCatalog()' before 'setCatalog(String catalog)' is invoked or connection is initialized");
+                }
+            }
+        }
+
+        @Override
+        public Map<String, Class<?>> getTypeMap() throws SQLException {
+            if (connection != null) {
+                return connection.getTypeMap();
+            } else if (tag.isTypeMap()) {
+                return prop.getTypeMap();
+            } else {
+                if (UninitializedConnectionProcessor.isSetDefaultValue(ConnectionProperty.typeMap)) {
+                    Map<String, Class<?>> val = (Map<String, Class<?>>) UninitializedConnectionProcessor.getDefaultValue(ConnectionProperty.typeMap);
+                    if (UninitializedConnectionProcessor.isSyncDefaultValue(ConnectionProperty.typeMap)) {
+                        prop.setTypeMap(val);
+                        tag.setTypeMap(true);
+                    }
+                    return val;
+                } else {
+                    throw new DDRException(
+                                           "Can't invoke 'getTypeMap()' before 'setTypeMap(Map<String, Class<?>> map)' is invoked or connection is initialized");
+                }
+            }
+        }
+
+        @Override
+        public int getHoldability() throws SQLException {
+            if (connection != null) {
+                return connection.getHoldability();
+            } else if (tag.isHoldability()) {
+                return prop.getHoldability();
+            } else {
+                if (UninitializedConnectionProcessor.isSetDefaultValue(ConnectionProperty.holdability)) {
+                    int val = ((Number) UninitializedConnectionProcessor.getDefaultValue(ConnectionProperty.holdability)).intValue();
+                    if (UninitializedConnectionProcessor.isSyncDefaultValue(ConnectionProperty.holdability)) {
+                        prop.setHoldability(val);
+                        tag.setHoldability(true);
+                    }
+                    return val;
+                } else {
+                    throw new DDRException(
+                                           "Can't invoke 'getHoldability()' before 'setHoldability(int holdability)' is invoked or connection is initialized");
+                }
+            }
+        }
+
+        @Override
+        public DatabaseMetaData getMetaData() throws SQLException {
+            if (connection != null) {
+                return connection.getMetaData();
+            } else {
+                if (UninitializedConnectionProcessor.isSetDefaultValue(ConnectionProperty.metaData)) {
+                    DatabaseMetaData val = (DatabaseMetaData) UninitializedConnectionProcessor.getDefaultValue(ConnectionProperty.metaData);
+                    if (UninitializedConnectionProcessor.isSyncDefaultValue(ConnectionProperty.metaData)) {
+                        prop.setMetaData(val);
+                        tag.setMetaData(true);
+                    }
+                    return val;
+                } else {
+                    throw new DDRException("Can't invoke 'getMetaData()' before connection is initialized");
+                }
+            }
+        }
+
+        @Override
+        public String getSchema() throws SQLException {
+            if (connection != null) {
+                return connection.getSchema();
+            } else if (tag.isSchema()) {
+                return prop.getSchema();
+            } else {
+                if (UninitializedConnectionProcessor.isSetDefaultValue(ConnectionProperty.schema)) {
+                    String val = (String) UninitializedConnectionProcessor.getDefaultValue(ConnectionProperty.schema);
+                    if (UninitializedConnectionProcessor.isSyncDefaultValue(ConnectionProperty.schema)) {
+                        prop.setSchema(val);
+                        tag.setSchema(true);
+                    }
+                    return val;
+                } else {
+                    throw new DDRException(
+                                           "Can't invoke 'getSchema()' before 'setSchema(String schema)' is invoked or connection is initialized");
+                }
+            }
+        }
+
+        @Override
+        public int getTransactionIsolation() throws SQLException {
+            if (connection != null) {
+                return connection.getTransactionIsolation();
+            } else if (tag.isTransactionIsolation()) {
+                return prop.getTransactionIsolation();
+            } else {
+                if (UninitializedConnectionProcessor.isSetDefaultValue(ConnectionProperty.transactionIsolation)) {
+                    int val = ((Number) UninitializedConnectionProcessor.getDefaultValue(ConnectionProperty.transactionIsolation)).intValue();
+                    if (UninitializedConnectionProcessor.isSyncDefaultValue(ConnectionProperty.transactionIsolation)) {
+                        prop.setTransactionIsolation(val);
+                        tag.setTransactionIsolation(true);
+                    }
+                    return val;
+                } else {
+                    throw new DDRException(
+                                           "Can't invoke 'getTransactionIsolation()' before 'setTransactionIsolation(int level)' is invoked or connection is initialized");
+                }
+            }
+        }
+
         @Override
         public boolean getAutoCommit() throws SQLException {
             if (connection != null) {
@@ -1008,11 +1127,17 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
             } else if (tag.isAutoCommit()) {
                 return prop.isAutoCommit();
             } else {
-                tag.setAutoCommit(true);
-                prop.setAutoCommit(true);
-                return true;// NOTE HERE
+                if (UninitializedConnectionProcessor.isSetDefaultValue(ConnectionProperty.autoCommit)) {
+                    boolean val = (boolean) UninitializedConnectionProcessor.getDefaultValue(ConnectionProperty.autoCommit);
+                    if (UninitializedConnectionProcessor.isSyncDefaultValue(ConnectionProperty.autoCommit)) {
+                        prop.setAutoCommit(val);
+                        tag.setAutoCommit(true);
+                    }
+                    return val;
+                } else {
+                    throw new DDRException("Can't invoke 'getAutoCommit()' before connection is initialized");
+                }
             }
         }
     }
-
 }

@@ -15,6 +15,8 @@
  */
 package org.hellojavaer.ddr.core.datasource.jdbc;
 
+import org.hellojavaer.ddr.core.datasource.jdbc.init.UninitializedStatementProcessor;
+import org.hellojavaer.ddr.core.datasource.jdbc.property.StatementProperty;
 import org.hellojavaer.ddr.core.datasource.manager.DataSourceParam;
 import org.hellojavaer.ddr.core.exception.DDRException;
 
@@ -26,18 +28,18 @@ import java.sql.*;
  */
 public abstract class StatementWrapper implements DDRStatement {
 
-    protected Statement statement;
-    protected boolean   readOnly;
+    protected Statement  statement;
+    protected Connection connection;
+    protected boolean    readOnly;
 
     public StatementWrapper(boolean readOnly) {
         this.readOnly = readOnly;
     }
 
+    private StatementPropertyBean prop = new StatementPropertyBean();
+    private InvocationTag         tag  = new InvocationTag();
 
-    private StatementProperty prop = new StatementProperty();
-    private InvocationTag     tag  = new InvocationTag();
-
-    private class StatementProperty {
+    private class StatementPropertyBean {
 
         private int     maxFieldSize;
         private int     maxRows;
@@ -207,7 +209,9 @@ public abstract class StatementWrapper implements DDRStatement {
     }
 
     protected void initStatementIfAbsent(DataSourceParam param, String sql) throws SQLException {
-        statement = getStatement(param, null);
+        ConnectionStatementBean connectionStatementBean = getStatement(param, null);
+        this.statement = connectionStatementBean.getStatement();
+        this.connection = connectionStatementBean.getConnection();
     }
 
     protected void playbackInvocation(Statement statement) throws SQLException {
@@ -339,8 +343,17 @@ public abstract class StatementWrapper implements DDRStatement {
         } else if (tag.isMaxFieldSize()) {
             return prop.getMaxFieldSize();
         } else {
-            throw new DDRException(
-                                   "Can't invoke 'getMaxFieldSize()' before 'setMaxFieldSize(int max)' is invoked or statement is initialized");
+            if (UninitializedStatementProcessor.isSetDefaultValue(StatementProperty.maxFieldSize)) {
+                int val = ((Number) UninitializedStatementProcessor.getDefaultValue(StatementProperty.maxFieldSize)).intValue();
+                if (UninitializedStatementProcessor.isSyncDefaultValue(StatementProperty.maxFieldSize)) {
+                    prop.setMaxFieldSize(val);
+                    tag.setMaxFieldSize(true);
+                }
+                return val;
+            } else {
+                throw new DDRException(
+                                       "Can't invoke 'getMaxFieldSize()' before 'setMaxFieldSize(int max)' is invoked or statement is initialized");
+            }
         }
     }
 
@@ -351,8 +364,17 @@ public abstract class StatementWrapper implements DDRStatement {
         } else if (tag.isMaxRows()) {
             return prop.getMaxRows();
         } else {
-            throw new DDRException(
-                                   "Can't invoke 'getMaxRows()' before 'setMaxRows' is invoked or statement is initialized");
+            if (UninitializedStatementProcessor.isSetDefaultValue(StatementProperty.maxRows)) {
+                int val = ((Number) UninitializedStatementProcessor.getDefaultValue(StatementProperty.maxRows)).intValue();
+                if (UninitializedStatementProcessor.isSyncDefaultValue(StatementProperty.maxRows)) {
+                    prop.setMaxRows(val);
+                    tag.setMaxRows(true);
+                }
+                return val;
+            } else {
+                throw new DDRException(
+                        "Can't invoke 'getMaxRows()' before 'setMaxRows' is invoked or statement is initialized");
+            }
         }
     }
 
@@ -383,8 +405,17 @@ public abstract class StatementWrapper implements DDRStatement {
         } else if (tag.isFetchDirection()) {
             return prop.getFetchDirection();
         } else {
-            throw new DDRException(
-                                   "Can't invoke 'getFetchDirection()' before 'setFetchDirection(int direction)' is invoked or statement is initialized");
+            if (UninitializedStatementProcessor.isSetDefaultValue(StatementProperty.fetchDirection)) {
+                int val = ((Number) UninitializedStatementProcessor.getDefaultValue(StatementProperty.fetchDirection)).intValue();
+                if (UninitializedStatementProcessor.isSyncDefaultValue(StatementProperty.fetchDirection)) {
+                    prop.setFetchDirection(val);
+                    tag.setFetchDirection(true);
+                }
+                return val;
+            } else {
+                throw new DDRException(
+                                       "Can't invoke 'getFetchDirection()' before 'setFetchDirection(int direction)' is invoked or statement is initialized");
+            }
         }
     }
 
@@ -405,8 +436,17 @@ public abstract class StatementWrapper implements DDRStatement {
         } else if (tag.isFetchSize()) {
             return prop.getFetchSize();
         } else {
-            throw new DDRException(
-                                   "Can't invoke 'getFetchSize()' before 'setFetchSize(int rows)' is invoked or statement is initialized");
+            if (UninitializedStatementProcessor.isSetDefaultValue(StatementProperty.fetchSize)) {
+                int val = ((Number) UninitializedStatementProcessor.getDefaultValue(StatementProperty.fetchSize)).intValue();
+                if (UninitializedStatementProcessor.isSyncDefaultValue(StatementProperty.fetchSize)) {
+                    prop.setFetchSize(val);
+                    tag.setFetchSize(true);
+                }
+                return val;
+            } else {
+                throw new DDRException(
+                                       "Can't invoke 'getFetchSize()' before 'setFetchSize(int rows)' is invoked or statement is initialized");
+            }
         }
     }
 
@@ -427,8 +467,17 @@ public abstract class StatementWrapper implements DDRStatement {
         } else if (tag.isQueryTimeout()) {
             return prop.getQueryTimeout();
         } else {
-            throw new DDRException(
-                                   "Can't invoke 'getQueryTimeout()' before 'setQueryTimeout(int seconds)' is invoked or statement is initialized");
+            if (UninitializedStatementProcessor.isSetDefaultValue(StatementProperty.queryTimeout)) {
+                int val = ((Number) UninitializedStatementProcessor.getDefaultValue(StatementProperty.queryTimeout)).intValue();
+                if (UninitializedStatementProcessor.isSyncDefaultValue(StatementProperty.queryTimeout)) {
+                    prop.setQueryTimeout(val);
+                    tag.setQueryTimeout(true);
+                }
+                return val;
+            } else {
+                throw new DDRException(
+                                       "Can't invoke 'getQueryTimeout()' before 'setQueryTimeout(int seconds)' is invoked or statement is initialized");
+            }
         }
     }
 
@@ -449,8 +498,17 @@ public abstract class StatementWrapper implements DDRStatement {
         } else if (tag.isCloseOnCompletion()) {
             return prop.isCloseOnCompletion();
         } else {
-            throw new DDRException(
-                                   "Can't invoke 'isCloseOnCompletion()' before 'closeOnCompletion()' is invoked or statement is initialized");
+            if (UninitializedStatementProcessor.isSetDefaultValue(StatementProperty.closeOnCompletion)) {
+                boolean val = (boolean) UninitializedStatementProcessor.getDefaultValue(StatementProperty.closeOnCompletion);
+                if (UninitializedStatementProcessor.isSyncDefaultValue(StatementProperty.closeOnCompletion)) {
+                    prop.setCloseOnCompletion(true);
+                    tag.setCloseOnCompletion(true);
+                }
+                return val;
+            } else {
+                throw new DDRException(
+                                       "Can't invoke 'isCloseOnCompletion()' before 'closeOnCompletion()' is invoked or statement is initialized");
+            }
         }
     }
 
@@ -471,8 +529,17 @@ public abstract class StatementWrapper implements DDRStatement {
         } else if (tag.isPoolable()) {
             return prop.isPoolable();
         } else {
-            throw new DDRException(
-                                   "Can't invoke 'isPoolable()' before 'setPoolable(boolean poolable)' is invoked or statement is initialized");
+            if (UninitializedStatementProcessor.isSetDefaultValue(StatementProperty.poolable)) {
+                boolean val = ((boolean) UninitializedStatementProcessor.getDefaultValue(StatementProperty.poolable));
+                if (UninitializedStatementProcessor.isSyncDefaultValue(StatementProperty.poolable)) {
+                    prop.setPoolable(val);
+                    tag.setPoolable(true);
+                }
+                return val;
+            } else {
+                throw new DDRException(
+                                       "Can't invoke 'isPoolable()' before 'setPoolable(boolean poolable)' is invoked or statement is initialized");
+            }
         }
     }
 
@@ -532,11 +599,10 @@ public abstract class StatementWrapper implements DDRStatement {
         }
     }
 
-    // 未初始化不能调用
     @Override
     public Connection getConnection() throws SQLException {
-        if (statement != null) {
-            return statement.getConnection();
+        if (connection != null) {
+            return this.connection;
         } else {
             throw new DDRException("Can't invoke 'getConnection()' before statement is initialized");
         }

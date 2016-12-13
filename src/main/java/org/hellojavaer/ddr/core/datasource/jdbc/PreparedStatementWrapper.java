@@ -27,7 +27,7 @@ import java.util.*;
  */
 public abstract class PreparedStatementWrapper extends StatementWrapper implements DDRPreparedStatement {
 
-    private PreparedStatement         preparedStatement;
+    protected PreparedStatement       preparedStatement;
     private String                    sql;
     private Map<Integer, Object>      jdbcParameter = new HashMap<Integer, Object>();
     private List<JdbcParamInvocation> jdbcParamInvocationList;
@@ -188,8 +188,10 @@ public abstract class PreparedStatementWrapper extends StatementWrapper implemen
 
     @Override
     protected void initStatementIfAbsent(DataSourceParam param, String sql) throws SQLException {
-        preparedStatement = (PreparedStatement) getStatement(param, sql);
+        ConnectionStatementBean connectionStatementBean = getStatement(param, sql);
+        preparedStatement = (PreparedStatement) connectionStatementBean.getStatement();
         statement = preparedStatement;
+        connection = connectionStatementBean.getConnection();
     }
 
     private enum JdbcParamSetMethod {

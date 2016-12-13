@@ -16,6 +16,10 @@
 package org.hellojavaer.ddr.core.datasource.jdbc;
 
 import org.hellojavaer.ddr.core.datasource.DataSourceSchemasBinding;
+import org.hellojavaer.ddr.core.datasource.jdbc.init.UninitializedConnectionProcessor;
+import org.hellojavaer.ddr.core.datasource.jdbc.init.UninitializedDataSourceProcessor;
+import org.hellojavaer.ddr.core.datasource.jdbc.property.ConnectionProperty;
+import org.hellojavaer.ddr.core.datasource.jdbc.property.DataSourceProperty;
 import org.hellojavaer.ddr.core.datasource.manager.DataSourceManager;
 import org.hellojavaer.ddr.core.datasource.manager.DataSourceParam;
 import org.hellojavaer.ddr.core.datasource.tr.DistributedTransactionLevel;
@@ -32,6 +36,11 @@ public class DefaultDDRDataSource extends AbstractDefaultDDRDataSource {
     private DataSourceManager           dataSourceManager;
     private ShardingParser              shardingParser;
     private DistributedTransactionLevel distributedTransactionLevel;
+
+    static {
+        UninitializedDataSourceProcessor.setDefaultValue(DataSourceProperty.loginTimeout, 0, false);
+        UninitializedConnectionProcessor.setDefaultValue(ConnectionProperty.autoCommit, true, true);
+    }
 
     public DataSourceManager getDataSourceManager() {
         return dataSourceManager;

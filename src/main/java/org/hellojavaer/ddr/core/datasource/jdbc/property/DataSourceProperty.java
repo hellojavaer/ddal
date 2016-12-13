@@ -13,24 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddr.core.datasource.jdbc;
-
-import org.hellojavaer.ddr.core.datasource.manager.DataSourceParam;
-
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.Map;
-import java.util.Set;
+package org.hellojavaer.ddr.core.datasource.jdbc.property;
 
 /**
  *
  * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 11/12/2016.
  */
-public interface DDRStatement extends Statement {
+public enum DataSourceProperty {
 
-    DDRDataSource.ReplacedResult replaceSql(String sql, Map<Integer, Object> jdbcParams) throws SQLException;
+    loginTimeout,
 
-    ConnectionStatementBean getStatement(DataSourceParam param, String sql) throws SQLException;
+    logWriter;
 
-    boolean isCrossDataSource(Set<String> schemas);
 }
