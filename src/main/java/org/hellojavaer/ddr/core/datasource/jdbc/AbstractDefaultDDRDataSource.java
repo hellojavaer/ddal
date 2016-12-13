@@ -22,7 +22,7 @@ import org.hellojavaer.ddr.core.datasource.jdbc.property.ConnectionProperty;
 import org.hellojavaer.ddr.core.datasource.jdbc.property.DataSourceProperty;
 import org.hellojavaer.ddr.core.datasource.manager.DataSourceParam;
 import org.hellojavaer.ddr.core.exception.DDRException;
-import org.hellojavaer.ddr.core.exception.UninitializedStatusException;
+import org.hellojavaer.ddr.core.datasource.exception.UninitializedStatusException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

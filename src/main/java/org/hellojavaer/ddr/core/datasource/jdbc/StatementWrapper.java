@@ -18,8 +18,8 @@ package org.hellojavaer.ddr.core.datasource.jdbc;
 import org.hellojavaer.ddr.core.datasource.jdbc.init.UninitializedStatementProcessor;
 import org.hellojavaer.ddr.core.datasource.jdbc.property.StatementProperty;
 import org.hellojavaer.ddr.core.datasource.manager.DataSourceParam;
-import org.hellojavaer.ddr.core.exception.CrossDataSourceException;
-import org.hellojavaer.ddr.core.exception.UninitializedStatusException;
+import org.hellojavaer.ddr.core.datasource.exception.CrossDataSourceException;
+import org.hellojavaer.ddr.core.datasource.exception.UninitializedStatusException;
 
 import java.sql.*;
 import java.util.Set;

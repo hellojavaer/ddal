@@ -13,19 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddr.core.exception;
+package org.hellojavaer.ddr.core.expression.range;
 
 /**
  *
  * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 30/11/2016.
  */
-public class StringParseException extends RuntimeException {
+public class RangeExpressionException extends RuntimeException {
 
-    public StringParseException(String string, int index, Character currentChar, String expectedChars) {
+    public RangeExpressionException(String string, int index, Character currentChar, String expectedChars) {
         super("string '" + string + "' at index:" + index + " is '" + currentChar + "', expect " + expectedChars + "");
     }
 
-    public StringParseException(String string, int index, Character currentChar, Character... expectedChars) {
+    public RangeExpressionException(String string, int index, Character currentChar, Character... expectedChars) {
         super(build(string, index, currentChar, expectedChars));
     }
 

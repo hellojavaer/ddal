@@ -15,8 +15,6 @@
  */
 package org.hellojavaer.ddr.core.expression.range;
 
-import org.hellojavaer.ddr.core.exception.StringParseException;
-
 /**
  *
  * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 24/11/2016.
@@ -33,7 +31,7 @@ public class RangeExpression {
                 if (ch == '\\' || ch == '[' || ch == ']' || ch == '~' || ch == ',') {
                     escape = false;
                 } else {
-                    throw new StringParseException(str, i, ch, '\\', '[', ']', '~', ',');
+                    throw new RangeExpressionException(str, i, ch, '\\', '[', ']', '~', ',');
                 }
             } else {
                 if (ch == '\\') {
@@ -84,7 +82,7 @@ public class RangeExpression {
                     sb.append(ch);
                     escape = false;
                 } else {
-                    throw new StringParseException(str, i, ch, '\\', '[', ']', '~', ',');
+                    throw new RangeExpressionException(str, i, ch, '\\', '[', ']', '~', ',');
                 }
             } else {//
                 if (ch == '\\') {// 转义后使用sb做缓存,否则直接截取str子串
@@ -105,7 +103,7 @@ public class RangeExpression {
                     int endNum = 0;
                     for (;; j++) {
                         if (j >= endIndex) {
-                            throw new StringParseException(str, j, ch, "'0,1,2..9'");
+                            throw new RangeExpressionException(str, j, ch, "'0,1,2..9'");
                         }
                         char ch0 = str.charAt(j);
                         if (ch0 >= '0' && ch0 <= '9') {
@@ -115,7 +113,7 @@ public class RangeExpression {
                             startNum = Integer.valueOf(startStr);
                             break;
                         } else {
-                            throw new StringParseException(str, j, ch, '~');
+                            throw new RangeExpressionException(str, j, ch, '~');
                         }
                     }
                     // 读取结束值
@@ -123,7 +121,7 @@ public class RangeExpression {
                     i = j;
                     for (;; j++) {
                         if (j >= endIndex) {
-                            throw new StringParseException(str, j, ch, "'0,1,2..9'");
+                            throw new RangeExpressionException(str, j, ch, "'0,1,2..9'");
                         }
                         char ch0 = str.charAt(j);
                         if (ch0 >= '0' && ch0 <= '9') {
@@ -133,7 +131,7 @@ public class RangeExpression {
                             endNum = Integer.valueOf(endStr);
                             break;
                         } else {
-                            throw new StringParseException(str, j, ch, ']');
+                            throw new RangeExpressionException(str, j, ch, ']');
                         }
                     }
                     int nextStart = ++j;
