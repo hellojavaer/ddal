@@ -30,7 +30,7 @@ public interface DDRStatement extends Statement {
 
     DDRDataSource.ReplacedResult replaceSql(String sql, Map<Integer, Object> jdbcParams) throws SQLException;
 
-    ConnectionStatementBean getStatement(DataSourceParam param, String sql) throws SQLException;
+    StatementBean getStatement(DataSourceParam param, String sql) throws SQLException;
 
     boolean isCrossDataSource(Set<String> schemas);
 }

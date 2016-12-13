@@ -40,6 +40,7 @@ public class DefaultDDRDataSource extends AbstractDefaultDDRDataSource {
     static {
         UninitializedDataSourceProcessor.setDefaultValue(DataSourceProperty.loginTimeout, 0, false);
         UninitializedConnectionProcessor.setDefaultValue(ConnectionProperty.autoCommit, true, true);
+        UninitializedConnectionProcessor.setDefaultValue(ConnectionProperty.metaData, null, false);
     }
 
     public DataSourceManager getDataSourceManager() {

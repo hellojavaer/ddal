@@ -50,4 +50,25 @@ public class DataSourceSchemasBinding {
     public void setSchemas(Set<String> schemas) {
         this.schemas = schemas;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{schemas:");
+        if (schemas != null) {
+            sb.append("[");
+            for (String s : schemas) {
+                sb.append('\'');
+                sb.append(s);
+                sb.append('\'');
+                sb.append(',');
+            }
+            sb.deleteCharAt(sb.length() - 1);
+            sb.append("]");
+        } else {
+            sb.append("null");
+        }
+        sb.append("}");
+        return super.toString();
+    }
 }

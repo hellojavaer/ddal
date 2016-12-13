@@ -16,6 +16,7 @@
 package org.hellojavaer.ddr.core.datasource.jdbc;
 
 import org.hellojavaer.ddr.core.datasource.manager.DataSourceParam;
+import org.hellojavaer.ddr.core.exception.CrossDataSourceException;
 import org.hellojavaer.ddr.core.exception.DDRException;
 
 import java.sql.*;
@@ -32,8 +33,8 @@ public abstract class PreparedStatementWrapper extends StatementWrapper implemen
     private Map<Integer, Object>      jdbcParameter = new HashMap<Integer, Object>();
     private List<JdbcParamInvocation> jdbcParamInvocationList;
 
-    public PreparedStatementWrapper(String sql, boolean readOnly) {
-        super(readOnly);
+    public PreparedStatementWrapper(String sql, boolean readOnly, Set<String> schemas) {
+        super(readOnly, schemas);
         this.sql = sql;
     }
 
@@ -171,7 +172,10 @@ public abstract class PreparedStatementWrapper extends StatementWrapper implemen
         DDRDataSource.ReplacedResult replacedResult = replaceSql(sql, this.jdbcParameter);
         // 2. check if crossing datasource
         if (isCrossDataSource(replacedResult.getSchemas())) {
-            throw new DDRException("Sql '" + sql + "' query cross datasource");
+            throw new CrossDataSourceException("Sql schemas are " + parseSchemasToString(replacedResult.getSchemas())
+                                               + ",current datasource binding schemas are "
+                                               + parseSchemasToString(schemas) + " and source original sql is '" + sql
+                                               + "',  jdbc parameter is " + parseJdbcParamToString(jdbcParameter));
         }
         // 3. init preparedStatement if not
         if (preparedStatement == null) {
@@ -186,12 +190,60 @@ public abstract class PreparedStatementWrapper extends StatementWrapper implemen
         }
     }
 
+    private String parseJdbcParamToString(Map<Integer, Object> map) {
+        if (map == null) {
+            return "";
+        } else {
+            StringBuilder sb = new StringBuilder();
+            sb.append('{');
+            for (Map.Entry<Integer, Object> entry : map.entrySet()) {
+                sb.append(entry.getKey());
+                sb.append(':');
+                if (entry.getValue() == null) {
+                    sb.append("null");
+                } else {
+                    if (entry.getValue() instanceof String) {
+                        sb.append('"');
+                        sb.append(entry.getValue().toString());
+                        sb.append('"');
+                    } else {
+                        sb.append(entry.getValue().toString());
+                    }
+                }
+                sb.append(',');
+            }
+            if (!map.isEmpty()) {
+                sb.deleteCharAt(sb.length() - 1);
+            }
+            sb.append('}');
+            return sb.toString();
+        }
+    }
+
+    private String parseSchemasToString(Set<String> schemas) {
+        if (schemas == null) {
+            return "";
+        } else {
+            StringBuilder sb = new StringBuilder();
+            sb.append('[');
+            for (String s : schemas) {
+                sb.append('\"');
+                sb.append(s);
+                sb.append('\"');
+                sb.append(',');
+            }
+            if (!schemas.isEmpty()) {
+                sb.deleteCharAt(sb.length() - 1);
+            }
+            sb.append(']');
+            return sb.toString();
+        }
+    }
+
     @Override
     protected void initStatementIfAbsent(DataSourceParam param, String sql) throws SQLException {
-        ConnectionStatementBean connectionStatementBean = getStatement(param, sql);
-        preparedStatement = (PreparedStatement) connectionStatementBean.getStatement();
-        statement = preparedStatement;
-        connection = connectionStatementBean.getConnection();
+        super.initStatementIfAbsent(param, sql);
+        preparedStatement = (PreparedStatement) statement;
     }
 
     private enum JdbcParamSetMethod {

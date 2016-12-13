@@ -105,7 +105,7 @@ public class RangeExpression {
                     int endNum = 0;
                     for (;; j++) {
                         if (j >= endIndex) {
-                            throw new StringParseException(str, i, ch, "'0~9' or '~'");
+                            throw new StringParseException(str, j, ch, "'0,1,2..9'");
                         }
                         char ch0 = str.charAt(j);
                         if (ch0 >= '0' && ch0 <= '9') {
@@ -115,7 +115,7 @@ public class RangeExpression {
                             startNum = Integer.valueOf(startStr);
                             break;
                         } else {
-                            throw new StringParseException(str, i, ch, "'0~9' or '~'");
+                            throw new StringParseException(str, j, ch, '~');
                         }
                     }
                     // 读取结束值
@@ -123,7 +123,7 @@ public class RangeExpression {
                     i = j;
                     for (;; j++) {
                         if (j >= endIndex) {
-                            throw new StringParseException(str, i, ch, "'0~9' or ']'");
+                            throw new StringParseException(str, j, ch, "'0,1,2..9'");
                         }
                         char ch0 = str.charAt(j);
                         if (ch0 >= '0' && ch0 <= '9') {
@@ -133,7 +133,7 @@ public class RangeExpression {
                             endNum = Integer.valueOf(endStr);
                             break;
                         } else {
-                            throw new StringParseException(str, i, ch, "'0~9' or ']'");
+                            throw new StringParseException(str, j, ch, ']');
                         }
                     }
                     int nextStart = ++j;

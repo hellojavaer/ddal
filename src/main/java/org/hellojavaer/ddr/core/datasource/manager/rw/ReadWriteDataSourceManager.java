@@ -19,6 +19,7 @@ import org.hellojavaer.ddr.core.datasource.DataSourceSchemasBinding;
 import org.hellojavaer.ddr.core.datasource.manager.DataSourceManager;
 import org.hellojavaer.ddr.core.datasource.manager.DataSourceParam;
 import org.hellojavaer.ddr.core.datasource.WeightedDataSource;
+import org.hellojavaer.ddr.core.exception.CrossDataSourceException;
 import org.hellojavaer.ddr.core.expression.range.RangeExpression;
 import org.hellojavaer.ddr.core.expression.range.RangeItemVisitor;
 import org.hellojavaer.ddr.core.strategy.WeightItem;
@@ -33,8 +34,6 @@ import java.util.*;
  * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 19/11/2016.
  */
 public class ReadWriteDataSourceManager implements DataSourceManager {
-
-    private static final String                   DEFAULT_SCHEMA                = "*";
 
     private List<WriteOnlyDataSourceBinding>      writeOnlyDataSources;
     private List<ReadOnlyDataSourceBinding>       readOnlyDataSources;
@@ -70,21 +69,16 @@ public class ReadWriteDataSourceManager implements DataSourceManager {
             if (schemasString == null) {
                 throw new IllegalArgumentException("scNames of writeOnlyDataSourceQueryCache can't be empty");
             }
-            if (DEFAULT_SCHEMA.equals(schemasString)) {
-                List<String> list = new ArrayList<String>();
-                list.add(DEFAULT_SCHEMA);
-                buildWriteOnlyDataSource(dataSourceMap, list, binding.getDataSource());
-            } else {
-                final List<String> schemas = new ArrayList<String>();
-                RangeExpression.parse(schemasString, new RangeItemVisitor() {
+            final List<String> schemas = new ArrayList<String>();
+            RangeExpression.parse(schemasString, new RangeItemVisitor() {
 
-                    @Override
-                    public void visit(String val) {
-                        schemas.add(val);
-                    }
-                });
-                buildWriteOnlyDataSource(dataSourceMap, schemas, binding.getDataSource());
-            }
+                @Override
+                public void visit(String val) {
+                    schemas.add(val);
+                }
+            });
+            buildWriteOnlyDataSource(dataSourceMap, schemas, binding.getDataSource());
+
         }
         if (dataSourceMap.isEmpty()) {
             // TODO log.warning
@@ -98,16 +92,13 @@ public class ReadWriteDataSourceManager implements DataSourceManager {
         Set<String> uniqSchemas = new HashSet<>();
         if (schemas != null && !schemas.isEmpty()) {
             for (String s : schemas) {
-                if (DEFAULT_SCHEMA.equals(s) && schemas.size() > 1) {
-                    throw new IllegalArgumentException("default schema '*' can't be combined with other schema");
-                }
                 uniqSchemas.add(s);
             }
         }
         for (String schema : schemas) {
             schema = StringUtils.trim(schema);
             if (schema == null) {
-                throw new IllegalArgumentException("schema of writeOnlyDataSources can't be null");
+                throw new IllegalArgumentException("Schema of writeOnlyDataSources can't be null");
             }
             if (dataSource == null) {
                 throw new IllegalArgumentException("[schema:" + schema
@@ -116,8 +107,8 @@ public class ReadWriteDataSourceManager implements DataSourceManager {
             schema = schema.toLowerCase();
             boolean exist = dataSourceMap.containsKey(schema);
             if (exist) {
-                throw new IllegalArgumentException("schema '" + schema
-                                                   + "' bind repeated in writeOnlyDataSources configuration");
+                throw new IllegalArgumentException("Schema '" + schema
+                                                   + "' repeated binding in writeOnlyDataSources configuration");
             } else {
                 dataSourceMap.put(schema, new DataSourceSchemasBinding(dataSource, uniqSchemas));
             }
@@ -134,21 +125,15 @@ public class ReadWriteDataSourceManager implements DataSourceManager {
             if (schemasString == null) {
                 throw new IllegalArgumentException("scNames of readOnlyDataSourceQueryCache can't be empty");
             }
-            if (DEFAULT_SCHEMA.equals(schemasString)) {
-                List<String> list = new ArrayList<>();
-                list.add(DEFAULT_SCHEMA);
-                buildReadOnlyDataSource(dataSourceMap, list, binding.getDataSources());
-            } else {
-                final List<String> schemas = new ArrayList<String>();
-                RangeExpression.parse(schemasString, new RangeItemVisitor() {
+            final List<String> schemas = new ArrayList<String>();
+            RangeExpression.parse(schemasString, new RangeItemVisitor() {
 
-                    @Override
-                    public void visit(String val) {
-                        schemas.add(val);
-                    }
-                });
-                buildReadOnlyDataSource(dataSourceMap, schemas, binding.getDataSources());
-            }
+                @Override
+                public void visit(String val) {
+                    schemas.add(val);
+                }
+            });
+            buildReadOnlyDataSource(dataSourceMap, schemas, binding.getDataSources());
         }
         if (dataSourceMap.isEmpty()) {
             // TODO log.warning
@@ -162,16 +147,13 @@ public class ReadWriteDataSourceManager implements DataSourceManager {
         Set<String> uniqSchemas = new HashSet<>();
         if (schemas != null && !schemas.isEmpty()) {
             for (String s : schemas) {
-                if (DEFAULT_SCHEMA.equals(s) && schemas.size() > 1) {
-                    throw new IllegalArgumentException("default schema '*' can't be combined with other schema");
-                }
                 uniqSchemas.add(s);
             }
         }
         for (String schema : schemas) {
             schema = StringUtils.trim(schema);
             if (schema == null) {
-                throw new IllegalArgumentException("schema of readOnlyDataSources can't be null");
+                throw new IllegalArgumentException("Schema of readOnlyDataSources can't be null");
             }
             if (dataSources == null || dataSources.isEmpty()) {
                 throw new IllegalArgumentException("[schema:" + schema
@@ -180,8 +162,8 @@ public class ReadWriteDataSourceManager implements DataSourceManager {
             schema = schema.toLowerCase();
             boolean exist = dataSourceMap.containsKey(schema);
             if (exist) {
-                throw new IllegalArgumentException("schema '" + schema
-                                                   + "' bind repeated in readOnlyDataSources configuration");
+                throw new IllegalArgumentException("Schema '" + schema
+                                                   + "' repeated binding in readOnlyDataSources configuration");
             } else {
                 List<WeightItem> itemList = new ArrayList<WeightItem>();
                 for (WeightedDataSource weightedDataSource : dataSources) {
@@ -206,63 +188,56 @@ public class ReadWriteDataSourceManager implements DataSourceManager {
 
     @Override
     public DataSourceSchemasBinding getDataSource(DataSourceParam param) {
-        String scNames = buildQueryKey(param.getScNames());
-        boolean readOnly = param.isReadOnly();
-        if (scNames == null) {
-            scNames = DEFAULT_SCHEMA;
+        if (param.getScNames() == null || param.getScNames().isEmpty()) {
+            throw new IllegalArgumentException("scNames can't be empty");
         }
+        boolean readOnly = param.isReadOnly();
         if (readOnly) {
             if (this.readOnlyDataSourceQueryCache == null) {
-                throw new IllegalStateException("no readOnlyDataSource is configured");
+                throw new IllegalStateException("No readOnlyDataSource is configured");
             } else {
-                WeightedRandom weightedRandom = this.readOnlyDataSourceQueryCache.get(scNames);
-                if (weightedRandom == null) {
-                    weightedRandom = this.readOnlyDataSourceQueryCache.get(DEFAULT_SCHEMA);
+                DataSourceSchemasBinding dataSourceSchemasBinding = null;
+                for (String scName : param.getScNames()) {
+                    if (dataSourceSchemasBinding == null) {
+                        WeightedRandom weightedRandom = this.readOnlyDataSourceQueryCache.get(scName);
+                        if (weightedRandom == null) {
+                            throw new IllegalStateException("No readOnlyDataSource is configured for schema:'" + scName
+                                                            + "'");
+                        } else {
+                            dataSourceSchemasBinding = (DataSourceSchemasBinding) weightedRandom.nextValue();
+                        }
+                    } else {
+                        if (!dataSourceSchemasBinding.getSchemas().contains(scName)) {
+                            throw new CrossDataSourceException("scName:'" + scName
+                                                               + "' is not in readOnlyDataSource binding '"
+                                                               + dataSourceSchemasBinding.toString() + "'");
+                        }
+                    }
                 }
-                if (weightedRandom == null) {
-                    throw new IllegalStateException("no readOnlyDataSource is configured for schemas:'" + scNames + "'");
-                } else {
-                    return (DataSourceSchemasBinding) weightedRandom.nextValue();
-                }
+                return dataSourceSchemasBinding;
             }
         } else {
             if (this.writeOnlyDataSourceQueryCache == null) {
-                throw new IllegalStateException("no writeOnlyDataSource is configured");
+                throw new IllegalStateException("No writeOnlyDataSource is configured");
             } else {
-                DataSourceSchemasBinding dataSourceSchemasBinding = this.writeOnlyDataSourceQueryCache.get(scNames);
-                if (dataSourceSchemasBinding == null) {
-                    dataSourceSchemasBinding = this.writeOnlyDataSourceQueryCache.get(DEFAULT_SCHEMA);
+                DataSourceSchemasBinding dataSourceSchemasBinding = null;
+                for (String scName : param.getScNames()) {
+                    if (dataSourceSchemasBinding == null) {
+                        dataSourceSchemasBinding = this.writeOnlyDataSourceQueryCache.get(scName);
+                        if (dataSourceSchemasBinding == null) {
+                            throw new IllegalStateException("No writeOnlyDataSource is configured for schema:'"
+                                                            + scName + "'");
+                        }
+                    } else {
+                        if (!dataSourceSchemasBinding.getSchemas().contains(scName)) {
+                            throw new CrossDataSourceException("scName:'" + scName
+                                                               + "' is not in writeOnlyDataSource binding '"
+                                                               + dataSourceSchemasBinding.toString() + "'");
+                        }
+                    }
                 }
-                if (dataSourceSchemasBinding == null) {
-                    throw new IllegalStateException("no writeOnlyDataSource is configured for schemas:'" + scNames
-                                                    + "'");
-                } else {
-                    return dataSourceSchemasBinding;
-                }
+                return dataSourceSchemasBinding;
             }
-        }
-    }
-
-    private String buildQueryKey(Set<String> scNames) {
-        if (scNames == null || scNames.isEmpty()) {
-            return "null;";
-        } else {
-            String[] scNameArray = new String[scNames.size()];
-            int i = 0;
-            for (String s : scNames) {
-                if (s == null) {
-                    scNameArray[i++] = "null";
-                } else {
-                    scNameArray[i++] = s.trim().toLowerCase();
-                }
-            }
-            Arrays.sort(scNames.toArray(scNameArray));
-            StringBuilder sb = new StringBuilder();
-            for (String s : scNameArray) {
-                sb.append(s);
-                sb.append(';');
-            }
-            return sb.toString();
         }
     }
 

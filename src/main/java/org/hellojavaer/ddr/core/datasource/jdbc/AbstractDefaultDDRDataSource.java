@@ -50,7 +50,15 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
         if (dataSourceSchemasBinding == null) {
             return false;
         } else {
-            return dataSourceSchemasBinding.getSchemas().containsAll(schemas);
+            return !dataSourceSchemasBinding.getSchemas().containsAll(schemas);
+        }
+    }
+
+    private Set<String> getSchemas0() {
+        if (dataSourceSchemasBinding == null) {
+            return null;
+        } else {
+            return dataSourceSchemasBinding.getSchemas();
         }
     }
 
@@ -418,7 +426,7 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
 
         @Override
         public Statement createStatement() throws SQLException {
-            return new StatementWrapper(isReadOnly0()) {
+            return new StatementWrapper(isReadOnly0(), getSchemas0()) {
 
                 @Override
                 public DDRDataSource.ReplacedResult replaceSql(String sql, Map<Integer, Object> jdbcParams)
@@ -432,17 +440,17 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
                 }
 
                 @Override
-                public ConnectionStatementBean getStatement(DataSourceParam param, String sql) throws SQLException {
+                public StatementBean getStatement(DataSourceParam param, String sql) throws SQLException {
                     Connection connection = getConnection0(param);
                     Statement statement = connection.createStatement();
-                    return new ConnectionStatementBean(ConnectionWrapper.this, statement);
+                    return new StatementBean(ConnectionWrapper.this, statement, getSchemas0());
                 }
             };
         }
 
         @Override
         public PreparedStatement prepareStatement(String sql) throws SQLException {
-            return new PreparedStatementWrapper(sql, isReadOnly0()) {
+            return new PreparedStatementWrapper(sql, isReadOnly0(), getSchemas0()) {
 
                 @Override
                 public DDRDataSource.ReplacedResult replaceSql(String sql, Map<Integer, Object> jdbcParams)
@@ -456,18 +464,17 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
                 }
 
                 @Override
-                public ConnectionStatementBean getStatement(DataSourceParam param, String routedSql)
-                                                                                                    throws SQLException {
+                public StatementBean getStatement(DataSourceParam param, String routedSql) throws SQLException {
                     Connection connection = getConnection0(param);
                     Statement statement = connection.prepareStatement(routedSql);
-                    return new ConnectionStatementBean(ConnectionWrapper.this, statement);
+                    return new StatementBean(ConnectionWrapper.this, statement, getSchemas0());
                 }
             };
         }
 
         @Override
         public Statement createStatement(final int resultSetType, final int resultSetConcurrency) throws SQLException {
-            return new StatementWrapper(isReadOnly0()) {
+            return new StatementWrapper(isReadOnly0(), getSchemas0()) {
 
                 @Override
                 public DDRDataSource.ReplacedResult replaceSql(String sql, Map<Integer, Object> jdbcParams)
@@ -481,10 +488,10 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
                 }
 
                 @Override
-                public ConnectionStatementBean getStatement(DataSourceParam param, String sql) throws SQLException {
+                public StatementBean getStatement(DataSourceParam param, String sql) throws SQLException {
                     Connection connection = getConnection0(param);
                     Statement statement = connection.createStatement(resultSetType, resultSetConcurrency);
-                    return new ConnectionStatementBean(ConnectionWrapper.this, statement);
+                    return new StatementBean(ConnectionWrapper.this, statement, getSchemas0());
                 }
             };
         }
@@ -492,7 +499,7 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
         @Override
         public PreparedStatement prepareStatement(String sql, final int resultSetType, final int resultSetConcurrency)
                                                                                                                       throws SQLException {
-            return new PreparedStatementWrapper(sql, isReadOnly0()) {
+            return new PreparedStatementWrapper(sql, isReadOnly0(), getSchemas0()) {
 
                 @Override
                 public DDRDataSource.ReplacedResult replaceSql(String sql, Map<Integer, Object> jdbcParams)
@@ -506,10 +513,10 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
                 }
 
                 @Override
-                public ConnectionStatementBean getStatement(DataSourceParam param, String routedSql) throws SQLException {
+                public StatementBean getStatement(DataSourceParam param, String routedSql) throws SQLException {
                     Connection connection = getConnection0(param);
                     Statement statement = connection.prepareStatement(routedSql, resultSetType, resultSetConcurrency);
-                    return new ConnectionStatementBean(ConnectionWrapper.this, statement);
+                    return new StatementBean(ConnectionWrapper.this, statement, getSchemas0());
                 }
             };
         }
@@ -517,7 +524,7 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
         @Override
         public Statement createStatement(final int resultSetType, final int resultSetConcurrency,
                                          final int resultSetHoldability) throws SQLException {
-            return new StatementWrapper(isReadOnly0()) {
+            return new StatementWrapper(isReadOnly0(), getSchemas0()) {
 
                 @Override
                 public DDRDataSource.ReplacedResult replaceSql(String sql, Map<Integer, Object> jdbcParams)
@@ -531,11 +538,11 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
                 }
 
                 @Override
-                public ConnectionStatementBean getStatement(DataSourceParam param, String sql) throws SQLException {
+                public StatementBean getStatement(DataSourceParam param, String sql) throws SQLException {
                     Connection connection = getConnection0(param);
                     Statement statement = connection.createStatement(resultSetType, resultSetConcurrency,
                                                                      resultSetHoldability);
-                    return new ConnectionStatementBean(ConnectionWrapper.this, statement);
+                    return new StatementBean(ConnectionWrapper.this, statement, getSchemas0());
                 }
             };
         }
@@ -543,7 +550,7 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
         @Override
         public PreparedStatement prepareStatement(String sql, final int resultSetType, final int resultSetConcurrency,
                                                   final int resultSetHoldability) throws SQLException {
-            return new PreparedStatementWrapper(sql, isReadOnly0()) {
+            return new PreparedStatementWrapper(sql, isReadOnly0(), getSchemas0()) {
 
                 @Override
                 public DDRDataSource.ReplacedResult replaceSql(String sql, Map<Integer, Object> jdbcParams)
@@ -557,19 +564,18 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
                 }
 
                 @Override
-                public ConnectionStatementBean getStatement(DataSourceParam param, String routedSql)
-                                                                                                    throws SQLException {
+                public StatementBean getStatement(DataSourceParam param, String routedSql) throws SQLException {
                     Connection connection = getConnection0(param);
                     Statement statement = connection.prepareStatement(routedSql, resultSetType, resultSetConcurrency,
                                                                       resultSetHoldability);
-                    return new ConnectionStatementBean(ConnectionWrapper.this, statement);
+                    return new StatementBean(ConnectionWrapper.this, statement, getSchemas0());
                 }
             };
         }
 
         @Override
         public PreparedStatement prepareStatement(String sql, final int autoGeneratedKeys) throws SQLException {
-            return new PreparedStatementWrapper(sql, isReadOnly0()) {
+            return new PreparedStatementWrapper(sql, isReadOnly0(), getSchemas0()) {
 
                 @Override
                 public DDRDataSource.ReplacedResult replaceSql(String sql, Map<Integer, Object> jdbcParams)
@@ -583,17 +589,17 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
                 }
 
                 @Override
-                public ConnectionStatementBean getStatement(DataSourceParam param, String routedSql) throws SQLException {
+                public StatementBean getStatement(DataSourceParam param, String routedSql) throws SQLException {
                     Connection connection = getConnection0(param);
                     Statement statement = connection.prepareStatement(routedSql, autoGeneratedKeys);
-                    return new ConnectionStatementBean(ConnectionWrapper.this, statement);
+                    return new StatementBean(ConnectionWrapper.this, statement, getSchemas0());
                 }
             };
         }
 
         @Override
         public PreparedStatement prepareStatement(String sql, final int[] columnIndexes) throws SQLException {
-            return new PreparedStatementWrapper(sql, isReadOnly0()) {
+            return new PreparedStatementWrapper(sql, isReadOnly0(), getSchemas0()) {
 
                 @Override
                 public DDRDataSource.ReplacedResult replaceSql(String sql, Map<Integer, Object> jdbcParams)
@@ -607,17 +613,17 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
                 }
 
                 @Override
-                public ConnectionStatementBean getStatement(DataSourceParam param, String routedSql) throws SQLException {
+                public StatementBean getStatement(DataSourceParam param, String routedSql) throws SQLException {
                     Connection connection = getConnection0(param);
                     Statement statement = connection.prepareStatement(routedSql, columnIndexes);
-                    return new ConnectionStatementBean(ConnectionWrapper.this, statement);
+                    return new StatementBean(ConnectionWrapper.this, statement, getSchemas0());
                 }
             };
         }
 
         @Override
         public PreparedStatement prepareStatement(String sql, final String[] columnNames) throws SQLException {
-            return new PreparedStatementWrapper(sql, isReadOnly0()) {
+            return new PreparedStatementWrapper(sql, isReadOnly0(), getSchemas0()) {
 
                 @Override
                 public DDRDataSource.ReplacedResult replaceSql(String sql, Map<Integer, Object> jdbcParams)
@@ -631,10 +637,10 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
                 }
 
                 @Override
-                public ConnectionStatementBean getStatement(DataSourceParam param, String routedSql) throws SQLException {
+                public StatementBean getStatement(DataSourceParam param, String routedSql) throws SQLException {
                     Connection connection = getConnection0(param);
                     Statement statement = connection.prepareStatement(routedSql, columnNames);
-                    return new ConnectionStatementBean(ConnectionWrapper.this, statement);
+                    return new StatementBean(ConnectionWrapper.this, statement, getSchemas0());
                 }
             };
         }
@@ -900,9 +906,9 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
         @Override
         public void rollback() throws SQLException {
             if (connection != null) {
-                connection.rollback();// TODO
+                connection.rollback();
             } else {
-                throw new DDRException("Can't invoke 'rollback()' before connection is initialized");
+                // ignore
             }
         }
 

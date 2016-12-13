@@ -18,9 +18,11 @@ package org.hellojavaer.ddr.core.datasource.jdbc;
 import org.hellojavaer.ddr.core.datasource.jdbc.init.UninitializedStatementProcessor;
 import org.hellojavaer.ddr.core.datasource.jdbc.property.StatementProperty;
 import org.hellojavaer.ddr.core.datasource.manager.DataSourceParam;
+import org.hellojavaer.ddr.core.exception.CrossDataSourceException;
 import org.hellojavaer.ddr.core.exception.DDRException;
 
 import java.sql.*;
+import java.util.Set;
 
 /**
  *
@@ -28,12 +30,14 @@ import java.sql.*;
  */
 public abstract class StatementWrapper implements DDRStatement {
 
-    protected Statement  statement;
-    protected Connection connection;
-    protected boolean    readOnly;
+    protected Set<String> schemas;
+    protected Statement   statement;
+    protected Connection  connection;
+    protected boolean     readOnly;
 
-    public StatementWrapper(boolean readOnly) {
+    public StatementWrapper(boolean readOnly, Set<String> schemas) {
         this.readOnly = readOnly;
+        this.schemas = schemas;
     }
 
     private StatementPropertyBean prop = new StatementPropertyBean();
@@ -196,7 +200,7 @@ public abstract class StatementWrapper implements DDRStatement {
         DDRDataSource.ReplacedResult replacedResult = replaceSql(sql, null);
         // 2. check if crossing datasource
         if (isCrossDataSource(replacedResult.getSchemas())) {
-            throw new DDRException("Sql '" + sql + "' query cross datasource");
+            throw new CrossDataSourceException("Sql '" + sql + "'");
         }
         if (statement == null) {
             DataSourceParam param = new DataSourceParam();
@@ -209,9 +213,10 @@ public abstract class StatementWrapper implements DDRStatement {
     }
 
     protected void initStatementIfAbsent(DataSourceParam param, String sql) throws SQLException {
-        ConnectionStatementBean connectionStatementBean = getStatement(param, null);
-        this.statement = connectionStatementBean.getStatement();
-        this.connection = connectionStatementBean.getConnection();
+        StatementBean statementBean = getStatement(param, sql);
+        this.statement = statementBean.getStatement();
+        this.connection = statementBean.getConnection();
+        this.schemas = statementBean.getSchemas();
     }
 
     protected void playbackInvocation(Statement statement) throws SQLException {
@@ -373,7 +378,7 @@ public abstract class StatementWrapper implements DDRStatement {
                 return val;
             } else {
                 throw new DDRException(
-                        "Can't invoke 'getMaxRows()' before 'setMaxRows' is invoked or statement is initialized");
+                                       "Can't invoke 'getMaxRows()' before 'setMaxRows' is invoked or statement is initialized");
             }
         }
     }

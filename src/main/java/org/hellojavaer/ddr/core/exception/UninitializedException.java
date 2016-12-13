@@ -13,38 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddr.core.datasource.jdbc;
-
-import java.sql.Connection;
-import java.sql.Statement;
+package org.hellojavaer.ddr.core.exception;
 
 /**
  *
  * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 13/12/2016.
  */
-public class ConnectionStatementBean {
+public class UninitializedException extends DDRException {
 
-    private Connection connection;
-    private Statement  statement;
-
-    public ConnectionStatementBean(Connection connection, Statement statement) {
-        this.connection = connection;
-        this.statement = statement;
-    }
-
-    public Connection getConnection() {
-        return connection;
-    }
-
-    public void setConnection(Connection connection) {
-        this.connection = connection;
-    }
-
-    public Statement getStatement() {
-        return statement;
-    }
-
-    public void setStatement(Statement statement) {
-        this.statement = statement;
-    }
 }
