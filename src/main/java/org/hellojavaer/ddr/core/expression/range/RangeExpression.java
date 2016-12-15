@@ -22,8 +22,7 @@ package org.hellojavaer.ddr.core.expression.range;
 public class RangeExpression {
 
     public static void parse(String str, RangeItemVisitor itemVisitor) {
-        int startIndex = 0;
-        while (startIndex < str.length()) {
+        for (int startIndex = 0;startIndex < str.length();) {
             startIndex = parse(str, null, startIndex, itemVisitor);
         }
     }
