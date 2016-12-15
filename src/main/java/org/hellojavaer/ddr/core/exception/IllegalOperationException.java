@@ -13,33 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddr.core.datasource.exception;
-
-import org.hellojavaer.ddr.core.exception.DDRException;
+package org.hellojavaer.ddr.core.exception;
 
 /**
  *
- * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 13/12/2016.
+ * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 15/12/2016.
  */
-public class UninitializedStatusException extends DDRException {
+public class IllegalOperationException extends DDRException {
 
-    public UninitializedStatusException() {
+    public IllegalOperationException() {
     }
 
-    public UninitializedStatusException(String message) {
+    public IllegalOperationException(String message) {
         super(message);
     }
 
-    public UninitializedStatusException(String message, Throwable cause) {
+    public IllegalOperationException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public UninitializedStatusException(Throwable cause) {
+    public IllegalOperationException(Throwable cause) {
         super(cause);
     }
 
-    public UninitializedStatusException(String message, Throwable cause, boolean enableSuppression,
-                                        boolean writableStackTrace) {
+    public IllegalOperationException(String message, Throwable cause, boolean enableSuppression,
+                                     boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 }

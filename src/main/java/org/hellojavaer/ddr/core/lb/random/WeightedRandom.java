@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddr.core.strategy;
+package org.hellojavaer.ddr.core.lb.random;
 
 import java.util.List;
 import java.util.Random;

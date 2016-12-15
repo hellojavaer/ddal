@@ -13,24 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddr.core.utils;
+package org.hellojavaer.ddr.core.lb.random;
 
 /**
  *
- * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 19/11/2016.
+ * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 23/11/2016.
  */
-public class StringUtils {
+public class WeightItem {
 
-    public static String trim(String str) {
-        if (str == null) {
-            return null;
-        } else {
-            str = str.trim();
-            if (str.length() == 0) {
-                return null;
-            } else {
-                return str;
-            }
-        }
+    private int    weight;
+    private Object value;
+
+    public WeightItem() {
+    }
+
+    public WeightItem(int weight, Object value) {
+        this.weight = weight;
+        this.value = value;
+    }
+
+    public int getWeight() {
+        return weight;
+    }
+
+    public void setWeight(int weight) {
+        this.weight = weight;
+    }
+
+    public Object getValue() {
+        return value;
+    }
+
+    public void setValue(Object value) {
+        this.value = value;
     }
 }

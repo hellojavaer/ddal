@@ -15,7 +15,7 @@
  */
 package org.hellojavaer.ddr.core.sharding;
 
-import org.hellojavaer.ddr.core.utils.StringUtils;
+import org.hellojavaer.ddr.core.utils.DDRStringUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -40,12 +40,12 @@ public class ShardingRouteHelper {
 
     private static String buildQueryKey(String scName, String tbName) {
         StringBuilder sb = new StringBuilder();
-        scName = StringUtils.trim(scName);
+        scName = DDRStringUtils.trim(scName);
         if (scName != null) {
             sb.append(scName.toLowerCase());
         }
         sb.append('.');
-        sb.append(StringUtils.trim(tbName).toLowerCase());
+        sb.append(DDRStringUtils.trim(tbName).toLowerCase());
         return sb.toString();
     }
 }

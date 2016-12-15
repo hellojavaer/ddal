@@ -322,14 +322,14 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
         }
     }
 
-    private Long getLongValue(Column column, Expression obj) {
+    private Object getRouteValue(Column column, Expression obj) {
         if (obj == null) {
             return null;
         }
         if (obj instanceof LongValue) {
             return ((LongValue) obj).getValue();
         } else if (obj instanceof StringValue) {
-            return Long.valueOf(((StringValue) obj).getValue());
+            return ((StringValue) obj).getValue();
         } else if (obj instanceof HexValue) {
             return Long.parseLong(((HexValue) obj).getValue(), 16);
         } else if (obj instanceof JdbcParameter) {
@@ -341,16 +341,10 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
                 if (val == null) {
                     return null;
                 } else {
-                    if (val instanceof Byte) {
-                        return ((Byte) val).longValue();
-                    } else if (val instanceof Short) {
-                        return ((Short) val).longValue();
-                    } else if (val instanceof Integer) {
-                        return ((Integer) val).longValue();
-                    } else if (val instanceof Long) {
-                        return ((Long) val).longValue();
+                    if (val instanceof Number) {
+                        return ((Number)val).longValue();
                     } else if (val instanceof String) {
-                        return Long.valueOf((String) val);
+                        return val;
                     } else {
                         throw new DDRException("jdbc parameter type '" + val.getClass()
                                                + "' is not supported for sharding column '" + column.toString()
@@ -403,8 +397,8 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
         }
         Expression begin = between.getBetweenExpressionStart();
         Expression end = between.getBetweenExpressionEnd();
-        long s = getLongValue(column, begin);
-        long e = getLongValue(column, end);
+        long s = ((Number) getRouteValue(column, begin)).longValue();
+        long e = ((Number) getRouteValue(column, end)).longValue();
         for (long s0 = s; s0 <= e; s0++) {
             routeTable(tableWrapper, column, s0);
         }
@@ -424,11 +418,11 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
     }
 
     private void routeTable(TableWrapper tableWrapper, Column column, Expression routeValueExpression) {
-        Long val = getLongValue(column, routeValueExpression);//
+        Object val = getRouteValue(column, routeValueExpression);//
         routeTable(tableWrapper, column, val);
     }
 
-    private void routeTable(TableWrapper tableWrapper, Column column, Long val) {
+    private void routeTable(TableWrapper tableWrapper, Column column, Object val) {
         if (tableWrapper == null) {//
             return;
         }

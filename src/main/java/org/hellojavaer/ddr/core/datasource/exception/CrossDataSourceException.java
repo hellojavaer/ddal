@@ -15,11 +15,13 @@
  */
 package org.hellojavaer.ddr.core.datasource.exception;
 
+import org.hellojavaer.ddr.core.exception.DDRException;
+
 /**
  *
  * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 13/12/2016.
  */
-public class CrossDataSourceException extends RuntimeException {
+public class CrossDataSourceException extends DDRException {
 
     public CrossDataSourceException() {
     }

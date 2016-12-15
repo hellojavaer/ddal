@@ -21,7 +21,7 @@ import org.hellojavaer.ddr.core.exception.DDRException;
 import org.hellojavaer.ddr.core.expression.range.RangeExpression;
 import org.hellojavaer.ddr.core.expression.range.RangeItemVisitor;
 import org.hellojavaer.ddr.core.sharding.*;
-import org.hellojavaer.ddr.core.utils.StringUtils;
+import org.hellojavaer.ddr.core.utils.DDRStringUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -59,7 +59,8 @@ public class SimpleShardingRouter implements ShardingRouter {
                 final String scName = filter(binding.getScName());
                 final String tbName = filter(binding.getTbName());
                 final String sdName = filter(binding.getSdName());
-                final String sdScanValues = StringUtils.trim(binding.getSdScanValues());
+                final String sdScanValues = DDRStringUtils.trim(binding.getSdScanValues());
+                final String sdScanValueType = DDRStringUtils.trim(binding.getSdScanValueType());
                 if (scName == null) {
                     throw new DDRException("scName can't be empty");
                 }
@@ -77,17 +78,24 @@ public class SimpleShardingRouter implements ShardingRouter {
 
                 final List<ShardingInfo> shardingInfos = new ArrayList<ShardingInfo>();
                 if (sdScanValues != null) {
+                    if (sdScanValueType == null) {
+                        throw new IllegalArgumentException(
+                                                           "sdScanValueType can't be empty when sdScanValues is set values");
+                    }
                     RangeExpression.parse(sdScanValues, new RangeItemVisitor() {
 
                         @Override
                         public void visit(String val) {
-                            try {
-                                Long v = Long.valueOf(val);
-                                ShardingInfo shardingInfo = getShardingInfo(b0.getRule(), scName, tbName, v);
-                                shardingInfos.add(shardingInfo);
-                            } catch (RuntimeException e) {
-                                throw e;// TODO
+                            Object v = val;
+                            if (SimpleShardingRouteRuleBinding.VALUE_TYPE_OF_NUMBER.equals(sdScanValueType)) {
+                                v = Long.valueOf(val);
+                            } else if (SimpleShardingRouteRuleBinding.VALUE_TYPE_OF_STRING.equals(sdScanValueType)) {
+                                // ok
+                            } else {
+                                throw new IllegalArgumentException("unknown sdScanValueType:" + sdScanValueType);
                             }
+                            ShardingInfo shardingInfo = getShardingInfo(b0.getRule(), scName, tbName, v);
+                            shardingInfos.add(shardingInfo);
                         }
                     });
                 }
@@ -205,7 +213,7 @@ public class SimpleShardingRouter implements ShardingRouter {
     }
 
     @Override
-    public ShardingInfo route(ShardingRouteParamContext context, String scName, String tbName, Long sdValue) {
+    public ShardingInfo route(ShardingRouteParamContext context, String scName, String tbName, Object sdValue) {
         scName = filter(scName);
         tbName = filter(tbName);
         SimpleShardingRouteRuleBinding binding = getBinding(scName, tbName);
@@ -244,7 +252,7 @@ public class SimpleShardingRouter implements ShardingRouter {
         }
     }
 
-    private ShardingInfo getShardingInfo(SimpleShardingRouterRule rule, String scName, String tbName, Long sdValue) {
+    private ShardingInfo getShardingInfo(SimpleShardingRouterRule rule, String scName, String tbName, Object sdValue) {
         Object $0 = rule.parseScRoute(scName, sdValue);
         String sc = rule.parseScFormat(scName, $0);
         Object $0_ = rule.parseTbRoute(tbName, sdValue);

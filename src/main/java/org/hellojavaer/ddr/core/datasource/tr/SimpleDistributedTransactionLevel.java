@@ -15,7 +15,7 @@
  */
 package org.hellojavaer.ddr.core.datasource.tr;
 
-import org.hellojavaer.ddr.core.utils.StringUtils;
+import org.hellojavaer.ddr.core.utils.DDRStringUtils;
 
 /**
  *
@@ -27,7 +27,7 @@ public class SimpleDistributedTransactionLevel implements DistributedTransaction
     private byte tableLevel;
 
     public SimpleDistributedTransactionLevel(String level) {
-        level = StringUtils.trim(level);
+        level = DDRStringUtils.trim(level);
         if (level == null || level.length() != 2 || level.charAt(0) < '0' || level.charAt(0) > '9'
             || level.charAt(1) < '0' || level.charAt(1) > '9') {
             throw new IllegalArgumentException("level['" + level + "'] must be a string with tow digit");

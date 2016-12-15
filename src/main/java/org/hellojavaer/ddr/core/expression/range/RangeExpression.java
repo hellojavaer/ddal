@@ -103,17 +103,21 @@ public class RangeExpression {
                     int endNum = 0;
                     for (;; j++) {
                         if (j >= endIndex) {
-                            throw new RangeExpressionException(str, j, ch, "'0,1,2..9'");
+                            throw new RangeExpressionException(str, j, (char) 0, "expect closed expression. eg: [0~9]'");
                         }
                         char ch0 = str.charAt(j);
                         if (ch0 >= '0' && ch0 <= '9') {
                             continue;
                         } else if (ch0 == '~') {// 区间分段符
-                            String startStr = str.substring(i + 1, j);
-                            startNum = Integer.valueOf(startStr);
-                            break;
+                            if (i + 1 == j) {
+                                throw new RangeExpressionException(str, j, ch0, "expect closed expression. eg: [0~9]");
+                            } else {
+                                String startStr = str.substring(i + 1, j);
+                                startNum = Integer.valueOf(startStr);
+                                break;
+                            }
                         } else {
-                            throw new RangeExpressionException(str, j, ch, '~');
+                            throw new RangeExpressionException(str, j, ch0, "expect closed expression. eg: [0~9]");
                         }
                     }
                     // 读取结束值
@@ -121,17 +125,21 @@ public class RangeExpression {
                     i = j;
                     for (;; j++) {
                         if (j >= endIndex) {
-                            throw new RangeExpressionException(str, j, ch, "'0,1,2..9'");
+                            throw new RangeExpressionException(str, j, (char) 0, ']');
                         }
                         char ch0 = str.charAt(j);
                         if (ch0 >= '0' && ch0 <= '9') {
                             continue;
                         } else if (ch0 == ']') {// 区间结束符号
-                            String endStr = str.substring(i, j);
-                            endNum = Integer.valueOf(endStr);
-                            break;
+                            if (i == j) {
+                                throw new RangeExpressionException(str, j, ch0, "expect closed expression. eg: [0~9]");
+                            } else {
+                                String endStr = str.substring(i, j);
+                                endNum = Integer.valueOf(endStr);
+                                break;
+                            }
                         } else {
-                            throw new RangeExpressionException(str, j, ch, ']');
+                            throw new RangeExpressionException(str, j, ch0, ']');
                         }
                     }
                     int nextStart = ++j;
@@ -147,6 +155,8 @@ public class RangeExpression {
                         }
                         return;
                     }
+                } else if (ch == ']') {
+                    throw new RangeExpressionException(str, i, ch, "expect closed expression. eg: [0~9]");
                 } else {// 普通字符
                     if (sb != null) {
                         sb.append(ch);

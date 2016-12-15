@@ -15,8 +15,8 @@
  */
 package org.hellojavaer.ddr.core.datasource.jdbc.init;
 
+import org.hellojavaer.ddr.core.exception.IllegalOperationException;
 import org.hellojavaer.ddr.core.datasource.jdbc.property.ConnectionProperty;
-import org.hellojavaer.ddr.core.exception.DDRException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,7 +31,7 @@ public class UninitializedConnectionProcessor {
 
     public static void setDefaultValue(ConnectionProperty prop, Object val, boolean isSyncDefaultValue) {
         if (prop == ConnectionProperty.metaData && isSyncDefaultValue) {
-            throw new DDRException("Can't execute update for metaData");
+            throw new IllegalOperationException("Can't execute update for metaData");
         }
         map.put(prop, new InnerBean(val, isSyncDefaultValue));
     }

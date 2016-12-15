@@ -49,6 +49,6 @@ public interface ShardingRouter {
 
     String getRouteColName(ShardingRouteParamContext context, String scName, String tbName);
 
-    ShardingInfo route(ShardingRouteParamContext context, String scName, String tbName, Long sdValue);
+    ShardingInfo route(ShardingRouteParamContext context, String scName, String tbName, Object sdValue);
 
 }

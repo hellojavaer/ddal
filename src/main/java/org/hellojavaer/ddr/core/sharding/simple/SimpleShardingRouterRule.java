@@ -15,8 +15,9 @@
  */
 package org.hellojavaer.ddr.core.sharding.simple;
 
-import org.hellojavaer.ddr.core.expression.format.FormatExpressionContext;
+import org.hellojavaer.ddr.core.expression.el.functionkit.ELFunctionKitManager;
 import org.hellojavaer.ddr.core.expression.format.FormatExpression;
+import org.hellojavaer.ddr.core.expression.format.FormatExpressionContext;
 import org.hellojavaer.ddr.core.expression.format.simple.SimpleFormatExpressionContext;
 import org.hellojavaer.ddr.core.expression.format.simple.SimpleFormatExpressionParser;
 import org.springframework.expression.EvaluationContext;
@@ -27,6 +28,8 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 
 import java.io.Serializable;
+import java.lang.reflect.Method;
+import java.util.Map;
 
 /**
  *
@@ -90,6 +93,7 @@ public class SimpleShardingRouterRule implements Serializable {
         this.tbRoute = tbRoute;
         if (tbRoute != null) {
             ExpressionParser parser = new SpelExpressionParser();
+
             this.tbRouteExpression = parser.parseExpression(tbRoute, PARSER_CONTEXT);
         }
     }
@@ -107,14 +111,14 @@ public class SimpleShardingRouterRule implements Serializable {
         }
     }
 
-    public Object parseScRoute(String scName, Long sdValue) {
+    public Object parseScRoute(String scName, Object sdValue) {
         if (scName == null) {
             return null;
         } else {
             if (scRouteExpression == null) {
                 return "";
             } else {
-                EvaluationContext context = new StandardEvaluationContext();
+                EvaluationContext context = buildEvaluationContext();
                 context.setVariable("scName", scName);
                 context.setVariable("sdValue", sdValue);
                 String $0 = scRouteExpression.getValue(context, String.class);
@@ -138,14 +142,14 @@ public class SimpleShardingRouterRule implements Serializable {
         }
     }
 
-    public Object parseTbRoute(String tbName, Long sdValue) {
+    public Object parseTbRoute(String tbName, Object sdValue) {
         if (tbName == null) {
             return null;
         } else {
             if (tbRouteExpression == null) {
                 return tbName;
             } else {
-                EvaluationContext context = new StandardEvaluationContext();
+                EvaluationContext context = buildEvaluationContext();
                 context.setVariable("tbName", tbName);
                 context.setVariable("sdValue", sdValue);
                 String $0 = tbRouteExpression.getValue(context, String.class);
@@ -167,6 +171,14 @@ public class SimpleShardingRouterRule implements Serializable {
                 return tbFormatExpression.getValue(context);
             }
         }
+    }
+
+    private static EvaluationContext buildEvaluationContext() {
+        StandardEvaluationContext context = new StandardEvaluationContext();
+        for (Map.Entry<String, Method> entry : ELFunctionKitManager.getRegisteredFunctions()) {
+            context.registerFunction(entry.getKey(), entry.getValue());
+        }
+        return context;
     }
 
     private static ParserContext PARSER_CONTEXT = new ParserContext() {

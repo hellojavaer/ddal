@@ -21,22 +21,27 @@ package org.hellojavaer.ddr.core.expression.range;
  */
 public class RangeExpressionException extends RuntimeException {
 
-    public RangeExpressionException(String string, int index, Character currentChar, String expectedChars) {
-        super("string '" + string + "' at index:" + index + " is '" + currentChar + "', expect " + expectedChars + "");
+    public RangeExpressionException(String string, int index, char currentChar, String expectedChars) {
+        super("string '" + string + "' at index:" + index + " is '" + ((currentChar == 0) ? "\\EOF" : currentChar)
+              + "', " + expectedChars + "");
     }
 
-    public RangeExpressionException(String string, int index, Character currentChar, Character... expectedChars) {
+    public RangeExpressionException(String string, int index, char currentChar, char... expectedChars) {
         super(build(string, index, currentChar, expectedChars));
     }
 
-    private static String build(String string, int index, Character currentChar, Character... expectedChars) {
+    private static String build(String string, int index, char currentChar, char... expectedChars) {
         StringBuilder sb = new StringBuilder();
         sb.append("string '");
         sb.append(string);
         sb.append("' at index:");
         sb.append(index);
         sb.append(" is '");
-        sb.append(currentChar);
+        if (currentChar == 0) {
+            sb.append("\\EOF");
+        } else {
+            sb.append(currentChar);
+        }
         sb.append("', expect '");
         if (expectedChars == null) {
             sb.append("null");
@@ -51,5 +56,4 @@ public class RangeExpressionException extends RuntimeException {
         sb.append("'");
         return sb.toString();
     }
-
 }

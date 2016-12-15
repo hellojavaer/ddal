@@ -22,9 +22,9 @@ import org.hellojavaer.ddr.core.datasource.WeightedDataSource;
 import org.hellojavaer.ddr.core.datasource.exception.CrossDataSourceException;
 import org.hellojavaer.ddr.core.expression.range.RangeExpression;
 import org.hellojavaer.ddr.core.expression.range.RangeItemVisitor;
-import org.hellojavaer.ddr.core.strategy.WeightItem;
-import org.hellojavaer.ddr.core.strategy.WeightedRandom;
-import org.hellojavaer.ddr.core.utils.StringUtils;
+import org.hellojavaer.ddr.core.lb.random.WeightItem;
+import org.hellojavaer.ddr.core.lb.random.WeightedRandom;
+import org.hellojavaer.ddr.core.utils.DDRStringUtils;
 
 import javax.sql.DataSource;
 import java.util.*;
@@ -65,7 +65,7 @@ public class ReadWriteDataSourceManager implements DataSourceManager {
         }
         final Map<String, DataSourceSchemasBinding> dataSourceMap = new HashMap<String, DataSourceSchemasBinding>();
         for (final WriteOnlyDataSourceBinding binding : bindings) {
-            String schemasString = StringUtils.trim(binding.getScNames());
+            String schemasString = DDRStringUtils.trim(binding.getScNames());
             if (schemasString == null) {
                 throw new IllegalArgumentException("scNames of writeOnlyDataSourceQueryCache can't be empty");
             }
@@ -96,7 +96,7 @@ public class ReadWriteDataSourceManager implements DataSourceManager {
             }
         }
         for (String schema : schemas) {
-            schema = StringUtils.trim(schema);
+            schema = DDRStringUtils.trim(schema);
             if (schema == null) {
                 throw new IllegalArgumentException("Schema of writeOnlyDataSources can't be null");
             }
@@ -121,7 +121,7 @@ public class ReadWriteDataSourceManager implements DataSourceManager {
         }
         final Map<String, WeightedRandom> dataSourceMap = new HashMap<String, WeightedRandom>();
         for (final ReadOnlyDataSourceBinding binding : bindings) {
-            String schemasString = StringUtils.trim(binding.getScNames());
+            String schemasString = DDRStringUtils.trim(binding.getScNames());
             if (schemasString == null) {
                 throw new IllegalArgumentException("scNames of readOnlyDataSourceQueryCache can't be empty");
             }
@@ -151,7 +151,7 @@ public class ReadWriteDataSourceManager implements DataSourceManager {
             }
         }
         for (String schema : schemas) {
-            schema = StringUtils.trim(schema);
+            schema = DDRStringUtils.trim(schema);
             if (schema == null) {
                 throw new IllegalArgumentException("Schema of readOnlyDataSources can't be null");
             }
