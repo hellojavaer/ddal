@@ -32,5 +32,5 @@ public interface DDRStatement extends Statement {
 
     StatementBean getStatement(DataSourceParam param, String sql) throws SQLException;
 
-    boolean isCrossDataSource(Set<String> schemas);
+    boolean isCrossDataSource(Set<String> schemas) throws SQLException;
 }
