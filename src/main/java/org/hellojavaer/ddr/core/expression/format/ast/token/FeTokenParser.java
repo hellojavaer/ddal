@@ -29,14 +29,14 @@ public class FeTokenParser {
     private int                stat          = 0;
 
     private static final int[] TAGS          = new int[256];
-    private static int         IS_DIGIST     = 1;
+    private static int         IS_DIGIT      = 1;
     private static int         IS_VAR_HEADER = 2;
     private static int         IS_VAR_BODY   = 4;
     private static int         IS_ALPHA      = 8;
 
     static {
         for (int i = '0'; i <= '9'; i++) {
-            TAGS[i] |= IS_DIGIST | IS_VAR_BODY;
+            TAGS[i] |= IS_DIGIT | IS_VAR_BODY;
         }
         for (int i = 'a'; i <= 'z'; i++) {
             TAGS[i] |= IS_VAR_HEADER | IS_VAR_BODY | IS_ALPHA;
@@ -89,28 +89,39 @@ public class FeTokenParser {
                 }
                 return new FeToken(FeTokenType.NUMBER, str.substring(s, index), s, index - 1);
             } else if (ch == '\'' || ch == '\"') {// 字符
-                StringBuilder sb = new StringBuilder();
+                StringBuilder sb = null;
                 boolean escape = false;
-                for (index++; index < str.length() && (str.charAt(index) != ch); index++) {
+                int startIndex = ++index;
+                for (; index < str.length() && (str.charAt(index) != ch); index++) {
                     char c0 = str.charAt(index);
                     if (escape) {
                         if (c0 == '\\' || c0 == ch) {
                             sb.append(c0);
                         } else {
-                            sb.append('\\');
-                            sb.append(c0);
+                            throw new IllegalArgumentException("Can't escape for character '" + c0
+                                                               + "' in source string of " + str);
                         }
                         escape = false;
                     } else {
                         if (c0 == '\\') {
                             escape = true;
+                            sb = new StringBuilder();
+                            sb.append(str.substring(startIndex, index));
                             continue;
                         } else {
-                            sb.append(c0);
+                            if (sb != null) {
+                                sb.append(c0);
+                            }
                         }
                     }
                 }
-                return new FeToken(FeTokenType.STRING, sb.toString(), s, index - 1);
+                String temp = null;
+                if (sb != null) {
+                    temp = sb.toString();
+                } else {
+                    temp = str.substring(startIndex, index);
+                }
+                return new FeToken(FeTokenType.STRING, temp, s, index - 1);
             } else if (ch == ':') {
                 stat = 2;
                 FeToken t = new FeToken(FeTokenType.COLON, null, s, index - 1);
@@ -122,8 +133,8 @@ public class FeTokenParser {
                 index++;
                 return t;
             } else {
-                throw new IllegalStateException("unexpected token '" + ch + "' at index " + index + " for string '"
-                                                + str + "'");
+                throw new IllegalArgumentException("unexpected token '" + ch + "' at index " + index + " for string '"
+                                                   + str + "'");
             }
         } else {// stat = 2
             stat = 1;
