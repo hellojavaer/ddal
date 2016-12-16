@@ -17,27 +17,26 @@ package org.hellojavaer.ddr.core.datasource.exception;
 
 /**
  *
- * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 13/12/2016.
+ * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 16/12/2016.
  */
-public class CrossDataSourceException extends DDRSQLException {
+public class DDRSQLException extends RuntimeException {
 
-    public CrossDataSourceException() {
+    public DDRSQLException() {
     }
 
-    public CrossDataSourceException(String message) {
+    public DDRSQLException(String message) {
         super(message);
     }
 
-    public CrossDataSourceException(String message, Throwable cause) {
+    public DDRSQLException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public CrossDataSourceException(Throwable cause) {
+    public DDRSQLException(Throwable cause) {
         super(cause);
     }
 
-    public CrossDataSourceException(String message, Throwable cause, boolean enableSuppression,
-                                    boolean writableStackTrace) {
+    public DDRSQLException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 }

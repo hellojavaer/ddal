@@ -15,13 +15,11 @@
  */
 package org.hellojavaer.ddr.core.datasource.exception;
 
-import org.hellojavaer.ddr.core.exception.DDRException;
-
 /**
  *
  * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 13/12/2016.
  */
-public class UninitializedStatusException extends DDRException {
+public class UninitializedStatusException extends DDRSQLException {
 
     public UninitializedStatusException() {
     }
