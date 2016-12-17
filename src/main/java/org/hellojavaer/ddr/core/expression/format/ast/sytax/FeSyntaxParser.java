@@ -45,8 +45,8 @@ public class FeSyntaxParser {
                 while (token != null && token.getType() != FeTokenType.RCURLY) {
                     assert0(token, FeTokenType.COLON);
                     token = tokenParser.next();
-                    assert0(token, FeTokenType.FORMAT_PATTERN);
-                    formats.add((StringFormat) token.getData());
+                    assert0(token, FeTokenType.STRING);
+                    formats.add(new StringFormat((String) token.getData()));
                     token = tokenParser.next();
                 }
                 assert0(token, FeTokenType.RCURLY);

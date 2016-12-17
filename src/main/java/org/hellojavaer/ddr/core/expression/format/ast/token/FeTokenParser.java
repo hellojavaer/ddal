@@ -15,8 +15,6 @@
  */
 package org.hellojavaer.ddr.core.expression.format.ast.token;
 
-import org.hellojavaer.ddr.core.text.StringFormat;
-
 /**
  *
  *
@@ -78,7 +76,7 @@ public class FeTokenParser {
                 }
                 return new FeToken(FeTokenType.PLAIN_TEXT, str.substring(s, index), s, index - 1);
             }
-        } else if (stat == 1) {// 语句块
+        } else {// 语句块
             ch = str.charAt(index);
             if ((TAGS[ch] & 2) != 0) {// 变量
                 for (index++; index < str.length() && (TAGS[str.charAt(index)] & 4) != 0; index++) {
@@ -92,10 +90,13 @@ public class FeTokenParser {
                 StringBuilder sb = null;
                 boolean escape = false;
                 int startIndex = ++index;
-                for (; index < str.length() && (str.charAt(index) != ch); index++) {
+                for (;; index++) {
+                    if (index >= str.length()) {
+                        throw new IllegalArgumentException("Not closed string expression, source string is " + str);
+                    }
                     char c0 = str.charAt(index);
                     if (escape) {
-                        if (c0 == '\\' || c0 == ch) {
+                        if (c0 == '\\' || c0 == '\'' || c0 == '\"') {
                             sb.append(c0);
                         } else {
                             throw new IllegalArgumentException("Can't escape for character '" + c0
@@ -108,6 +109,8 @@ public class FeTokenParser {
                             sb = new StringBuilder();
                             sb.append(str.substring(startIndex, index));
                             continue;
+                        } else if (c0 == ch) {
+                            break;
                         } else {
                             if (sb != null) {
                                 sb.append(c0);
@@ -121,9 +124,9 @@ public class FeTokenParser {
                 } else {
                     temp = str.substring(startIndex, index);
                 }
-                return new FeToken(FeTokenType.STRING, temp, s, index - 1);
+                index++;
+                return new FeToken(FeTokenType.STRING, temp, s, index - 2);
             } else if (ch == ':') {
-                stat = 2;
                 FeToken t = new FeToken(FeTokenType.COLON, null, s, index - 1);
                 index++;
                 return t;
@@ -133,20 +136,9 @@ public class FeTokenParser {
                 index++;
                 return t;
             } else {
-                throw new IllegalArgumentException("unexpected token '" + ch + "' at index " + index + " for string '"
+                throw new IllegalArgumentException("Unexpected token '" + ch + "' at index " + index + " for string '"
                                                    + str + "'");
             }
-        } else {// stat = 2
-            stat = 1;
-            for (; index < str.length(); index++) {
-                char ch0 = str.charAt(index);
-                if (ch0 == ':' || ch0 == '}' || ch0 == ' ') {
-                    break;
-                }
-            }
-            String pattern = str.substring(s, index);
-            StringFormat sf = new StringFormat(pattern);
-            return new FeToken(FeTokenType.FORMAT_PATTERN, sf, s, index - 1);
         }
     }
 

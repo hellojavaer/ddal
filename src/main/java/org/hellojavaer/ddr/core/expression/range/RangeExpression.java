@@ -74,7 +74,8 @@ public class RangeExpression {
                 } else if (ch == '[') {// 区间开始符号 \\ 特殊字符 , [ ] \ ~ \s
                     return range(str, startIndex, itemVisitor, sb, index);
                 } else if (ch == ']') {
-                    throw new RangeExpressionException(str, index, ch, "expect closed expression. eg: [0,0~99,a-z,A-Z]'");
+                    throw new RangeExpressionException(str, index, ch,
+                                                       "expect closed expression. eg: [0,0~99,a-z,A-Z]'");
                 } else {// 普通字符
                     if (sb != null) {
                         sb.append(ch);
@@ -124,8 +125,7 @@ public class RangeExpression {
         int xpos = 0;// ~ 位置
         for (int i = index + 1;; i++) {
             if (i >= str.length()) {
-                throw new RangeExpressionException(str, i, (char) 0,
-                                                   "expect closed expression. eg: [0,0~99,a-z,A-Z]'");
+                throw new RangeExpressionException(str, i, (char) 0, "expect closed expression. eg: [0,0~99,a-z,A-Z]'");
             }
             char ch1 = str.charAt(i);
             if (escape1) {
@@ -190,8 +190,7 @@ public class RangeExpression {
                 } else if (status_temp == 2 || status_temp == 4) {
                     rangStart = str.charAt(i - 1);
                 } else {// ~
-                    throw new RangeExpressionException(str, i, ch1,
-                                                       "expect closed expression. eg: [0,0~99,a-z,A-Z]'");
+                    throw new RangeExpressionException(str, i, ch1, "expect closed expression. eg: [0,0~99,a-z,A-Z]'");
                 }
                 xpos = i;
                 range = true;
@@ -247,7 +246,7 @@ public class RangeExpression {
                 status_temp = 0;
                 status0 = 0;
                 status1 = 0;
-                sb1 =null;
+                sb1 = null;
                 if (ch1 == ']') {// return
                     return epos;
                 } else {

@@ -21,8 +21,6 @@ package org.hellojavaer.ddr.core.expression.format.ast.token;
  */
 public enum FeTokenType {
 
-    FORMAT_PATTERN,
-
     PLAIN_TEXT,
 
     VAR,
