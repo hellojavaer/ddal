@@ -430,9 +430,9 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
             return new StatementWrapper(isReadOnly0(), getSchemas0()) {
 
                 @Override
-                public DDRDataSource.ReplacedResult replaceSql(String sql, Map<Integer, Object> jdbcParams)
+                public DDRSQLParseResult parseSql(String sql, Map<Integer, Object> jdbcParams)
                                                                                                            throws SQLException {
-                    return AbstractDefaultDDRDataSource.this.replaceSql(sql, jdbcParams);
+                    return AbstractDefaultDDRDataSource.this.parseSql(sql, jdbcParams);
                 }
 
                 @Override
@@ -454,9 +454,9 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
             return new PreparedStatementWrapper(sql, isReadOnly0(), getSchemas0()) {
 
                 @Override
-                public DDRDataSource.ReplacedResult replaceSql(String sql, Map<Integer, Object> jdbcParams)
+                public DDRSQLParseResult parseSql(String sql, Map<Integer, Object> jdbcParams)
                                                                                                            throws SQLException {
-                    return AbstractDefaultDDRDataSource.this.replaceSql(sql, jdbcParams);
+                    return AbstractDefaultDDRDataSource.this.parseSql(sql, jdbcParams);
                 }
 
                 @Override
@@ -478,9 +478,9 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
             return new StatementWrapper(isReadOnly0(), getSchemas0()) {
 
                 @Override
-                public DDRDataSource.ReplacedResult replaceSql(String sql, Map<Integer, Object> jdbcParams)
+                public DDRSQLParseResult parseSql(String sql, Map<Integer, Object> jdbcParams)
                                                                                                            throws SQLException {
-                    return AbstractDefaultDDRDataSource.this.replaceSql(sql, jdbcParams);
+                    return AbstractDefaultDDRDataSource.this.parseSql(sql, jdbcParams);
                 }
 
                 @Override
@@ -503,9 +503,9 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
             return new PreparedStatementWrapper(sql, isReadOnly0(), getSchemas0()) {
 
                 @Override
-                public DDRDataSource.ReplacedResult replaceSql(String sql, Map<Integer, Object> jdbcParams)
+                public DDRSQLParseResult parseSql(String sql, Map<Integer, Object> jdbcParams)
                                                                                                            throws SQLException {
-                    return AbstractDefaultDDRDataSource.this.replaceSql(sql, jdbcParams);
+                    return AbstractDefaultDDRDataSource.this.parseSql(sql, jdbcParams);
                 }
 
                 @Override
@@ -528,9 +528,9 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
             return new StatementWrapper(isReadOnly0(), getSchemas0()) {
 
                 @Override
-                public DDRDataSource.ReplacedResult replaceSql(String sql, Map<Integer, Object> jdbcParams)
+                public DDRSQLParseResult parseSql(String sql, Map<Integer, Object> jdbcParams)
                                                                                                            throws SQLException {
-                    return AbstractDefaultDDRDataSource.this.replaceSql(sql, jdbcParams);
+                    return AbstractDefaultDDRDataSource.this.parseSql(sql, jdbcParams);
                 }
 
                 @Override
@@ -554,9 +554,9 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
             return new PreparedStatementWrapper(sql, isReadOnly0(), getSchemas0()) {
 
                 @Override
-                public DDRDataSource.ReplacedResult replaceSql(String sql, Map<Integer, Object> jdbcParams)
+                public DDRSQLParseResult parseSql(String sql, Map<Integer, Object> jdbcParams)
                                                                                                            throws SQLException {
-                    return AbstractDefaultDDRDataSource.this.replaceSql(sql, jdbcParams);
+                    return AbstractDefaultDDRDataSource.this.parseSql(sql, jdbcParams);
                 }
 
                 @Override
@@ -579,9 +579,9 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
             return new PreparedStatementWrapper(sql, isReadOnly0(), getSchemas0()) {
 
                 @Override
-                public DDRDataSource.ReplacedResult replaceSql(String sql, Map<Integer, Object> jdbcParams)
+                public DDRSQLParseResult parseSql(String sql, Map<Integer, Object> jdbcParams)
                                                                                                            throws SQLException {
-                    return AbstractDefaultDDRDataSource.this.replaceSql(sql, jdbcParams);
+                    return AbstractDefaultDDRDataSource.this.parseSql(sql, jdbcParams);
                 }
 
                 @Override
@@ -603,9 +603,9 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
             return new PreparedStatementWrapper(sql, isReadOnly0(), getSchemas0()) {
 
                 @Override
-                public DDRDataSource.ReplacedResult replaceSql(String sql, Map<Integer, Object> jdbcParams)
+                public DDRSQLParseResult parseSql(String sql, Map<Integer, Object> jdbcParams)
                                                                                                            throws SQLException {
-                    return AbstractDefaultDDRDataSource.this.replaceSql(sql, jdbcParams);
+                    return AbstractDefaultDDRDataSource.this.parseSql(sql, jdbcParams);
                 }
 
                 @Override
@@ -627,9 +627,9 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
             return new PreparedStatementWrapper(sql, isReadOnly0(), getSchemas0()) {
 
                 @Override
-                public DDRDataSource.ReplacedResult replaceSql(String sql, Map<Integer, Object> jdbcParams)
+                public DDRSQLParseResult parseSql(String sql, Map<Integer, Object> jdbcParams)
                                                                                                            throws SQLException {
-                    return AbstractDefaultDDRDataSource.this.replaceSql(sql, jdbcParams);
+                    return AbstractDefaultDDRDataSource.this.parseSql(sql, jdbcParams);
                 }
 
                 @Override

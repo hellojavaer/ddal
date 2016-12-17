@@ -88,7 +88,7 @@ public class RangeExpression {
                     }
                     if (nextStart == -1) {
                         throw new RangeExpressionException(str, str.length(), (char) 0,
-                                                           "Expect closed expression. eg: [0,0~99,a-z,A-Z]'");
+                                                           "expect closed expression. eg: [0,0~99,a-z,A-Z]'");
                     }
                     // 获取前缀
                     String rangPrefix = null;
@@ -102,7 +102,7 @@ public class RangeExpression {
                     //
                     int erang = i + 1;
                     //
-                    int status0 = 0;// 0:初始化,1:数字,2:小写,3:多个小写,4:大写,5:多个大小,7:混合
+                    int status0 = 0;// 0:初始,1:数字,2:小写,3:多个小写,4:大写,5:多个大小,6:混合
                     int status1 = 0;//
                     int status_temp = 0;
                     boolean range = false;
@@ -113,7 +113,7 @@ public class RangeExpression {
                     for (;; j++) {
                         if (j >= str.length()) {
                             throw new RangeExpressionException(str, j, (char) 0,
-                                                               "Expect closed expression. eg: [0,0~99,a-z,A-Z]'");
+                                                               "expect closed expression. eg: [0,0~99,a-z,A-Z]'");
                         }
                         char ch1 = str.charAt(j);
                         if (escape1) {
@@ -160,13 +160,16 @@ public class RangeExpression {
                                 status_temp = 6;
                             }
                         } else if (ch1 == '~') {// support 1,2,4
+                            if (range) {
+                                throw new RangeExpressionException(str, j, ch1, ']');
+                            }
                             if (status_temp == 1) {
                                 rangStart = Integer.parseInt(str.substring(erang, j));
                             } else if (status_temp == 2 || status_temp == 4) {
                                 rangStart = str.charAt(j - 1);
                             } else {// ~
                                 throw new RangeExpressionException(str, j, ch1,
-                                                                   "expression '~' only support [0~99] ,[a~z] or[A~Z]");
+                                                                   "expect closed expression. eg: [0,0~99,a-z,A-Z]'");
                             }
                             xpos = j;
                             range = true;
@@ -236,7 +239,7 @@ public class RangeExpression {
                         }
                     }
                 } else if (ch == ']') {
-                    throw new RangeExpressionException(str, i, ch, "expect closed expression. eg: [0~9]");
+                    throw new RangeExpressionException(str, i, ch, "expect closed expression. eg: [0,0~99,a-z,A-Z]'");
                 } else {// 普通字符
                     if (sb != null) {
                         sb.append(ch);

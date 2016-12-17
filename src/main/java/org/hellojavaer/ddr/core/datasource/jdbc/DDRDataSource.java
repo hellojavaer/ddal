@@ -28,14 +28,7 @@ import java.util.Set;
  */
 public interface DDRDataSource extends DataSource {
 
-    interface ReplacedResult {
-
-        String getSql();
-
-        Set<String> getSchemas();
-    }
-
-    ReplacedResult replaceSql(String sql, Map<Integer, Object> jdbcParam);
+    DDRSQLParseResult parseSql(String sql, Map<Integer, Object> jdbcParam);
 
     DataSourceSchemasBinding getDataSource(DataSourceParam param);
 

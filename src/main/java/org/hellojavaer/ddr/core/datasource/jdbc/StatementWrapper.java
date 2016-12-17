@@ -196,20 +196,20 @@ public abstract class StatementWrapper implements DDRStatement {
     }
 
     private String initStatementAndConvertSql(String sql) throws SQLException {
-        // 1. replace sql
-        DDRDataSource.ReplacedResult replacedResult = replaceSql(sql, null);
+        // 1. parse sql
+        DDRSQLParseResult parseResult = parseSql(sql, null);
         // 2. check if crossing datasource
-        if (isCrossDataSource(replacedResult.getSchemas())) {
+        if (isCrossDataSource(parseResult.getSchemas())) {
             throw new CrossDataSourceException("Sql '" + sql + "'");
         }
         if (statement == null) {
             DataSourceParam param = new DataSourceParam();
             param.setReadOnly(readOnly);
-            param.setScNames(replacedResult.getSchemas());
+            param.setScNames(parseResult.getSchemas());
             initStatementIfAbsent(param, null);
             playbackInvocation(statement);
         }
-        return replacedResult.getSql();
+        return parseResult.getSql();
     }
 
     protected void initStatementIfAbsent(DataSourceParam param, String sql) throws SQLException {

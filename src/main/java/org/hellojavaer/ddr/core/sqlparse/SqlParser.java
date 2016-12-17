@@ -15,7 +15,7 @@
  */
 package org.hellojavaer.ddr.core.sqlparse;
 
-import org.hellojavaer.ddr.core.datasource.jdbc.DDRDataSource;
+import org.hellojavaer.ddr.core.datasource.jdbc.DDRSQLParseResult;
 import org.hellojavaer.ddr.core.sharding.ShardingRouter;
 
 import java.util.Map;
@@ -26,6 +26,6 @@ import java.util.Map;
  */
 public interface SqlParser {
 
-    DDRDataSource.ReplacedResult parse(String sql, Map<Integer, Object> jdbcParams, ShardingRouter shardingRouter);
+    DDRSQLParseResult parse(String sql, Map<Integer, Object> jdbcParams, ShardingRouter shardingRouter);
 
 }

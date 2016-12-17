@@ -27,7 +27,8 @@ import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.select.SubSelect;
 import net.sf.jsqlparser.statement.update.Update;
 import net.sf.jsqlparser.util.JSQLBaseVisitor;
-import org.hellojavaer.ddr.core.datasource.jdbc.DDRDataSource;
+import org.hellojavaer.ddr.core.datasource.exception.CrossPreparedStatementException;
+import org.hellojavaer.ddr.core.datasource.jdbc.DDRSQLParseResult;
 import org.hellojavaer.ddr.core.exception.DDRException;
 import org.hellojavaer.ddr.core.sharding.ShardingInfo;
 import org.hellojavaer.ddr.core.sharding.ShardingRouteParamContext;
@@ -46,7 +47,8 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
     private Map<Integer, Object> jdbcParam;
     private ShardingRouter       shardingRouter;
     private Statement            statement;
-    private Set<String>          schemas = new HashSet<>();
+    private Set<String>          schemas      = new HashSet<>();
+    private List<TableWrapper>   routedTables = new ArrayList<TableWrapper>();
 
     public JSQLParserAdapter(String sql, Map<Integer, Object> jdbcParam, ShardingRouter shardingRouter) {
         this.sql = sql;
@@ -69,42 +71,77 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
         }
     }
 
-    private class InnerReplacedResult implements DDRDataSource.ReplacedResult {
-
-        private String      sql;
-        private Set<String> schemas;
-
-        @Override
-        public String getSql() {
-            return sql;
-        }
-
-        public void setSql(String sql) {
-            this.sql = sql;
-        }
-
-        @Override
-        public Set<String> getSchemas() {
-            return schemas;
-        }
-
-        public void setSchemas(Set<String> schemas) {
-            this.schemas = schemas;
-        }
-    }
-
-    public DDRDataSource.ReplacedResult parse() {
+    public DDRSQLParseResult parse() {
         try {
             ConverterContext converterContext = new ConverterContext();
             context.set(converterContext);
             statement.accept(this);
             String targetSql = statement.toString();
-            InnerReplacedResult replacedResult = new InnerReplacedResult();
-            replacedResult.setSql(targetSql);
-            replacedResult.setSchemas(schemas);
-            return replacedResult;
+            DDRSQLParseResult parseResult = new DDRSQLParseResult();
+            parseResult.setSql(targetSql);
+            parseResult.setSchemas(schemas);
+            parseResult.setParseState(new DDRSQLParseResult.ParseState() {
+
+                @Override
+                public void validJdbcParam(Map<Integer, Object> jdbcParam) {
+                    if (jdbcParam != null && !jdbcParam.isEmpty()) {
+                        for (TableWrapper tableWrapper : routedTables) {
+                            ShardingInfo info = shardingRouter.route(JSQLParserAdapter.this.getContext().getTableRouterContext(),
+                                                                     tableWrapper.getScName(),
+                                                                     tableWrapper.getTbName(), null);
+                            if (!equalsIgnoreCase(info.getScName(), tableWrapper.getTable().getSchemaName())
+                                || !equalsIgnoreCase(info.getTbName(), tableWrapper.getTable().getName())) {
+                                throw new CrossPreparedStatementException("Source sql is '" + sql
+                                                                          + "', converted table information is '"
+                                                                          + getStringMsgOfRoutedTables()
+                                                                          + "' and jdbc parameter is '"
+                                                                          + getStringMsgOfJdbcParam(jdbcParam) + "'");
+                            }
+                        }
+                    }
+                }
+            });
+            return parseResult;
         } finally {
             context.remove();
+        }
+    }
+
+    private String getStringMsgOfRoutedTables() {
+        if (routedTables == null) {
+            return "null";
+        } else {
+            StringBuilder sb = new StringBuilder();
+            sb.append('[');
+            for (TableWrapper tableWrapper : routedTables) {
+                sb.append(tableWrapper.getTable().toString());
+                sb.append(',');
+            }
+            if (!routedTables.isEmpty()) {
+                sb.deleteCharAt(sb.length() - 1);
+            }
+            sb.append(']');
+            return sb.toString();
+        }
+    }
+
+    private String getStringMsgOfJdbcParam(Map<Integer, Object> jdbcParam) {
+        if (jdbcParam == null) {
+            return "null";
+        } else {
+            StringBuilder sb = new StringBuilder();
+            sb.append('{');
+            for (Map.Entry<Integer, Object> entry : jdbcParam.entrySet()) {
+                sb.append(entry.getKey());
+                sb.append(':');
+                sb.append(entry.getValue());
+                sb.append(',');
+            }
+            if (!routedTables.isEmpty()) {
+                sb.deleteCharAt(sb.length() - 1);
+            }
+            sb.append('}');
+            return sb.toString();
         }
     }
 
@@ -119,6 +156,7 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
                 tableWrapper.getTable().setName(info.getTbName());
                 tableWrapper.setConverted(true);
                 schemas.add(info.getScName());
+                routedTables.add(tableWrapper);
             }
         }
     }
@@ -204,6 +242,7 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
                 tableWrapper.getTable().setName(info.getTbName());
                 tableWrapper.setConverted(true);
                 schemas.add(info.getScName());
+                routedTables.add(tableWrapper);
             }
         }
     }
@@ -342,7 +381,7 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
                     return null;
                 } else {
                     if (val instanceof Number) {
-                        return ((Number)val).longValue();
+                        return ((Number) val).longValue();
                     } else if (val instanceof String) {
                         return val;
                     } else {
@@ -448,6 +487,7 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
             tableWrapper.getTable().setName(info.getTbName());
             tableWrapper.setConverted(true);
             schemas.add(info.getScName());
+            routedTables.add(tableWrapper);
         }
     }
 

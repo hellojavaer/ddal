@@ -15,10 +15,10 @@
  */
 package org.hellojavaer.ddr.core.datasource.jdbc;
 
-import org.hellojavaer.ddr.core.datasource.manager.DataSourceParam;
 import org.hellojavaer.ddr.core.datasource.exception.CrossDataSourceException;
-import org.hellojavaer.ddr.core.exception.DDRException;
 import org.hellojavaer.ddr.core.datasource.exception.UninitializedStatusException;
+import org.hellojavaer.ddr.core.datasource.manager.DataSourceParam;
+import org.hellojavaer.ddr.core.exception.DDRException;
 
 import java.sql.*;
 import java.util.*;
@@ -33,6 +33,8 @@ public abstract class PreparedStatementWrapper extends StatementWrapper implemen
     private String                    sql;
     private Map<Integer, Object>      jdbcParameter = new HashMap<Integer, Object>();
     private List<JdbcParamInvocation> jdbcParamInvocationList;
+
+    private DDRSQLParseResult.ParseState parseState;
 
     public PreparedStatementWrapper(String sql, boolean readOnly, Set<String> schemas) {
         super(readOnly, schemas);
@@ -173,25 +175,32 @@ public abstract class PreparedStatementWrapper extends StatementWrapper implemen
     }
 
     private void initPreparedStatementIfAbsent() throws SQLException {
-        // 1. replace sql
-        DDRDataSource.ReplacedResult replacedResult = replaceSql(sql, this.jdbcParameter);
-        // 2. check if crossing datasource
-        if (isCrossDataSource(replacedResult.getSchemas())) {
-            throw new CrossDataSourceException("Sql schemas are " + parseSchemasToString(replacedResult.getSchemas())
-                                               + ",current datasource binding schemas are "
-                                               + parseSchemasToString(schemas) + " and source original sql is '" + sql
-                                               + "',  jdbc parameter is " + parseJdbcParamToString(jdbcParameter));
-        }
-        // 3. init preparedStatement if not
-        if (preparedStatement == null) {
-            DataSourceParam param = new DataSourceParam();
-            param.setReadOnly(readOnly);
-            param.setScNames(replacedResult.getSchemas());
-            // 初始化statement
-            initStatementIfAbsent(param, replacedResult.getSql());
-            // 动作回放
-            super.playbackInvocation(statement);
-            playbackSetJdbcParamInvocation(preparedStatement, jdbcParamInvocationList);
+        if (parseState != null) {
+            parseState.validJdbcParam(this.jdbcParameter);
+        } else {
+            // 1. parse sql
+            DDRSQLParseResult parseResult = parseSql(sql, this.jdbcParameter);
+            parseState = parseResult.getParseState();
+            // 2. check if crossing datasource
+            if (isCrossDataSource(parseResult.getSchemas())) {
+                throw new CrossDataSourceException("Sql schemas are "
+                                                   + parseSchemasToString(parseResult.getSchemas())
+                                                   + ",current datasource binding schemas are "
+                                                   + parseSchemasToString(schemas) + " and source original sql is '"
+                                                   + sql + "',  jdbc parameter is "
+                                                   + parseJdbcParamToString(jdbcParameter));
+            }
+            // 3. init preparedStatement if not
+            if (preparedStatement == null) {
+                DataSourceParam param = new DataSourceParam();
+                param.setReadOnly(readOnly);
+                param.setScNames(parseResult.getSchemas());
+                // 初始化statement
+                initStatementIfAbsent(param, parseResult.getSql());
+                // 动作回放
+                super.playbackInvocation(statement);
+                playbackSetJdbcParamInvocation(preparedStatement, jdbcParamInvocationList);
+            }
         }
     }
 

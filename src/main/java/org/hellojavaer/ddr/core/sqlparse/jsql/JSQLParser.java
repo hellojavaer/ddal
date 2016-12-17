@@ -16,7 +16,7 @@
 package org.hellojavaer.ddr.core.sqlparse.jsql;
 
 import net.sf.jsqlparser.util.TablesNamesFinder;
-import org.hellojavaer.ddr.core.datasource.jdbc.DDRDataSource;
+import org.hellojavaer.ddr.core.datasource.jdbc.DDRSQLParseResult;
 import org.hellojavaer.ddr.core.sharding.ShardingRouter;
 import org.hellojavaer.ddr.core.sharding.simple.SimpleShardingRouter;
 import org.hellojavaer.ddr.core.sqlparse.SqlParser;
@@ -30,7 +30,7 @@ import java.util.Map;
 public class JSqlParser extends TablesNamesFinder implements SqlParser {
 
     @Override
-    public DDRDataSource.ReplacedResult parse(String sql, Map<Integer, Object> jdbcParams, ShardingRouter shardingRouter) {
+    public DDRSQLParseResult parse(String sql, Map<Integer, Object> jdbcParams, ShardingRouter shardingRouter) {
         JSQLParserAdapter sqlParser = new JSQLParserAdapter(sql, jdbcParams, shardingRouter);
         if (shardingRouter == null) {
             shardingRouter = new SimpleShardingRouter();

@@ -67,7 +67,7 @@ public class DefaultDDRDataSource extends AbstractDefaultDDRDataSource {
         this.distributedTransactionLevel = distributedTransactionLevel;
     }
 
-    public DDRDataSource.ReplacedResult replaceSql(String sql, Map<Integer, Object> jdbcParam) {
+    public DDRSQLParseResult parseSql(String sql, Map<Integer, Object> jdbcParam) {
         return shardingParser.parse(sql, jdbcParam);
     }
 

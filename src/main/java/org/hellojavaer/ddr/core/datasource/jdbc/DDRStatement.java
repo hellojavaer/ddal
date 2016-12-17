@@ -28,7 +28,7 @@ import java.util.Set;
  */
 public interface DDRStatement extends Statement {
 
-    DDRDataSource.ReplacedResult replaceSql(String sql, Map<Integer, Object> jdbcParams) throws SQLException;
+    DDRSQLParseResult parseSql(String sql, Map<Integer, Object> jdbcParams) throws SQLException;
 
     StatementBean getStatement(DataSourceParam param, String sql) throws SQLException;
 
