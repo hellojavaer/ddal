@@ -38,7 +38,7 @@ import java.util.concurrent.Executor;
  *
  * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 05/11/2016.
  */
-public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
+public abstract class AbstractDDRDataSource implements DDRDataSource {
 
     protected final Logger           logger = LoggerFactory.getLogger(getClass());
 
@@ -432,7 +432,7 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
                 @Override
                 public DDRSQLParseResult parseSql(String sql, Map<Integer, Object> jdbcParams)
                                                                                                            throws SQLException {
-                    return AbstractDefaultDDRDataSource.this.parseSql(sql, jdbcParams);
+                    return AbstractDDRDataSource.this.parseSql(sql, jdbcParams);
                 }
 
                 @Override
@@ -456,7 +456,7 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
                 @Override
                 public DDRSQLParseResult parseSql(String sql, Map<Integer, Object> jdbcParams)
                                                                                                            throws SQLException {
-                    return AbstractDefaultDDRDataSource.this.parseSql(sql, jdbcParams);
+                    return AbstractDDRDataSource.this.parseSql(sql, jdbcParams);
                 }
 
                 @Override
@@ -480,7 +480,7 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
                 @Override
                 public DDRSQLParseResult parseSql(String sql, Map<Integer, Object> jdbcParams)
                                                                                                            throws SQLException {
-                    return AbstractDefaultDDRDataSource.this.parseSql(sql, jdbcParams);
+                    return AbstractDDRDataSource.this.parseSql(sql, jdbcParams);
                 }
 
                 @Override
@@ -505,7 +505,7 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
                 @Override
                 public DDRSQLParseResult parseSql(String sql, Map<Integer, Object> jdbcParams)
                                                                                                            throws SQLException {
-                    return AbstractDefaultDDRDataSource.this.parseSql(sql, jdbcParams);
+                    return AbstractDDRDataSource.this.parseSql(sql, jdbcParams);
                 }
 
                 @Override
@@ -530,7 +530,7 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
                 @Override
                 public DDRSQLParseResult parseSql(String sql, Map<Integer, Object> jdbcParams)
                                                                                                            throws SQLException {
-                    return AbstractDefaultDDRDataSource.this.parseSql(sql, jdbcParams);
+                    return AbstractDDRDataSource.this.parseSql(sql, jdbcParams);
                 }
 
                 @Override
@@ -556,7 +556,7 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
                 @Override
                 public DDRSQLParseResult parseSql(String sql, Map<Integer, Object> jdbcParams)
                                                                                                            throws SQLException {
-                    return AbstractDefaultDDRDataSource.this.parseSql(sql, jdbcParams);
+                    return AbstractDDRDataSource.this.parseSql(sql, jdbcParams);
                 }
 
                 @Override
@@ -581,7 +581,7 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
                 @Override
                 public DDRSQLParseResult parseSql(String sql, Map<Integer, Object> jdbcParams)
                                                                                                            throws SQLException {
-                    return AbstractDefaultDDRDataSource.this.parseSql(sql, jdbcParams);
+                    return AbstractDDRDataSource.this.parseSql(sql, jdbcParams);
                 }
 
                 @Override
@@ -605,7 +605,7 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
                 @Override
                 public DDRSQLParseResult parseSql(String sql, Map<Integer, Object> jdbcParams)
                                                                                                            throws SQLException {
-                    return AbstractDefaultDDRDataSource.this.parseSql(sql, jdbcParams);
+                    return AbstractDDRDataSource.this.parseSql(sql, jdbcParams);
                 }
 
                 @Override
@@ -629,7 +629,7 @@ public abstract class AbstractDefaultDDRDataSource implements DDRDataSource {
                 @Override
                 public DDRSQLParseResult parseSql(String sql, Map<Integer, Object> jdbcParams)
                                                                                                            throws SQLException {
-                    return AbstractDefaultDDRDataSource.this.parseSql(sql, jdbcParams);
+                    return AbstractDDRDataSource.this.parseSql(sql, jdbcParams);
                 }
 
                 @Override

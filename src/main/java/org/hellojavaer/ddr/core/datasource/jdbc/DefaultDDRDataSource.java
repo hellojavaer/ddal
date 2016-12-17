@@ -31,7 +31,7 @@ import java.util.Map;
  *
  * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 10/12/2016.
  */
-public class DefaultDDRDataSource extends AbstractDefaultDDRDataSource {
+public class DefaultDDRDataSource extends AbstractDDRDataSource {
 
     private DataSourceManager           dataSourceManager;
     private ShardingParser              shardingParser;
