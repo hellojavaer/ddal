@@ -138,9 +138,12 @@ public class FeTokenParser {
             }
         } else {// stat = 2
             stat = 1;
-            for (; index < str.length() && (TAGS[str.charAt(index)] & 8) == 0; index++) {
+            for (; index < str.length(); index++) {
+                char ch0 = str.charAt(index);
+                if (ch0 == ':' || ch0 == '}' || ch0 == ' ') {
+                    break;
+                }
             }
-            index++;
             String pattern = str.substring(s, index);
             StringFormat sf = new StringFormat(pattern);
             return new FeToken(FeTokenType.FORMAT_PATTERN, sf, s, index - 1);
