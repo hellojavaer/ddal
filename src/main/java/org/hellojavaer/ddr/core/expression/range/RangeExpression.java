@@ -100,9 +100,9 @@ public class RangeExpression {
                     // 读取开始值
                     int j = i + 1;
                     //
-                    int erang = i + 1;
+                    int erang = i + 1;// 最小描述符开始位置
                     //
-                    int status0 = 0;// 0:初始,1:数字,2:小写,3:多个小写,4:大写,5:多个大小,6:混合
+                    int status0 = 0;// 0:初始,1:数字,2:小写,3:多个小写,4:大写,5:多个大小,6:混合,7:正负号
                     int status1 = 0;//
                     int status_temp = 0;
                     boolean range = false;
@@ -117,13 +117,13 @@ public class RangeExpression {
                         }
                         char ch1 = str.charAt(j);
                         if (escape1) {
-                            if (ch1 == '\\' || ch1 == '[' || ch1 == ']' || ch1 == ',') {
+                            if (ch1 == '\\' || ch1 == '[' || ch1 == ']' || ch1 == ',' || ch1 == '~') {
                                 sb1.append(ch1);
                             } else if (ch1 == 's') {
                                 sb1.append(' ');
                             } else {
-                                throw new RangeExpressionException(str, i, ch,
-                                                                   "in statement block, escape character '\\' can only be used for character '\\', ',' , '[', ']' and 's' ");
+                                throw new RangeExpressionException(str, i, ch1,
+                                                                   "in statement block, escape character '\\' can only be used for character '\\', ',' , '[', ']', '~' and 's' ");
                             }
                             escape1 = false;
                             continue;
@@ -135,10 +135,16 @@ public class RangeExpression {
                         }
                         if (ch1 == '\\') {// 转义
                             sb1 = new StringBuilder();
-                            sb1.append(str.substring(erang + 1, j));
+                            sb1.append(str.substring(erang, j));
                             escape1 = true;
-                        } else if (ch1 >= '0' && ch1 <= '9') {// 数字
+                        } else if (ch1 == '+' || ch1 == '-') {
                             if (status_temp == 0) {
+                                status_temp = 7;
+                            } else {
+                                status_temp = 6;
+                            }
+                        } else if (ch1 >= '0' && ch1 <= '9') {// 数字
+                            if (status_temp == 0 || status_temp == 7) {
                                 status_temp = 1;
                             } else if (status_temp != 1) {
                                 status_temp = 6;
@@ -175,7 +181,10 @@ public class RangeExpression {
                             range = true;
                             continue;// //
                         } else if (ch1 == ',' || ch1 == ']') {// 结束符
-                            range = false;
+                            if (range && xpos + 1 == j) {
+                                throw new RangeExpressionException(str, j, ch1,
+                                                                   "start expression and end expression not match. eg: [089,0~99,a-z,A-Z]'");
+                            }
                             int epos = 0;// 返回下一个开始位置
                             if (status1 != 0) {// ~
                                 if (status0 != status1) {
@@ -218,6 +227,7 @@ public class RangeExpression {
                                 epos = parse(str, prefix1, nextStart, itemVisitor);
                             }
                             // 重置标识位
+                            range = false;
                             status_temp = 0;
                             status0 = 0;
                             status1 = 0;
