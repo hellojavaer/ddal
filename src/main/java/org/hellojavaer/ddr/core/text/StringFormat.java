@@ -85,64 +85,106 @@ public class StringFormat {
 
     public void init() {
         if (pattern.charAt(0) != '%') {
-            throw new IllegalArgumentException("string pattern must be start with %. source pattern is '" + pattern + "'");
+            throw new IllegalArgumentException("String pattern must be start with %. source pattern is '" + pattern
+                                               + "'");
         }
-        int s = 1;
-        if (pattern.charAt(1) == '-') {
+        int index = 1;
+        char ch = pattern.charAt(1);
+        // 解析方向
+        if (ch == '-') {
             append = true;
-            s = 2;
+            index = 2;
+        } else if (ch == '+') {
+            append = false;
+            index = 2;
         }
-        int i = s;
-        char ch = (char) 0;
-        for (; i < pattern.length(); i++) {
+        // 解析长度
+        for (int i = index;; i++) {
+            if (i >= pattern.length()) {
+                throw new IllegalArgumentException("Expect digit after % at index " + i + ". source pattern is '"
+                                                   + pattern + "'");
+            }
             ch = pattern.charAt(i);
-            if (ch == 's' || ch == 'S' || ch == '.') {
-                break;
+            if (ch == 's' || ch == 'S' || ch == '[') {
+                if (index == i) {
+                    throw new IllegalArgumentException("Expect digit after % at index " + i + ". source pattern is '"
+                                                       + pattern + "'");
+                } else {
+                    index = i;
+                    break;
+                }
             } else {
                 if (ch >= '0' && ch <= '9') {
                     this.length = (ch - '0') + length * 10;
                 } else {
-                    throw new IllegalArgumentException("expect digit after '%' at index " + i + ".source pattern is '"
-                                                    + pattern + "'");
+                    throw new IllegalArgumentException("Expect digit after '%' at index " + i + ". source pattern is '"
+                                                       + pattern + "'");
                 }
             }
         }
-        if (s == i) {
-            throw new IllegalArgumentException("expect digit after % at index " + i + ". source pattern is '" + pattern
-                                            + "'");
-        }
-        if (ch == '.') {
-            i++;
-            s = i;
-            StringBuilder sb = new StringBuilder();
-            for (; i < pattern.length(); i++) {
+        // 解析append值
+        if (ch == '[') {
+            index++;
+            boolean escape = false;
+            StringBuilder sb = null;// \[]
+            for (int i = index;; i++) {
+                if (i >= pattern.length()) {
+                    throw new IllegalArgumentException("Expect character ']' at index " + i + ". source pattern is '"
+                                                       + pattern + "'");// 未闭合
+                }
                 ch = pattern.charAt(i);
-                if (ch == 's' || ch == 'S') {
-                    break;
-                } else if (ch >= '0' && ch <= '9') {// 0-9A-Za-z
-                    sb.append(ch);
-                    continue;
+                if (escape) {// 处理转义
+                    if (ch == '\\' || ch == '[' || ch == ']') {// key_word
+                        sb.append(ch);
+                    } else if (ch == 's') {
+                        sb.append(' ');
+                    } else {
+                        throw new IllegalArgumentException("Unexpected character '" + ch + "' at index " + i
+                                                           + ". source pattern is '" + pattern + "'");
+                    }
+                    escape = false;
                 } else if (ch == '\\') {
-                    i++;
-                    sb.append(pattern.charAt(i));
-                    continue;
+                    if (sb == null) {
+                        sb = new StringBuilder();
+                        sb.append(pattern.substring(index, i));
+                    }
+                    escape = true;
+                } else if (ch == '[') {
+                    throw new IllegalArgumentException("Unexpected character '" + ch + "' at index " + i
+                                                       + ". source pattern is '" + pattern + "'");
+                } else if (ch == ']') {// 出口
+                    if (sb != null) {
+                        repeatString = sb.toString();
+                    } else {
+                        repeatString = pattern.substring(index, i);
+                    }
+                    if (i == index) {
+                        throw new IllegalArgumentException("Expect at last one character between '[]' at index "
+                                                           + index + ". source pattern is '" + pattern + "'");
+                    }
+                    index = i + 1;
+                    if (index >= pattern.length()) {
+                        ch = (char) 0;
+                    } else {
+                        ch = pattern.charAt(index);
+                    }
+                    break;
                 } else {
-                    throw new IllegalArgumentException("unexpected character '" + ch + "' at index " + i
-                                                    + ". source pattern is '" + pattern + "'");
+                    if (sb != null) {
+                        sb.append(ch);
+                    }
                 }
             }
-            if (sb.length() == 0) {
-                throw new IllegalArgumentException("expected at last one character after '.' at index " + i
-                                                + ". source pattern is '" + pattern + "'");
-            }
-            repeatString = sb.toString();
+        }
+        if (index != pattern.length() - 1) {
+            throw new IllegalArgumentException("Expect end character 's' or 'S'. source pattern is '" + pattern + "'");
         }
         if (ch == 's') {
             force = false;
         } else if (ch == 'S') {
             force = true;
         } else {
-            throw new IllegalArgumentException("unexpected end string '" + ch + "'. source pattern is '" + pattern + "'");
+            throw new IllegalArgumentException("Expect end character 's' or 'S'. source pattern is '" + pattern + "'");
         }
     }
 }

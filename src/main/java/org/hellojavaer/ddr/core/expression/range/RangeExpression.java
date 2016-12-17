@@ -133,10 +133,14 @@ public class RangeExpression {
                         } else {
                             status_temp = status0;
                         }
-                        if (ch1 == '\\') {// 转义
-                            sb1 = new StringBuilder();
-                            sb1.append(str.substring(erang, j));
+                        if (ch1 == '\\') {// 转义 key_word
+                            if (sb1 == null) {
+                                sb1 = new StringBuilder();
+                                sb1.append(str.substring(erang, j));
+                            }
                             escape1 = true;
+                        } else if (ch1 == '[') {// key_word
+                            throw new RangeExpressionException(str, i, ch1, " '[' should be escaped");
                         } else if (ch1 == '+' || ch1 == '-') {
                             if (status_temp == 0) {
                                 status_temp = 7;
@@ -165,7 +169,7 @@ public class RangeExpression {
                             } else {
                                 status_temp = 6;
                             }
-                        } else if (ch1 == '~') {// support 1,2,4
+                        } else if (ch1 == '~') {// support 1,2,4 key_word
                             if (range) {
                                 throw new RangeExpressionException(str, j, ch1, ']');
                             }
@@ -180,7 +184,7 @@ public class RangeExpression {
                             xpos = j;
                             range = true;
                             continue;// //
-                        } else if (ch1 == ',' || ch1 == ']') {// 结束符
+                        } else if (ch1 == ',' || ch1 == ']') {// 结束符 key_word
                             if (range && xpos + 1 == j) {
                                 throw new RangeExpressionException(str, j, ch1,
                                                                    "start expression and end expression not match. eg: [089,0~99,a-z,A-Z]'");
@@ -231,6 +235,7 @@ public class RangeExpression {
                             status_temp = 0;
                             status0 = 0;
                             status1 = 0;
+                            sb1 =null;
                             if (ch1 == ']') {// return
                                 return epos;
                             } else {
