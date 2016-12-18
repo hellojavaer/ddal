@@ -30,7 +30,7 @@ public class ShardingRouteHelper {
 
     private static Map<String, List> map = new HashMap<String, List>();
 
-    public static void setConfigedShardingInfos(String scName, String tbName, List<ShardingInfo> shardingInfos) {
+    public static void setConfiguredShardingInfos(String scName, String tbName, List<ShardingInfo> shardingInfos) {
         map.put(buildQueryKey(scName, tbName), shardingInfos);
     }
 
@@ -40,12 +40,12 @@ public class ShardingRouteHelper {
 
     private static String buildQueryKey(String scName, String tbName) {
         StringBuilder sb = new StringBuilder();
-        scName = DDRStringUtils.trim(scName);
+        scName = DDRStringUtils.toLowerCase(scName);
         if (scName != null) {
-            sb.append(scName.toLowerCase());
+            sb.append(scName);
+            sb.append('.');
         }
-        sb.append('.');
-        sb.append(DDRStringUtils.trim(tbName).toLowerCase());
+        sb.append(DDRStringUtils.toLowerCase(tbName));
         return sb.toString();
     }
 }

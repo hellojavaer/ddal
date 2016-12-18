@@ -21,8 +21,16 @@ package org.hellojavaer.ddr.core.sharding;
  */
 public class ShardingInfo {
 
-    private String tbName;
     private String scName;
+    private String tbName;
+
+    public ShardingInfo() {
+    }
+
+    public ShardingInfo(String scName, String tbName) {
+        this.scName = scName;
+        this.tbName = tbName;
+    }
 
     public String getScName() {
         return scName;
@@ -38,5 +46,10 @@ public class ShardingInfo {
 
     public void setTbName(String tbName) {
         this.tbName = tbName;
+    }
+
+    @Override
+    public String toString() {
+        return new StringBuilder().append("{scName:'" + scName + "\', tbName:'" + tbName + "\'}").toString();
     }
 }
