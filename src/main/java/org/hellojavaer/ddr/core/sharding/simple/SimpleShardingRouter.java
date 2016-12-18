@@ -56,9 +56,9 @@ public class SimpleShardingRouter implements ShardingRouter {
                     throw new DDRException("binding for scName:" + binding.getScName() + " tbName:"
                                            + binding.getTbName() + " sdName:" + binding.getSdName() + " can't be null");
                 }
-                final String scName = DDRStringUtils.filterName(binding.getScName());
-                final String tbName = DDRStringUtils.filterName(binding.getTbName());
-                final String sdName = DDRStringUtils.filterName(binding.getSdName());
+                final String scName = DDRStringUtils.toLowerCase(binding.getScName());
+                final String tbName = DDRStringUtils.toLowerCase(binding.getTbName());
+                final String sdName = DDRStringUtils.toLowerCase(binding.getSdName());
                 final String sdScanValues = DDRStringUtils.trim(binding.getSdScanValues());
                 final String sdScanValueType = DDRStringUtils.trim(binding.getSdScanValueType());
                 if (scName == null) {
@@ -145,8 +145,8 @@ public class SimpleShardingRouter implements ShardingRouter {
 
     @Override
     public boolean isRoute(ShardingRouteParamContext context, String scName, String tbName) {
-        scName = DDRStringUtils.filterName(scName);
-        tbName = DDRStringUtils.filterName(tbName);
+        scName = DDRStringUtils.toLowerCase(scName);
+        tbName = DDRStringUtils.toLowerCase(tbName);
         if (getBinding(scName, tbName) == null) {
             return false;
         } else {
@@ -190,8 +190,8 @@ public class SimpleShardingRouter implements ShardingRouter {
 
     @Override
     public String getRouteColName(ShardingRouteParamContext context, String scName, String tbName) {
-        scName = DDRStringUtils.filterName(scName);
-        tbName = DDRStringUtils.filterName(tbName);
+        scName = DDRStringUtils.toLowerCase(scName);
+        tbName = DDRStringUtils.toLowerCase(tbName);
         SimpleShardingRouteRuleBinding binding = getBinding(scName, tbName);
         if (binding == null) {
             throw new DDRException("No route rule binding for scName:" + scName + " and tbName:" + tbName);
@@ -202,8 +202,8 @@ public class SimpleShardingRouter implements ShardingRouter {
 
     @Override
     public ShardingInfo route(ShardingRouteParamContext context, String scName, String tbName, Object sdValue) {
-        scName = DDRStringUtils.filterName(scName);
-        tbName = DDRStringUtils.filterName(tbName);
+        scName = DDRStringUtils.toLowerCase(scName);
+        tbName = DDRStringUtils.toLowerCase(tbName);
         SimpleShardingRouteRuleBinding binding = getBinding(scName, tbName);
         if (binding == null) {
             throw new DDRException("No route rule binding for scName:" + scName + " tbName:" + tbName);

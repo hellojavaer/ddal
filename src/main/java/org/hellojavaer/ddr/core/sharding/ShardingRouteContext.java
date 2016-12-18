@@ -77,10 +77,10 @@ public class ShardingRouteContext {
     }
 
     private static String buildQueryKey(String scName, String tbName) {
-        return new StringBuilder().append(DDRStringUtils.filterName(scName))//
-        .append('.')//
-        .append(DDRStringUtils.filterName(tbName))//
-        .toString();//
+        return new StringBuilder().append(DDRStringUtils.toLowerCase(scName))//
+                                  .append('.')//
+                                  .append(DDRStringUtils.toLowerCase(tbName))//
+                                  .toString();//
     }
 
     public static void clear() {

@@ -33,6 +33,7 @@ import org.hellojavaer.ddr.core.sharding.ShardingInfo;
 import org.hellojavaer.ddr.core.sharding.ShardingRouteContext;
 import org.hellojavaer.ddr.core.sharding.ShardingRouteParamContext;
 import org.hellojavaer.ddr.core.sharding.ShardingRouter;
+import org.hellojavaer.ddr.core.utils.DDRStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -331,7 +332,7 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
         ConverterContext converterContext = this.getContext();
         StackContext stackContext = converterContext.getStack().peek();
         String colFullName = col.toString();
-        colFullName = colFullName.trim().toLowerCase();
+        colFullName = DDRStringUtils.toLowerCase(colFullName);
         return stackContext.get(colFullName);
     }
 

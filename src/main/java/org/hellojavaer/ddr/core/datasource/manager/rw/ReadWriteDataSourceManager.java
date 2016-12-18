@@ -104,7 +104,7 @@ public class ReadWriteDataSourceManager implements DataSourceManager {
                 throw new IllegalArgumentException("[schema:" + schema
                                                    + "] dataSource of writeOnlyDataSources can't be null");
             }
-            schema = schema.toLowerCase();
+            schema = DDRStringUtils.toLowerCase(schema);
             boolean exist = dataSourceMap.containsKey(schema);
             if (exist) {
                 throw new IllegalArgumentException("Schema '" + schema
@@ -159,7 +159,7 @@ public class ReadWriteDataSourceManager implements DataSourceManager {
                 throw new IllegalArgumentException("[schema:" + schema
                                                    + "] dataSource of readOnlyDataSources can't be empty");
             }
-            schema = schema.toLowerCase();
+            schema = DDRStringUtils.toLowerCase(schema);
             boolean exist = dataSourceMap.containsKey(schema);
             if (exist) {
                 throw new IllegalArgumentException("Schema '" + schema

@@ -34,7 +34,7 @@ public class DDRStringUtils {
         }
     }
 
-    public static String filterName(String str) {
+    public static String toLowerCase(String str) {
         if (str == null) {
             return null;
         } else {
