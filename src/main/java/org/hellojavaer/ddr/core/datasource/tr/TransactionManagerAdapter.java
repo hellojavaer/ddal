@@ -17,7 +17,7 @@ package org.hellojavaer.ddr.core.datasource.tr;
 
 /**
  *
- * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 03/12/2016.
+ * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 03/12/2016.
  */
 public interface TransactionManagerAdapter {
 

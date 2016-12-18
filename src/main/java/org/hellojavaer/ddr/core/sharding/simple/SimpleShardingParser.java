@@ -25,7 +25,7 @@ import java.util.Map;
 
 /**
  *
- * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 15/11/2016.
+ * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 15/11/2016.
  */
 public class SimpleShardingParser implements ShardingParser {
 
@@ -49,7 +49,7 @@ public class SimpleShardingParser implements ShardingParser {
     }
 
     @Override
-    public DDRSQLParseResult parse(String sql, Map<Integer, Object> jdbcParams) {
+    public DDRSQLParseResult parse(String sql, Map<Object, Object> jdbcParams) {
         if (sqlParser == null) {
             sqlParser = new JSqlParser();
         }

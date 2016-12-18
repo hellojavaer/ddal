@@ -29,7 +29,7 @@ import java.util.Map;
 
 /**
  *
- * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 10/12/2016.
+ * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 10/12/2016.
  */
 public class DefaultDDRDataSource extends AbstractDDRDataSource {
 
@@ -67,7 +67,7 @@ public class DefaultDDRDataSource extends AbstractDDRDataSource {
         this.distributedTransactionLevel = distributedTransactionLevel;
     }
 
-    public DDRSQLParseResult parseSql(String sql, Map<Integer, Object> jdbcParam) {
+    public DDRSQLParseResult parseSql(String sql, Map<Object, Object> jdbcParam) {
         return shardingParser.parse(sql, jdbcParam);
     }
 

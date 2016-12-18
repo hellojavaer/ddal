@@ -22,7 +22,7 @@ import java.util.Set;
 
 /**
  *
- * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 17/12/2016.
+ * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 17/12/2016.
  */
 public class DDRSQLParseResult {
 
@@ -55,6 +55,7 @@ public class DDRSQLParseResult {
     }
 
     public interface ParseState {
-        void validJdbcParam(Map<Integer, Object> jdbcParam) throws CrossPreparedStatementException;
+
+        void validJdbcParam(Map<Object, Object> jdbcParam) throws CrossPreparedStatementException;
     }
 }

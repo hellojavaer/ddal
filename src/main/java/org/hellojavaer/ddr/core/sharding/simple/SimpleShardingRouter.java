@@ -31,7 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  *
- * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 14/11/2016.
+ * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 14/11/2016.
  */
 public class SimpleShardingRouter implements ShardingRouter {
 

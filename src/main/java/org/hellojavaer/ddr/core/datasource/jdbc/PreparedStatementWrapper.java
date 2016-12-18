@@ -25,14 +25,14 @@ import java.util.*;
 
 /**
  *
- * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 20/11/2016.
+ * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 20/11/2016.
  */
 public abstract class PreparedStatementWrapper extends StatementWrapper implements DDRPreparedStatement {
 
-    protected PreparedStatement       preparedStatement;
-    private String                    sql;
-    private Map<Integer, Object>      jdbcParameter = new HashMap<Integer, Object>();
-    private List<JdbcParamInvocation> jdbcParamInvocationList;
+    protected PreparedStatement          preparedStatement;
+    private String                       sql;
+    private Map<Object, Object>          jdbcParameter = new HashMap<Object, Object>();
+    private List<JdbcParamInvocation>    jdbcParamInvocationList;
 
     private DDRSQLParseResult.ParseState parseState;
 
@@ -183,8 +183,7 @@ public abstract class PreparedStatementWrapper extends StatementWrapper implemen
             parseState = parseResult.getParseState();
             // 2. check if crossing datasource
             if (isCrossDataSource(parseResult.getSchemas())) {
-                throw new CrossDataSourceException("Sql schemas are "
-                                                   + parseSchemasToString(parseResult.getSchemas())
+                throw new CrossDataSourceException("Sql schemas are " + parseSchemasToString(parseResult.getSchemas())
                                                    + ",current datasource binding schemas are "
                                                    + parseSchemasToString(schemas) + " and source original sql is '"
                                                    + sql + "',  jdbc parameter is "
@@ -204,13 +203,13 @@ public abstract class PreparedStatementWrapper extends StatementWrapper implemen
         }
     }
 
-    private String parseJdbcParamToString(Map<Integer, Object> map) {
+    private String parseJdbcParamToString(Map<Object, Object> map) {
         if (map == null) {
             return "";
         } else {
             StringBuilder sb = new StringBuilder();
             sb.append('{');
-            for (Map.Entry<Integer, Object> entry : map.entrySet()) {
+            for (Map.Entry<Object, Object> entry : map.entrySet()) {
                 sb.append(entry.getKey());
                 sb.append(':');
                 if (entry.getValue() == null) {

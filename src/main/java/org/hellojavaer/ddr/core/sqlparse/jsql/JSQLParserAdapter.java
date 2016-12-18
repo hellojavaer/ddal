@@ -39,18 +39,18 @@ import java.util.*;
 
 /**
  *
- * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 12/11/2016.
+ * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 12/11/2016.
  */
 public class JSQLParserAdapter extends JSQLBaseVisitor {
 
-    private String               sql;
-    private Map<Integer, Object> jdbcParam;
-    private ShardingRouter       shardingRouter;
-    private Statement            statement;
-    private Set<String>          schemas      = new HashSet<>();
-    private List<TableWrapper>   routedTables = new ArrayList<TableWrapper>();
+    private String              sql;
+    private Map<Object, Object> jdbcParam;
+    private ShardingRouter      shardingRouter;
+    private Statement           statement;
+    private Set<String>         schemas      = new HashSet<>();
+    private List<TableWrapper>  routedTables = new ArrayList<TableWrapper>();
 
-    public JSQLParserAdapter(String sql, Map<Integer, Object> jdbcParam, ShardingRouter shardingRouter) {
+    public JSQLParserAdapter(String sql, Map<Object, Object> jdbcParam, ShardingRouter shardingRouter) {
         this.sql = sql;
         this.jdbcParam = jdbcParam;
         this.shardingRouter = shardingRouter;
@@ -83,7 +83,7 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
             parseResult.setParseState(new DDRSQLParseResult.ParseState() {
 
                 @Override
-                public void validJdbcParam(Map<Integer, Object> jdbcParam) {
+                public void validJdbcParam(Map<Object, Object> jdbcParam) {
                     if (jdbcParam != null && !jdbcParam.isEmpty()) {
                         for (TableWrapper tableWrapper : routedTables) {
                             ShardingInfo info = shardingRouter.route(JSQLParserAdapter.this.getContext().getTableRouterContext(),
@@ -125,13 +125,13 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
         }
     }
 
-    private String getStringMsgOfJdbcParam(Map<Integer, Object> jdbcParam) {
+    private String getStringMsgOfJdbcParam(Map<Object, Object> jdbcParam) {
         if (jdbcParam == null) {
             return "null";
         } else {
             StringBuilder sb = new StringBuilder();
             sb.append('{');
-            for (Map.Entry<Integer, Object> entry : jdbcParam.entrySet()) {
+            for (Map.Entry<Object, Object> entry : jdbcParam.entrySet()) {
                 sb.append(entry.getKey());
                 sb.append(':');
                 sb.append(entry.getValue());
@@ -380,15 +380,19 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
                 if (val == null) {
                     return null;
                 } else {
-                    if (val instanceof Number) {
-                        return ((Number) val).longValue();
-                    } else if (val instanceof String) {
-                        return val;
-                    } else {
-                        throw new DDRException("jdbc parameter type '" + val.getClass()
-                                               + "' is not supported for sharding column '" + column.toString()
-                                               + "', source sql is '" + sql + "'");
-                    }
+                    return val;
+                }
+            }
+        } else if (obj instanceof JdbcNamedParameter) {
+            JdbcNamedParameter jdbcNamedParameter = (JdbcNamedParameter) obj;
+            if (jdbcParam == null) {
+                return null;
+            } else {
+                Object val = jdbcParam.get(jdbcNamedParameter.getName());
+                if (val == null) {
+                    return null;
+                } else {
+                    return val;
                 }
             }
         } else {

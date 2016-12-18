@@ -17,7 +17,7 @@ package org.hellojavaer.ddr.core.datasource.exception;
 
 /**
  *
- * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 16/12/2016.
+ * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 16/12/2016.
  */
 public class DDRSQLException extends RuntimeException {
 

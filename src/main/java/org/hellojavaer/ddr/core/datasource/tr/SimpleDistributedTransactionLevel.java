@@ -19,7 +19,7 @@ import org.hellojavaer.ddr.core.utils.DDRStringUtils;
 
 /**
  *
- * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 19/11/2016.
+ * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 19/11/2016.
  */
 public class SimpleDistributedTransactionLevel implements DistributedTransactionLevel {
 
