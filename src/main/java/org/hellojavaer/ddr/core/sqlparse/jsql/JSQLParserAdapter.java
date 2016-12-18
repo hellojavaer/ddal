@@ -162,20 +162,26 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
         for (Map.Entry<String, TableWrapper> entry : context.entrySet()) {
             TableWrapper tableWrapper = entry.getValue();
             if (!entry.getValue().isConverted()) {
-                Object routeInfo = ShardingRouteContext.getRoute(tableWrapper.getTbName(), tableWrapper.getScName());
+                Object routeInfo = ShardingRouteContext.getRoute(tableWrapper.getScName(), tableWrapper.getTbName());
                 if (routeInfo == null) {
                     if (tableWrapper.getSdName() != null) {// 禁用sql路由后但未在ShardingRouteContext中设置路由
                         throw new DDRException(
-                                               "Disabled sql routing, but not set route information by 'ShardingRouteContext'. detail information is scName:"
-                                                       + tableWrapper.getScName() + ", tbName:"
-                                                       + tableWrapper.getTbName() + ", tbAliasName:"
-                                                       + tableWrapper.getTable().getAlias() + ", sdName:"
-                                                       + tableWrapper.getSdName());
+                                               "Disabled sql routing but not set route information by 'ShardingRouteContext'. detail information is scName:"
+                                                       + tableWrapper.getScName()
+                                                       + ", tbName:"
+                                                       + tableWrapper.getTbName()
+                                                       + ", tbAliasName:"
+                                                       + (tableWrapper.getTable().getAlias() == null ? null : tableWrapper.getTable().getAlias().getName())
+                                                       + ", sdName:" + tableWrapper.getSdName());
                     } else {
-                        throw new DDRException("No route information for scName:" + tableWrapper.getScName()
-                                               + ", tbName:" + tableWrapper.getTbName() + ", tbAliasName:"
-                                               + tableWrapper.getTable().getAlias() + ", sdName:"
-                                               + tableWrapper.getSdName());
+                        throw new DDRException(
+                                               "No route information for scName:"
+                                                       + tableWrapper.getScName()
+                                                       + ", tbName:"
+                                                       + tableWrapper.getTbName()
+                                                       + ", tbAliasName:"
+                                                       + (tableWrapper.getTable().getAlias() == null ? null : tableWrapper.getTable().getAlias().getName())
+                                                       + ", sdName:" + tableWrapper.getSdName());
                     }
                 } else if (routeInfo instanceof ShardingInfo) {
                     route0(tableWrapper, (ShardingInfo) routeInfo);
@@ -496,7 +502,7 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
             throw new RuntimeException("sharding column '" + column.toString()
                                        + "' in where clause is ambiguous. source sql is '" + sql + "'");
         }
-        tableWrapper.setSdName(column.getColumnName());
+        tableWrapper.setSdName(DDRStringUtils.toLowerCase(column.getColumnName()));
         if (ShardingRouteContext.isDisableSqlRouting()) {
             if (logger.isDebugEnabled()) {
                 logger.debug("[DisableSqlRouting] scName:" + tableWrapper.getScName() + ", tbName:"
@@ -558,8 +564,8 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
             this.converted = false;
             this.table = table;
             if (table != null) {
-                this.scName = table.getSchemaName();
-                this.tbName = table.getName();
+                this.scName = DDRStringUtils.toLowerCase(table.getSchemaName());
+                this.tbName = DDRStringUtils.toLowerCase(table.getName());
             }
         }
 
