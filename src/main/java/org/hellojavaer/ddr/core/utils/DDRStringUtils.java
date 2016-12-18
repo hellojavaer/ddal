@@ -33,4 +33,17 @@ public class DDRStringUtils {
             }
         }
     }
+
+    public static String filterName(String str) {
+        if (str == null) {
+            return null;
+        } else {
+            str = str.trim();
+            if (str.length() == 0) {
+                return null;
+            } else {
+                return str.toLowerCase();
+            }
+        }
+    }
 }

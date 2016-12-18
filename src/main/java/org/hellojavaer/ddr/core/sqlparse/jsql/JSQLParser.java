@@ -25,12 +25,12 @@ import java.util.Map;
 
 /**
  *
- * @author <a href="mailto:hellojavaer@gmail.com">zoukaiming[邹凯明]</a>,created on 12/11/2016.
+ * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 12/11/2016.
  */
 public class JSqlParser extends TablesNamesFinder implements SqlParser {
 
     @Override
-    public DDRSQLParseResult parse(String sql, Map<Integer, Object> jdbcParams, ShardingRouter shardingRouter) {
+    public DDRSQLParseResult parse(String sql, Map<Object, Object> jdbcParams, ShardingRouter shardingRouter) {
         JSQLParserAdapter sqlParser = new JSQLParserAdapter(sql, jdbcParams, shardingRouter);
         if (shardingRouter == null) {
             shardingRouter = new SimpleShardingRouter();

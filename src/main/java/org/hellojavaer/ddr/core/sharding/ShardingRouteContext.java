@@ -26,28 +26,49 @@ import java.util.Map;
  */
 public class ShardingRouteContext {
 
-    private static final ThreadLocal<Map> routeValue = new ThreadLocal();
+    private static final ThreadLocal<Map<String, Object>> ROUTE_VALUE         = new ThreadLocal<Map<String, Object>>();
+    private static final ThreadLocal<Boolean>             DISABLE_SQL_ROUTING = new ThreadLocal<Boolean>();
 
-    public static void setRoute(String scName, String tbName, Long value) {
-        Map<String, Object> map = routeValue.get();
+    public static void setDisableSqlRouting(boolean disableSqlRoute) {
+        if (disableSqlRoute) {
+            DISABLE_SQL_ROUTING.set(Boolean.TRUE);
+        }
+    }
+
+    public static boolean isDisableSqlRouting() {
+        return DISABLE_SQL_ROUTING.get() == Boolean.TRUE;
+    }
+
+    /**
+     * 
+     * 当表scName.tbName 没有分表配置时使用该配置
+     */
+    public static void setRoute(String scName, String tbName, Object value) {
+        Map<String, Object> map = ROUTE_VALUE.get();
         if (map == null) {
             map = new HashMap();
-            routeValue.set(map);
+            ROUTE_VALUE.set(map);
         }
         map.put(buildQueryKey(scName, tbName), value);
     }
 
+    /**
+     * 设置路由信息
+     * 触发条件
+     * 1.sql中没有设置sdValue 时触发(如果设置了但为null不会触发),
+     * 2.
+     */
     public static void setRoute(String scName, String tbName, ShardingInfo value) {
-        Map<String, Object> map = routeValue.get();
+        Map<String, Object> map = ROUTE_VALUE.get();
         if (map == null) {
             map = new HashMap();
-            routeValue.set(map);
+            ROUTE_VALUE.set(map);
         }
         map.put(buildQueryKey(scName, tbName), value);
     }
 
     public static Object getRoute(String scName, String tbName) {
-        Map<String, Long> map = routeValue.get();
+        Map<String, Object> map = ROUTE_VALUE.get();
         if (map == null) {
             return null;
         } else {
@@ -56,14 +77,15 @@ public class ShardingRouteContext {
     }
 
     private static String buildQueryKey(String scName, String tbName) {
-        return new StringBuilder().append(DDRStringUtils.trim(scName).toLowerCase())//
-                                  .append('.')//
-                                  .append(DDRStringUtils.trim(tbName).toLowerCase())//
-                                  .toString();//
+        return new StringBuilder().append(DDRStringUtils.filterName(scName))//
+        .append('.')//
+        .append(DDRStringUtils.filterName(tbName))//
+        .toString();//
     }
 
     public static void clear() {
-        routeValue.remove();
+        ROUTE_VALUE.remove();
+        DISABLE_SQL_ROUTING.remove();
     }
 
 }

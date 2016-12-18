@@ -56,9 +56,9 @@ public class SimpleShardingRouter implements ShardingRouter {
                     throw new DDRException("binding for scName:" + binding.getScName() + " tbName:"
                                            + binding.getTbName() + " sdName:" + binding.getSdName() + " can't be null");
                 }
-                final String scName = filter(binding.getScName());
-                final String tbName = filter(binding.getTbName());
-                final String sdName = filter(binding.getSdName());
+                final String scName = DDRStringUtils.filterName(binding.getScName());
+                final String tbName = DDRStringUtils.filterName(binding.getTbName());
+                final String sdName = DDRStringUtils.filterName(binding.getSdName());
                 final String sdScanValues = DDRStringUtils.trim(binding.getSdScanValues());
                 final String sdScanValueType = DDRStringUtils.trim(binding.getSdScanValueType());
                 if (scName == null) {
@@ -114,18 +114,6 @@ public class SimpleShardingRouter implements ShardingRouter {
         }
     }
 
-    private String filter(String str) {
-        if (str == null) {
-            return null;
-        } else {
-            str = str.trim();
-            if (str.length() == 0) {
-                return null;
-            } else {
-                return str.toLowerCase();
-            }
-        }
-    }
 
     @Override
     public void beginExecution(ShardingRouteParamContext context) {
@@ -157,8 +145,8 @@ public class SimpleShardingRouter implements ShardingRouter {
 
     @Override
     public boolean isRoute(ShardingRouteParamContext context, String scName, String tbName) {
-        scName = filter(scName);
-        tbName = filter(tbName);
+        scName = DDRStringUtils.filterName(scName);
+        tbName = DDRStringUtils.filterName(tbName);
         if (getBinding(scName, tbName) == null) {
             return false;
         } else {
@@ -202,8 +190,8 @@ public class SimpleShardingRouter implements ShardingRouter {
 
     @Override
     public String getRouteColName(ShardingRouteParamContext context, String scName, String tbName) {
-        scName = filter(scName);
-        tbName = filter(tbName);
+        scName = DDRStringUtils.filterName(scName);
+        tbName = DDRStringUtils.filterName(tbName);
         SimpleShardingRouteRuleBinding binding = getBinding(scName, tbName);
         if (binding == null) {
             throw new DDRException("No route rule binding for scName:" + scName + " and tbName:" + tbName);
@@ -214,8 +202,8 @@ public class SimpleShardingRouter implements ShardingRouter {
 
     @Override
     public ShardingInfo route(ShardingRouteParamContext context, String scName, String tbName, Object sdValue) {
-        scName = filter(scName);
-        tbName = filter(tbName);
+        scName = DDRStringUtils.filterName(scName);
+        tbName = DDRStringUtils.filterName(tbName);
         SimpleShardingRouteRuleBinding binding = getBinding(scName, tbName);
         if (binding == null) {
             throw new DDRException("No route rule binding for scName:" + scName + " tbName:" + tbName);
@@ -226,22 +214,6 @@ public class SimpleShardingRouter implements ShardingRouter {
             if (binding.getSdName() == null && sdValue != null) {
                 logger.warn("scName:" + scName + " tbName:" + tbName + " sdName:null , sdValue expect null but "
                             + sdValue);
-            }
-            if (sdValue == null) {
-                Object routeValue = ShardingRouteContext.getRoute(scName, tbName);
-                if (routeValue == null) {
-                    throw new DDRException("No route information for [scName:" + scName + ",tbName:" + tbName
-                                           + ",sdName:" + binding.getSdName() + "]");
-                }
-                if (routeValue instanceof ShardingInfo) {
-                    return (ShardingInfo) routeValue;
-                } else if (routeValue instanceof Long) {
-                    sdValue = (Long) routeValue;
-                } else {
-                    throw new DDRException("Unexpected type[" + routeValue.getClass() + "] for [scName:" + scName
-                                           + ",tbName:" + tbName + ",sdName:" + binding.getSdName()
-                                           + "] in ShardingContext");
-                }
             }
             if (sdValue == null) {
                 throw new DDRException("No route information for [scName:" + scName + ",tbName:" + tbName + ",sdName:"
