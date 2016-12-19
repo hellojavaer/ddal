@@ -163,22 +163,22 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
                 if (routeInfo == null) {
                     if (tableWrapper.getSdName() != null) {// 禁用sql路由后但未在ShardingRouteContext中设置路由
                         throw new DDRException(
-                                               "Disabled sql routing but not set route information by 'ShardingRouteContext'. detail information is scName:"
-                                                       + tableWrapper.getScName()
-                                                       + ", tbName:"
-                                                       + tableWrapper.getTbName()
-                                                       + ", tbAliasName:"
-                                                       + (tableWrapper.getTable().getAlias() == null ? null : tableWrapper.getTable().getAlias().getName())
-                                                       + ", sdName:" + tableWrapper.getSdName());
+                                               "Disabled sql routing but not set route information by 'ShardingRouteContext'. detail information is "
+                                                       + tableWrapper);
+
                     } else {
-                        throw new DDRException(
-                                               "No sdName is set. expect '' information for scName:"
-                                                       + tableWrapper.getScName()
-                                                       + ", tbName:"
-                                                       + tableWrapper.getTbName()
-                                                       + ", tbAliasName:"
-                                                       + (tableWrapper.getTable().getAlias() == null ? null : tableWrapper.getTable().getAlias().getName())
-                                                       + ", sdName:" + tableWrapper.getSdName());
+                        StringBuilder sb = new StringBuilder();
+                        sb.append("No sdName is set. expect '");
+                        if (tableWrapper.getTable().getAlias() != null) {
+                            sb.append(tableWrapper.getTable().getAlias().getName());
+                        } else {
+                            sb.append(tableWrapper.getTable().getName());
+                        }
+                        sb.append('.');
+                        sb.append(tableWrapper.getRouteInfo().getSdName());
+                        sb.append("' route information. detail information is ");
+                        sb.append(tableWrapper.toString());
+                        throw new DDRException(sb.toString());
                     }
                 } else if (routeInfo instanceof RouteResultInfo) {
                     route0(tableWrapper, (RouteResultInfo) routeInfo);
@@ -628,6 +628,22 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
 
         public void setRouteInfo(RouteInfo routeInfo) {
             this.routeInfo = routeInfo;
+        }
+
+        @Override
+        public String toString() {
+            return new StringBuilder()//
+            .append("{scName:'")//
+            .append(scName)//
+            .append('\'')//
+            .append(", tbName:'")//
+            .append(tbName).append('\'')//
+            .append(", sdName:'")//
+            .append(sdName)//
+            .append('\'')//
+            .append(", routeInfo:")//
+            .append(routeInfo)//
+            .append('}').toString();
         }
     }
 
