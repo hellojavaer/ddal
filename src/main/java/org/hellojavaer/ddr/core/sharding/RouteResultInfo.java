@@ -19,15 +19,15 @@ package org.hellojavaer.ddr.core.sharding;
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 15/11/2016.
  */
-public class ShardingInfo {
+public class RouteResultInfo {
 
     private String scName;
     private String tbName;
 
-    public ShardingInfo() {
+    public RouteResultInfo() {
     }
 
-    public ShardingInfo(String scName, String tbName) {
+    public RouteResultInfo(String scName, String tbName) {
         this.scName = scName;
         this.tbName = tbName;
     }
@@ -50,6 +50,6 @@ public class ShardingInfo {
 
     @Override
     public String toString() {
-        return new StringBuilder().append("{scName:'" + scName + "\', tbName:'" + tbName + "\'}").toString();
+        return new StringBuilder().append("{scName:'" + scName + "', tbName:'" + tbName + "'}").toString();
     }
 }

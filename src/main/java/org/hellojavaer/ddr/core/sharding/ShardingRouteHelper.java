@@ -30,11 +30,11 @@ public class ShardingRouteHelper {
 
     private static Map<String, List> map = new HashMap<String, List>();
 
-    public static void setConfiguredShardingInfos(String scName, String tbName, List<ShardingInfo> shardingInfos) {
+    public static void setConfiguredShardingInfos(String scName, String tbName, List<RouteResultInfo> shardingInfos) {
         map.put(buildQueryKey(scName, tbName), shardingInfos);
     }
 
-    public static List<ShardingInfo> getConfigedShardingInfos(String scName, String tbName) {
+    public static List<RouteResultInfo> getConfigedShardingInfos(String scName, String tbName) {
         return map.get(buildQueryKey(scName, tbName));
     }
 

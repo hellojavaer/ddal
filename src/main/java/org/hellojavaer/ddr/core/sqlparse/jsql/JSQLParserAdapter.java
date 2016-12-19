@@ -29,10 +29,7 @@ import net.sf.jsqlparser.util.JSQLBaseVisitor;
 import org.hellojavaer.ddr.core.datasource.exception.CrossPreparedStatementException;
 import org.hellojavaer.ddr.core.datasource.jdbc.DDRSQLParseResult;
 import org.hellojavaer.ddr.core.exception.DDRException;
-import org.hellojavaer.ddr.core.sharding.ShardingInfo;
-import org.hellojavaer.ddr.core.sharding.ShardingRouteContext;
-import org.hellojavaer.ddr.core.sharding.ShardingRouteParamContext;
-import org.hellojavaer.ddr.core.sharding.ShardingRouter;
+import org.hellojavaer.ddr.core.sharding.*;
 import org.hellojavaer.ddr.core.utils.DDRStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,9 +88,9 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
                 public void validJdbcParam(Map<Object, Object> jdbcParam) {
                     if (jdbcParam != null && !jdbcParam.isEmpty()) {
                         for (TableWrapper tableWrapper : routedTables) {
-                            ShardingInfo info = shardingRouter.route(JSQLParserAdapter.this.getContext().getTableRouterContext(),
-                                                                     tableWrapper.getScName(),
-                                                                     tableWrapper.getTbName(), null);
+                            RouteResultInfo info = shardingRouter.route(JSQLParserAdapter.this.getContext().getTableRouterContext(),
+                                                                        tableWrapper.getScName(),
+                                                                        tableWrapper.getTbName(), null);
                             if (!equalsIgnoreCase(info.getScName(), tableWrapper.getTable().getSchemaName())
                                 || !equalsIgnoreCase(info.getTbName(), tableWrapper.getTable().getName())) {
                                 throw new CrossPreparedStatementException("Source sql is '" + sql
@@ -175,7 +172,7 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
                                                        + ", sdName:" + tableWrapper.getSdName());
                     } else {
                         throw new DDRException(
-                                               "No route information for scName:"
+                                               "No sdName is set. expect '' information for scName:"
                                                        + tableWrapper.getScName()
                                                        + ", tbName:"
                                                        + tableWrapper.getTbName()
@@ -183,19 +180,19 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
                                                        + (tableWrapper.getTable().getAlias() == null ? null : tableWrapper.getTable().getAlias().getName())
                                                        + ", sdName:" + tableWrapper.getSdName());
                     }
-                } else if (routeInfo instanceof ShardingInfo) {
-                    route0(tableWrapper, (ShardingInfo) routeInfo);
+                } else if (routeInfo instanceof RouteResultInfo) {
+                    route0(tableWrapper, (RouteResultInfo) routeInfo);
                 } else {
-                    ShardingInfo shardingInfo = this.shardingRouter.route(this.getContext().getTableRouterContext(),
-                                                                          tableWrapper.getScName(),
-                                                                          tableWrapper.getTbName(), routeInfo);
+                    RouteResultInfo shardingInfo = this.shardingRouter.route(this.getContext().getTableRouterContext(),
+                                                                             tableWrapper.getScName(),
+                                                                             tableWrapper.getTbName(), routeInfo);
                     route0(tableWrapper, shardingInfo);
                 }
             }
         }
     }
 
-    private void route0(TableWrapper tableWrapper, ShardingInfo shardingInfo) {
+    private void route0(TableWrapper tableWrapper, RouteResultInfo shardingInfo) {
         if (tableWrapper.isConverted()) {// 多重路由
             if (!equalsIgnoreCase(shardingInfo.getScName(), tableWrapper.getTable().getSchemaName())
                 || !equalsIgnoreCase(shardingInfo.getTbName(), tableWrapper.getTable().getName())) {
@@ -219,9 +216,11 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
     @Override
     public void visit(Insert insert) {
         this.getContext().getStack().push(new StackContext());
-        if (this.shardingRouter.isRoute(this.getContext().getTableRouterContext(), insert.getTable().getSchemaName(),
-                                        insert.getTable().getName())) {
-            addRouteTableIntoContext(insert.getTable(), false);
+        RouteInfo routeInfo = shardingRouter.getRouteInfo(this.getContext().getTableRouterContext(),
+                                                          insert.getTable().getSchemaName(),
+                                                          insert.getTable().getName());
+        if (routeInfo != null) {
+            addRoutedTableIntoContext(insert.getTable(), routeInfo, false);
             List<Column> columns = insert.getColumns();
             if (columns != null) {
                 ExpressionList expressionList = (ExpressionList) insert.getItemsList();
@@ -243,9 +242,11 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
     @Override
     public void visit(Delete delete) {
         this.getContext().getStack().push(new StackContext());
-        if (this.shardingRouter.isRoute(this.getContext().getTableRouterContext(), delete.getTable().getSchemaName(),
-                                        delete.getTable().getName())) {
-            addRouteTableIntoContext(delete.getTable(), false);
+        RouteInfo routeInfo = shardingRouter.getRouteInfo(this.getContext().getTableRouterContext(),
+                                                          delete.getTable().getSchemaName(),
+                                                          delete.getTable().getName());
+        if (routeInfo != null) {
+            addRoutedTableIntoContext(delete.getTable(), routeInfo, false);
         }
         super.visit(delete);
         after();
@@ -255,9 +256,10 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
     public void visit(Update update) {
         this.getContext().getStack().push(new StackContext());
         for (Table table : update.getTables()) {
-            if (this.shardingRouter.isRoute(this.getContext().getTableRouterContext(), table.getSchemaName(),
-                                            table.getName())) {
-                addRouteTableIntoContext(table, true);
+            RouteInfo routeInfo = shardingRouter.getRouteInfo(this.getContext().getTableRouterContext(),
+                                                              table.getSchemaName(), table.getName());
+            if (routeInfo != null) {
+                addRoutedTableIntoContext(table, routeInfo, true);
             }
         }
         super.visit(update);
@@ -342,8 +344,8 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
         return stackContext.get(colFullName);
     }
 
-    private void addRouteTableIntoContext(Table table) {
-        addRouteTableIntoContext(table, true);
+    private void addRoutedTableIntoContext(Table table, RouteInfo routeInfo) {
+        addRoutedTableIntoContext(table, routeInfo, true);
     }
 
     /**
@@ -351,12 +353,10 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
      * @param table
      * @param appendAlias
      */
-    private void addRouteTableIntoContext(Table table, boolean appendAlias) {
+    private void addRoutedTableIntoContext(Table table, RouteInfo routeInfo, boolean appendAlias) {
         ConverterContext converterContext = this.getContext();
         StackContext stackContext = converterContext.getStack().peek();
         String tbName = table.getName();
-        String columnName = shardingRouter.getRouteColName(converterContext.getTableRouterContext(),
-                                                           table.getSchemaName(), tbName);
         String tbAliasName = tbName;
         if (table.getAlias() != null && table.getAlias().getName() != null) {
             tbAliasName = table.getAlias().getName();
@@ -367,24 +367,24 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
         }
         if (table.getSchemaName() != null) {
             StringBuilder sb = new StringBuilder();
-            sb.append(table.getSchemaName().trim().toLowerCase());
+            sb.append(DDRStringUtils.toLowerCase(table.getSchemaName()));
             sb.append('.');
-            sb.append(tbAliasName.trim().toLowerCase());
+            sb.append(DDRStringUtils.toLowerCase(tbAliasName));
             sb.append('.');
-            sb.append(columnName.trim().toLowerCase());
+            sb.append(DDRStringUtils.toLowerCase(routeInfo.getSdName()));
             String key = sb.toString();
-            TableWrapper tableWrapper = new TableWrapper(table);
+            TableWrapper tableWrapper = new TableWrapper(table, routeInfo);
             putIntoContext(stackContext, key, tableWrapper);
             putIntoContext(stackContext, key.substring(table.getSchemaName().length() + 1), tableWrapper);
             putIntoContext(stackContext, key.substring(table.getSchemaName().length() + 2 + tbAliasName.length()),
                            tableWrapper);
         } else {
             StringBuilder sb = new StringBuilder();
-            sb.append(tbAliasName.trim().toLowerCase());
+            sb.append(DDRStringUtils.toLowerCase(tbAliasName));
             sb.append('.');
-            sb.append(columnName.trim().toLowerCase());
+            sb.append(DDRStringUtils.toLowerCase(routeInfo.getSdName()));
             String key = sb.toString();
-            TableWrapper tableWrapper = new TableWrapper(table);
+            TableWrapper tableWrapper = new TableWrapper(table, routeInfo);
             putIntoContext(stackContext, key, tableWrapper);
             putIntoContext(stackContext, key.substring(tbAliasName.length() + 1), tableWrapper);
         }
@@ -510,8 +510,9 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
             }
             return;
         }
-        ShardingInfo shardingInfo = this.shardingRouter.route(this.getContext().getTableRouterContext(),
-                                                              tableWrapper.getScName(), tableWrapper.getTbName(), val);
+        RouteResultInfo shardingInfo = this.shardingRouter.route(this.getContext().getTableRouterContext(),
+                                                                 tableWrapper.getScName(), tableWrapper.getTbName(),
+                                                                 val);
         route0(tableWrapper, shardingInfo);
     }
 
@@ -529,10 +530,11 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
     public void visit(Table table) {
         ConverterContext converterContext = this.getContext();
         String tbName = table.getName();
-        if (!shardingRouter.isRoute(converterContext.getTableRouterContext(), table.getSchemaName(), tbName)) {
-            return;
+        RouteInfo routeInfo = shardingRouter.getRouteInfo(converterContext.getTableRouterContext(),
+                                                          table.getSchemaName(), tbName);
+        if (routeInfo != null) {
+            addRoutedTableIntoContext(table, routeInfo);
         }
-        addRouteTableIntoContext(table);
     }
 
     private void putIntoContext(StackContext stackContext, String key, TableWrapper tableWrapper) {
@@ -554,22 +556,24 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
 
     private static class TableWrapper {
 
-        private boolean converted;
-        private String  scName;
-        private String  tbName;
-        private String  sdName;
-        private Table   table;
+        private boolean   converted;
+        private String    scName;
+        private String    tbName;
+        private String    sdName;
+        private Table     table;
+        private RouteInfo routeInfo;
 
-        public TableWrapper(Table table) {
+        public TableWrapper(Table table, RouteInfo routeInfo) {
             this.converted = false;
             this.table = table;
             if (table != null) {
                 this.scName = DDRStringUtils.toLowerCase(table.getSchemaName());
                 this.tbName = DDRStringUtils.toLowerCase(table.getName());
             }
+            this.routeInfo = routeInfo;
         }
 
-        public TableWrapper(Table table, boolean converted) {
+        private TableWrapper(Table table, boolean converted) {
             this.converted = converted;
             this.table = table;
             if (table != null) {
@@ -616,6 +620,14 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
 
         public void setConverted(boolean converted) {
             this.converted = converted;
+        }
+
+        public RouteInfo getRouteInfo() {
+            return routeInfo;
+        }
+
+        public void setRouteInfo(RouteInfo routeInfo) {
+            this.routeInfo = routeInfo;
         }
     }
 
