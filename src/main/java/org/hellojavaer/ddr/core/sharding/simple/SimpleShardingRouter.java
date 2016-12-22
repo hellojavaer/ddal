@@ -43,7 +43,7 @@ public class SimpleShardingRouter implements ShardingRouter {
 
         private List<String>                   conflictSchemas = new ArrayList<String>();
         private SimpleShardingRouteRuleBinding ruleBinding;
-        private RouteInfo                      routeInfo;
+        private RouteConfig                    routeInfo;
 
         public List<String> getConflictSchemas() {
             return conflictSchemas;
@@ -61,11 +61,11 @@ public class SimpleShardingRouter implements ShardingRouter {
             this.ruleBinding = ruleBinding;
         }
 
-        public RouteInfo getRouteInfo() {
+        public RouteConfig getRouteInfo() {
             return routeInfo;
         }
 
-        public void setRouteInfo(RouteInfo routeInfo) {
+        public void setRouteInfo(RouteConfig routeInfo) {
             this.routeInfo = routeInfo;
         }
     }
@@ -105,7 +105,7 @@ public class SimpleShardingRouter implements ShardingRouter {
                 b0.setRule(binding.getRule());
                 putToCache(cache0, tbName, b0, false);
 
-                final List<RouteResultInfo> shardingInfos = new ArrayList<RouteResultInfo>();
+                final List<RouteInfo> shardingInfos = new ArrayList<RouteInfo>();
                 if (sdScanValues != null) {
                     if (sdScanValueType == null) {
                         throw new IllegalArgumentException(
@@ -123,7 +123,7 @@ public class SimpleShardingRouter implements ShardingRouter {
                             } else {
                                 throw new IllegalArgumentException("unknown sdScanValueType:" + sdScanValueType);
                             }
-                            RouteResultInfo shardingInfo = getShardingInfo(b0.getRule(), scName, tbName, v);
+                            RouteInfo shardingInfo = getShardingInfo(b0.getRule(), scName, tbName, v);
                             shardingInfos.add(shardingInfo);
                         }
                     });
@@ -144,8 +144,8 @@ public class SimpleShardingRouter implements ShardingRouter {
         if (ruleBindingWrapper == null) {
             ruleBindingWrapper = new InnerSimpleShardingRouteRuleBindingWrapper();
             ruleBindingWrapper.setRuleBinding(ruleBinding);
-            ruleBindingWrapper.setRouteInfo(new RouteInfo(ruleBinding.getScName(), ruleBinding.getTbName(),
-                                                          ruleBinding.getSdName()));
+            ruleBindingWrapper.setRouteInfo(new RouteConfig(ruleBinding.getScName(), ruleBinding.getTbName(),
+                                                            ruleBinding.getSdName()));
             cache.put(key, ruleBindingWrapper);
         }
         ruleBindingWrapper.getConflictSchemas().add(ruleBinding.getScName());
@@ -198,7 +198,7 @@ public class SimpleShardingRouter implements ShardingRouter {
     }
 
     @Override
-    public RouteInfo getRouteInfo(ShardingRouteParamContext context, String scName, String tbName) {
+    public RouteConfig getRouteConfig(ShardingRouteParamContext context, String scName, String tbName) {
         scName = DDRStringUtils.toLowerCase(scName);
         tbName = DDRStringUtils.toLowerCase(tbName);
         InnerSimpleShardingRouteRuleBindingWrapper bindingWrapper = getBinding(scName, tbName);
@@ -210,7 +210,7 @@ public class SimpleShardingRouter implements ShardingRouter {
     }
 
     @Override
-    public RouteResultInfo route(ShardingRouteParamContext context, String scName, String tbName, Object sdValue) {
+    public RouteInfo route(ShardingRouteParamContext context, String scName, String tbName, Object sdValue) {
         scName = DDRStringUtils.toLowerCase(scName);
         tbName = DDRStringUtils.toLowerCase(tbName);
         InnerSimpleShardingRouteRuleBindingWrapper bindingWrapper = getBinding(scName, tbName);
@@ -229,12 +229,12 @@ public class SimpleShardingRouter implements ShardingRouter {
                 throw new DDRException("No route information for [scName:" + scName + ",tbName:" + tbName + ",sdName:"
                                        + binding.getSdName() + "]");
             }
-            RouteResultInfo info = getShardingInfo(binding.getRule(), scName, tbName, sdValue);
+            RouteInfo info = getShardingInfo(binding.getRule(), scName, tbName, sdValue);
             return info;
         }
     }
 
-    private RouteResultInfo getShardingInfo(SimpleShardingRouterRule rule, String scName, String tbName, Object sdValue) {
+    private RouteInfo getShardingInfo(SimpleShardingRouterRule rule, String scName, String tbName, Object sdValue) {
         Object $0 = rule.parseScRoute(scName, sdValue);
         String sc = rule.parseScFormat(scName, $0);
         Object $0_ = rule.parseTbRoute(tbName, sdValue);
@@ -242,7 +242,7 @@ public class SimpleShardingRouter implements ShardingRouter {
         if (tb == null) {
             throw new DDRException("tbName can't be null");
         }
-        RouteResultInfo info = new RouteResultInfo();
+        RouteInfo info = new RouteInfo();
         info.setScName(sc);
         info.setTbName(tb);
         return info;

@@ -45,8 +45,8 @@ public interface ShardingRouter {
 
     void endSubSelect(ShardingRouteParamContext context);
 
-    RouteInfo getRouteInfo(ShardingRouteParamContext context, String scName, String tbName);
+    RouteConfig getRouteConfig(ShardingRouteParamContext context, String scName, String tbName);
 
-    RouteResultInfo route(ShardingRouteParamContext context, String scName, String tbName, Object sdValue);
+    RouteInfo route(ShardingRouteParamContext context, String scName, String tbName, Object sdValue);
 
 }

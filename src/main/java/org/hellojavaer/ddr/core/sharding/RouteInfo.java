@@ -17,21 +17,19 @@ package org.hellojavaer.ddr.core.sharding;
 
 /**
  *
- * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 20/12/2016.
+ * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 15/11/2016.
  */
 public class RouteInfo {
 
     private String scName;
     private String tbName;
-    private String sdName;
 
     public RouteInfo() {
     }
 
-    public RouteInfo(String scName, String tbName, String sdName) {
+    public RouteInfo(String scName, String tbName) {
         this.scName = scName;
         this.tbName = tbName;
-        this.sdName = sdName;
     }
 
     public String getScName() {
@@ -50,16 +48,8 @@ public class RouteInfo {
         this.tbName = tbName;
     }
 
-    public String getSdName() {
-        return sdName;
-    }
-
-    public void setSdName(String sdName) {
-        this.sdName = sdName;
-    }
-
     @Override
     public String toString() {
-        return new StringBuilder().append("{scName:'" + scName + "', tbName:'" + tbName + "', sdName:'" + sdName + "'}").toString();
+        return new StringBuilder().append("{scName:'" + scName + "', tbName:'" + tbName + "'}").toString();
     }
 }

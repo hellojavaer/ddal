@@ -88,7 +88,7 @@ public class ShardingRouteContext {
      * 1.sql中没有设置sdValue (如果设置了但为null不会使用),
      * 2.设置DisableSqlRouting为true
      */
-    public static void setRoute(String scName, String tbName, RouteResultInfo value) {
+    public static void setRoute(String scName, String tbName, RouteInfo value) {
         setRoute(scName, tbName, (Object) value);
     }
 

@@ -41,7 +41,7 @@ public class MonitoredDataSource implements DataSource {
             Throwable cause = e.getCause();
             while(cause != null){
                 if(cause instanceof ConnectException){
-                    weightedDataSource.setAlive(false);
+                //    weightedDataSource.setAlive(false);
                     break;
                 }
             }

@@ -88,9 +88,9 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
                 public void validJdbcParam(Map<Object, Object> jdbcParam) {
                     if (jdbcParam != null && !jdbcParam.isEmpty()) {
                         for (TableWrapper tableWrapper : routedTables) {
-                            RouteResultInfo info = shardingRouter.route(JSQLParserAdapter.this.getContext().getTableRouterContext(),
-                                                                        tableWrapper.getScName(),
-                                                                        tableWrapper.getTbName(), null);
+                            RouteInfo info = shardingRouter.route(JSQLParserAdapter.this.getContext().getTableRouterContext(),
+                                                                  tableWrapper.getScName(),
+                                                                  tableWrapper.getTbName(), null);
                             if (!equalsIgnoreCase(info.getScName(), tableWrapper.getTable().getSchemaName())
                                 || !equalsIgnoreCase(info.getTbName(), tableWrapper.getTable().getName())) {
                                 throw new CrossPreparedStatementException("Source sql is '" + sql
@@ -168,7 +168,7 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
 
                     } else {
                         StringBuilder sb = new StringBuilder();
-                        sb.append("No sdName is set. expect '");
+                        sb.append("No route column was found. expect '");
                         if (tableWrapper.getTable().getAlias() != null) {
                             sb.append(tableWrapper.getTable().getAlias().getName());
                         } else {
@@ -176,23 +176,23 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
                         }
                         sb.append('.');
                         sb.append(tableWrapper.getRouteInfo().getSdName());
-                        sb.append("' route information. detail information is ");
+                        sb.append("' route value. Detail information is ");
                         sb.append(tableWrapper.toString());
                         throw new DDRException(sb.toString());
                     }
-                } else if (routeInfo instanceof RouteResultInfo) {
-                    route0(tableWrapper, (RouteResultInfo) routeInfo);
+                } else if (routeInfo instanceof RouteInfo) {
+                    route0(tableWrapper, (RouteInfo) routeInfo);
                 } else {
-                    RouteResultInfo shardingInfo = this.shardingRouter.route(this.getContext().getTableRouterContext(),
-                                                                             tableWrapper.getScName(),
-                                                                             tableWrapper.getTbName(), routeInfo);
+                    RouteInfo shardingInfo = this.shardingRouter.route(this.getContext().getTableRouterContext(),
+                                                                       tableWrapper.getScName(),
+                                                                       tableWrapper.getTbName(), routeInfo);
                     route0(tableWrapper, shardingInfo);
                 }
             }
         }
     }
 
-    private void route0(TableWrapper tableWrapper, RouteResultInfo shardingInfo) {
+    private void route0(TableWrapper tableWrapper, RouteInfo shardingInfo) {
         if (tableWrapper.isConverted()) {// 多重路由
             if (!equalsIgnoreCase(shardingInfo.getScName(), tableWrapper.getTable().getSchemaName())
                 || !equalsIgnoreCase(shardingInfo.getTbName(), tableWrapper.getTable().getName())) {
@@ -216,9 +216,9 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
     @Override
     public void visit(Insert insert) {
         this.getContext().getStack().push(new StackContext());
-        RouteInfo routeInfo = shardingRouter.getRouteInfo(this.getContext().getTableRouterContext(),
-                                                          insert.getTable().getSchemaName(),
-                                                          insert.getTable().getName());
+        RouteConfig routeInfo = shardingRouter.getRouteConfig(this.getContext().getTableRouterContext(),
+                                                              insert.getTable().getSchemaName(),
+                                                              insert.getTable().getName());
         if (routeInfo != null) {
             addRoutedTableIntoContext(insert.getTable(), routeInfo, false);
             List<Column> columns = insert.getColumns();
@@ -242,9 +242,9 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
     @Override
     public void visit(Delete delete) {
         this.getContext().getStack().push(new StackContext());
-        RouteInfo routeInfo = shardingRouter.getRouteInfo(this.getContext().getTableRouterContext(),
-                                                          delete.getTable().getSchemaName(),
-                                                          delete.getTable().getName());
+        RouteConfig routeInfo = shardingRouter.getRouteConfig(this.getContext().getTableRouterContext(),
+                                                              delete.getTable().getSchemaName(),
+                                                              delete.getTable().getName());
         if (routeInfo != null) {
             addRoutedTableIntoContext(delete.getTable(), routeInfo, false);
         }
@@ -256,8 +256,8 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
     public void visit(Update update) {
         this.getContext().getStack().push(new StackContext());
         for (Table table : update.getTables()) {
-            RouteInfo routeInfo = shardingRouter.getRouteInfo(this.getContext().getTableRouterContext(),
-                                                              table.getSchemaName(), table.getName());
+            RouteConfig routeInfo = shardingRouter.getRouteConfig(this.getContext().getTableRouterContext(),
+                                                                  table.getSchemaName(), table.getName());
             if (routeInfo != null) {
                 addRoutedTableIntoContext(table, routeInfo, true);
             }
@@ -344,7 +344,7 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
         return stackContext.get(colFullName);
     }
 
-    private void addRoutedTableIntoContext(Table table, RouteInfo routeInfo) {
+    private void addRoutedTableIntoContext(Table table, RouteConfig routeInfo) {
         addRoutedTableIntoContext(table, routeInfo, true);
     }
 
@@ -353,7 +353,7 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
      * @param table
      * @param appendAlias
      */
-    private void addRoutedTableIntoContext(Table table, RouteInfo routeInfo, boolean appendAlias) {
+    private void addRoutedTableIntoContext(Table table, RouteConfig routeInfo, boolean appendAlias) {
         ConverterContext converterContext = this.getContext();
         StackContext stackContext = converterContext.getStack().peek();
         String tbName = table.getName();
@@ -510,9 +510,9 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
             }
             return;
         }
-        RouteResultInfo shardingInfo = this.shardingRouter.route(this.getContext().getTableRouterContext(),
-                                                                 tableWrapper.getScName(), tableWrapper.getTbName(),
-                                                                 val);
+        RouteInfo shardingInfo = this.shardingRouter.route(this.getContext().getTableRouterContext(),
+                                                           tableWrapper.getScName(), tableWrapper.getTbName(),
+                                                           val);
         route0(tableWrapper, shardingInfo);
     }
 
@@ -530,8 +530,8 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
     public void visit(Table table) {
         ConverterContext converterContext = this.getContext();
         String tbName = table.getName();
-        RouteInfo routeInfo = shardingRouter.getRouteInfo(converterContext.getTableRouterContext(),
-                                                          table.getSchemaName(), tbName);
+        RouteConfig routeInfo = shardingRouter.getRouteConfig(converterContext.getTableRouterContext(),
+                                                              table.getSchemaName(), tbName);
         if (routeInfo != null) {
             addRoutedTableIntoContext(table, routeInfo);
         }
@@ -556,14 +556,14 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
 
     private static class TableWrapper {
 
-        private boolean   converted;
-        private String    scName;
-        private String    tbName;
-        private String    sdName;
-        private Table     table;
-        private RouteInfo routeInfo;
+        private boolean     converted;
+        private String      scName;
+        private String      tbName;
+        private String      sdName;
+        private Table       table;
+        private RouteConfig routeInfo;
 
-        public TableWrapper(Table table, RouteInfo routeInfo) {
+        public TableWrapper(Table table, RouteConfig routeInfo) {
             this.converted = false;
             this.table = table;
             if (table != null) {
@@ -622,11 +622,11 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
             this.converted = converted;
         }
 
-        public RouteInfo getRouteInfo() {
+        public RouteConfig getRouteInfo() {
             return routeInfo;
         }
 
-        public void setRouteInfo(RouteInfo routeInfo) {
+        public void setRouteInfo(RouteConfig routeInfo) {
             this.routeInfo = routeInfo;
         }
 

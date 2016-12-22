@@ -23,17 +23,10 @@ import javax.sql.DataSource;
  */
 public class WeightedDataSource {
 
-    private boolean    alive = true;
     private DataSource dataSource;
     private Integer    weight;
-
-    public boolean isAlive() {
-        return alive;
-    }
-
-    public void setAlive(boolean alive) {
-        this.alive = alive;
-    }
+    private String     name;
+    private String     desc;
 
     public DataSource getDataSource() {
         return dataSource;
@@ -51,4 +44,44 @@ public class WeightedDataSource {
         this.weight = weight;
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getDesc() {
+        return desc;
+    }
+
+    public void setDesc(String desc) {
+        this.desc = desc;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{\"name\":");
+        if (name != null) {
+            sb.append('\"');
+            sb.append(name);
+            sb.append('\"');
+        } else {
+            sb.append("null");
+        }
+        sb.append(",\"weight\":");
+        sb.append(weight);
+        sb.append(",\"desc\":");
+        if (desc != null) {
+            sb.append('\"');
+            sb.append(desc);
+            sb.append('\"');
+        } else {
+            sb.append("null");
+        }
+        sb.append("}");
+        return sb.toString();
+    }
 }
