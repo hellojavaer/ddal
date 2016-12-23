@@ -15,10 +15,13 @@
  */
 package org.hellojavaer.ddr.core.sharding;
 
-import org.hellojavaer.ddr.core.exception.DDRException;
+import org.hellojavaer.ddr.core.datasource.exception.AmbiguousDataSourceException;
 import org.hellojavaer.ddr.core.utils.DDRStringUtils;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -129,7 +132,8 @@ public class ShardingRouteContext {
         if (shadingInfoWrapper == null) {
             return null;
         } else if (shadingInfoWrapper.getConflictSchemas().size() > 1) {
-            throw new DDRException("Binding for scName:" + scName + ", tbName:" + tbName + " is ambiguous");
+            throw new AmbiguousDataSourceException("datasource binding for scName:" + scName + ", tbName:" + tbName
+                                                   + " is ambiguous");
         } else {
             return shadingInfoWrapper.getShardingInfo();
         }

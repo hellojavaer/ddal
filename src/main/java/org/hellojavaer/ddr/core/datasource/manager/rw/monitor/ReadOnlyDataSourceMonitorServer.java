@@ -13,23 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddr.core.datasource.manager.rw;
-
-import org.hellojavaer.ddr.core.datasource.manager.DataSourceManager;
-import org.hellojavaer.ddr.core.datasource.manager.rw.monitor.ReadOnlyDataSourceMonitor;
-
-import java.util.List;
+package org.hellojavaer.ddr.core.datasource.manager.rw.monitor;
 
 /**
  *
- * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 19/11/2016.
+ * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 21/12/2016.
  */
-public interface AbstractReadWriteDataSourceManager extends DataSourceManager {
+public interface ReadOnlyDataSourceMonitorServer {
 
-    List<WriteOnlyDataSourceBinding> getWriteOnlyDataSources();
-
-    List<ReadOnlyDataSourceBinding> getReadOnlyDataSources();
-
-    ReadOnlyDataSourceMonitor getReadOnlyDataSourceMonitor();
+    void init(ReadOnlyDataSourceMonitor readOnlyDataSourceMonitor);
 
 }

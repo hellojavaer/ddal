@@ -13,31 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddr.core.exception;
+package org.hellojavaer.ddr.core.sqlparse.exception;
 
 /**
  *
- * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 15/12/2016.
+ * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 23/12/2016.
  */
-public class IllegalOperationException extends DDRException {
+public class UnsupportedShardingTypeException extends DDRSQLParseException {
 
-    public IllegalOperationException() {
+    public UnsupportedShardingTypeException() {
     }
 
-    public IllegalOperationException(String message) {
+    public UnsupportedShardingTypeException(String message) {
         super(message);
     }
 
-    public IllegalOperationException(String message, Throwable cause) {
+    public UnsupportedShardingTypeException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public IllegalOperationException(Throwable cause) {
+    public UnsupportedShardingTypeException(Throwable cause) {
         super(cause);
     }
 
-    public IllegalOperationException(String message, Throwable cause, boolean enableSuppression,
-                                     boolean writableStackTrace) {
+    public UnsupportedShardingTypeException(String message, Throwable cause, boolean enableSuppression,
+                                            boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 }

@@ -42,6 +42,10 @@ public class DDRJSONUtils {
                 } else {
                     sb.append(item);
                 }
+                sb.append(',');
+            }
+            if (!collection.isEmpty()) {
+                sb.deleteCharAt(sb.length() - 1);
             }
             sb.append(']');
             return sb.toString();
@@ -76,6 +80,10 @@ public class DDRJSONUtils {
                 } else {
                     sb.append(entry.getValue());
                 }
+                sb.append(',');
+            }
+            if (!map.isEmpty()) {
+                sb.deleteCharAt(sb.length() - 1);
             }
             sb.append('}');
             return sb.toString();

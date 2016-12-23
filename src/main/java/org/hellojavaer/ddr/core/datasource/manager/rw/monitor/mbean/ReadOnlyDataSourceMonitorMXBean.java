@@ -15,11 +15,12 @@
  */
 package org.hellojavaer.ddr.core.datasource.manager.rw.monitor.mbean;
 
+import org.hellojavaer.ddr.core.datasource.manager.rw.monitor.ReadOnlyDataSourceMonitor;
+
 /**
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 20/12/2016.
  */
-public class MBeanServerMonitor {
-
+public interface ReadOnlyDataSourceMonitorMXBean extends ReadOnlyDataSourceMonitor {
 
 }

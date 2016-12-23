@@ -16,13 +16,13 @@
 package org.hellojavaer.ddr.core.datasource.jdbc;
 
 import org.hellojavaer.ddr.core.datasource.DataSourceSchemasBinding;
+import org.hellojavaer.ddr.core.datasource.exception.NoDataSourceFoundException;
+import org.hellojavaer.ddr.core.datasource.exception.UninitializedStatusException;
 import org.hellojavaer.ddr.core.datasource.jdbc.init.UninitializedConnectionProcessor;
 import org.hellojavaer.ddr.core.datasource.jdbc.init.UninitializedDataSourceProcessor;
 import org.hellojavaer.ddr.core.datasource.jdbc.property.ConnectionProperty;
 import org.hellojavaer.ddr.core.datasource.jdbc.property.DataSourceProperty;
 import org.hellojavaer.ddr.core.datasource.manager.DataSourceParam;
-import org.hellojavaer.ddr.core.exception.DDRException;
-import org.hellojavaer.ddr.core.datasource.exception.UninitializedStatusException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -123,8 +123,8 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
                 if (scNames.length() > 0) {
                     scNames.deleteCharAt(scNames.length() - 1);
                 }
-                throw new DDRException("No datasource binding for parameter[readOnly:" + param.isReadOnly()
-                                       + ",scNames:'" + scNames.toString() + "']");
+                throw new NoDataSourceFoundException("No datasource found for parameter[readOnly:" + param.isReadOnly()
+                                                     + ",scNames:'" + scNames.toString() + "']");
             } else {
                 if (tag.isLoginTimeout()) {
                     dataSourceSchemasBinding.getDataSource().setLoginTimeout(prop.getLoginTimeout());
@@ -159,7 +159,7 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
                 return val;
             } else {
                 throw new UninitializedStatusException(
-                                       "Can't invoke 'getLoginTimeout()' before 'setLoginTimeout(int timeout)' is invoked or datasource is initialized");
+                                                       "Can't invoke 'getLoginTimeout()' before 'setLoginTimeout(int timeout)' is invoked or datasource is initialized");
             }
         }
     }
@@ -186,7 +186,7 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
                 return val;
             } else {
                 throw new UninitializedStatusException(
-                                       "Can't invoke 'getLogWriter()' before 'setLogWriter(PrintWriter pw)' is invoked or datasource is initialized");
+                                                       "Can't invoke 'getLogWriter()' before 'setLogWriter(PrintWriter pw)' is invoked or datasource is initialized");
             }
         }
     }
@@ -430,8 +430,7 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
             return new StatementWrapper(isReadOnly0(), getSchemas0()) {
 
                 @Override
-                public DDRSQLParseResult parseSql(String sql, Map<Object, Object> jdbcParams)
-                                                                                                           throws SQLException {
+                public DDRSQLParseResult parseSql(String sql, Map<Object, Object> jdbcParams) throws SQLException {
                     return AbstractDDRDataSource.this.parseSql(sql, jdbcParams);
                 }
 
@@ -454,8 +453,7 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
             return new PreparedStatementWrapper(sql, isReadOnly0(), getSchemas0()) {
 
                 @Override
-                public DDRSQLParseResult parseSql(String sql, Map<Object, Object> jdbcParams)
-                                                                                                           throws SQLException {
+                public DDRSQLParseResult parseSql(String sql, Map<Object, Object> jdbcParams) throws SQLException {
                     return AbstractDDRDataSource.this.parseSql(sql, jdbcParams);
                 }
 
@@ -478,8 +476,7 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
             return new StatementWrapper(isReadOnly0(), getSchemas0()) {
 
                 @Override
-                public DDRSQLParseResult parseSql(String sql, Map<Object, Object> jdbcParams)
-                                                                                                           throws SQLException {
+                public DDRSQLParseResult parseSql(String sql, Map<Object, Object> jdbcParams) throws SQLException {
                     return AbstractDDRDataSource.this.parseSql(sql, jdbcParams);
                 }
 
@@ -503,8 +500,7 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
             return new PreparedStatementWrapper(sql, isReadOnly0(), getSchemas0()) {
 
                 @Override
-                public DDRSQLParseResult parseSql(String sql, Map<Object, Object> jdbcParams)
-                                                                                                           throws SQLException {
+                public DDRSQLParseResult parseSql(String sql, Map<Object, Object> jdbcParams) throws SQLException {
                     return AbstractDDRDataSource.this.parseSql(sql, jdbcParams);
                 }
 
@@ -528,8 +524,7 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
             return new StatementWrapper(isReadOnly0(), getSchemas0()) {
 
                 @Override
-                public DDRSQLParseResult parseSql(String sql, Map<Object, Object> jdbcParams)
-                                                                                                           throws SQLException {
+                public DDRSQLParseResult parseSql(String sql, Map<Object, Object> jdbcParams) throws SQLException {
                     return AbstractDDRDataSource.this.parseSql(sql, jdbcParams);
                 }
 
@@ -554,8 +549,7 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
             return new PreparedStatementWrapper(sql, isReadOnly0(), getSchemas0()) {
 
                 @Override
-                public DDRSQLParseResult parseSql(String sql, Map<Object, Object> jdbcParams)
-                                                                                                           throws SQLException {
+                public DDRSQLParseResult parseSql(String sql, Map<Object, Object> jdbcParams) throws SQLException {
                     return AbstractDDRDataSource.this.parseSql(sql, jdbcParams);
                 }
 
@@ -579,8 +573,7 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
             return new PreparedStatementWrapper(sql, isReadOnly0(), getSchemas0()) {
 
                 @Override
-                public DDRSQLParseResult parseSql(String sql, Map<Object, Object> jdbcParams)
-                                                                                                           throws SQLException {
+                public DDRSQLParseResult parseSql(String sql, Map<Object, Object> jdbcParams) throws SQLException {
                     return AbstractDDRDataSource.this.parseSql(sql, jdbcParams);
                 }
 
@@ -603,8 +596,7 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
             return new PreparedStatementWrapper(sql, isReadOnly0(), getSchemas0()) {
 
                 @Override
-                public DDRSQLParseResult parseSql(String sql, Map<Object, Object> jdbcParams)
-                                                                                                           throws SQLException {
+                public DDRSQLParseResult parseSql(String sql, Map<Object, Object> jdbcParams) throws SQLException {
                     return AbstractDDRDataSource.this.parseSql(sql, jdbcParams);
                 }
 
@@ -627,8 +619,7 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
             return new PreparedStatementWrapper(sql, isReadOnly0(), getSchemas0()) {
 
                 @Override
-                public DDRSQLParseResult parseSql(String sql, Map<Object, Object> jdbcParams)
-                                                                                                           throws SQLException {
+                public DDRSQLParseResult parseSql(String sql, Map<Object, Object> jdbcParams) throws SQLException {
                     return AbstractDDRDataSource.this.parseSql(sql, jdbcParams);
                 }
 
@@ -701,7 +692,8 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
             if (connection != null) {
                 connection.clearWarnings();
             } else {
-                throw new UninitializedStatusException("Can't invoke 'clearWarnings()' before connection is initialized");
+                throw new UninitializedStatusException(
+                                                       "Can't invoke 'clearWarnings()' before connection is initialized");
             }
         }
 
@@ -742,7 +734,7 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
                 connection.setClientInfo(name, value);
             } else {
                 throw new UninitializedStatusException(
-                                       "Can't invoke 'setClientInfo(String name, String value)' before connection is initialized");
+                                                       "Can't invoke 'setClientInfo(String name, String value)' before connection is initialized");
             }
         }
 
@@ -752,7 +744,7 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
                 connection.setClientInfo(properties);
             } else {
                 throw new UninitializedStatusException(
-                                       "Can't invoke 'setClientInfo(Properties properties)' before connection is initialized");
+                                                       "Can't invoke 'setClientInfo(Properties properties)' before connection is initialized");
             }
         }
 
@@ -761,7 +753,8 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
             if (connection != null) {
                 return connection.getClientInfo(name);
             } else {
-                throw new UninitializedStatusException("Can't invoke 'getClientInfo(String name)' before connection is initialized");
+                throw new UninitializedStatusException(
+                                                       "Can't invoke 'getClientInfo(String name)' before connection is initialized");
             }
         }
 
@@ -770,7 +763,8 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
             if (connection != null) {
                 return connection.getClientInfo();
             } else {
-                throw new UninitializedStatusException("Can't invoke 'getClientInfo()' before connection is initialized");
+                throw new UninitializedStatusException(
+                                                       "Can't invoke 'getClientInfo()' before connection is initialized");
             }
         }
 
@@ -780,7 +774,7 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
                 connection.setNetworkTimeout(executor, milliseconds);
             } else {
                 throw new UninitializedStatusException(
-                                       "Can't invoke 'setNetworkTimeout(Executor executor, int milliseconds)' before connection is initialized");
+                                                       "Can't invoke 'setNetworkTimeout(Executor executor, int milliseconds)' before connection is initialized");
             }
         }
 
@@ -789,7 +783,8 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
             if (connection != null) {
                 return connection.getNetworkTimeout();
             } else {
-                throw new UninitializedStatusException("Can't invoke 'getNetworkTimeout()' before connection is initialized");
+                throw new UninitializedStatusException(
+                                                       "Can't invoke 'getNetworkTimeout()' before connection is initialized");
             }
         }
 
@@ -807,7 +802,8 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
             if (connection != null) {
                 return connection.setSavepoint(name);
             } else {
-                throw new UninitializedStatusException("Can't invoke 'setSavepoint(name)' before connection is initialized");
+                throw new UninitializedStatusException(
+                                                       "Can't invoke 'setSavepoint(name)' before connection is initialized");
             }
         }
 
@@ -816,7 +812,8 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
             if (connection != null) {
                 connection.rollback(savepoint);
             } else {
-                throw new UninitializedStatusException("Can't invoke 'rollback(Savepoint savepoint)' before connection is initialized");
+                throw new UninitializedStatusException(
+                                                       "Can't invoke 'rollback(Savepoint savepoint)' before connection is initialized");
             }
         }
 
@@ -826,7 +823,7 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
                 connection.releaseSavepoint(savepoint);
             } else {
                 throw new UninitializedStatusException(
-                                       "Can't invoke 'releaseSavepoint(Savepoint savepoint)' before connection is initialized");
+                                                       "Can't invoke 'releaseSavepoint(Savepoint savepoint)' before connection is initialized");
             }
         }
 
@@ -871,7 +868,8 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
             if (connection != null) {
                 return connection.isValid(timeout);
             } else {
-                throw new UninitializedStatusException("Can't invoke 'isValid(int timeout)' before connection is initialized");
+                throw new UninitializedStatusException(
+                                                       "Can't invoke 'isValid(int timeout)' before connection is initialized");
             }
         }
 
@@ -881,7 +879,7 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
                 return connection.createArrayOf(typeName, elements);
             } else {
                 throw new UninitializedStatusException(
-                                       "Can't invoke 'createArrayOf(String typeName, Object[] elements)' before connection is initialized");
+                                                       "Can't invoke 'createArrayOf(String typeName, Object[] elements)' before connection is initialized");
             }
         }
 
@@ -891,7 +889,7 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
                 return connection.createStruct(typeName, attributes);
             } else {
                 throw new UninitializedStatusException(
-                                       "Can't invoke 'createStruct(String typeName, Object[] attributes)' before connection is initialized");
+                                                       "Can't invoke 'createStruct(String typeName, Object[] attributes)' before connection is initialized");
             }
         }
 
@@ -938,7 +936,8 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
             if (connection != null) {
                 connection.abort(executor);
             } else {
-                throw new UninitializedStatusException("Can't invoke 'abort(Executor executor)' before connection is initialized");
+                throw new UninitializedStatusException(
+                                                       "Can't invoke 'abort(Executor executor)' before connection is initialized");
             }
         }
 
@@ -947,7 +946,8 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
             if (connection != null) {
                 return connection.nativeSQL(sql);
             } else {
-                throw new UninitializedStatusException("Can't invoke 'nativeSQL(String sql)' before connection is initialized");
+                throw new UninitializedStatusException(
+                                                       "Can't invoke 'nativeSQL(String sql)' before connection is initialized");
             }
         }
 
@@ -999,7 +999,7 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
                     return val;
                 } else {
                     throw new UninitializedStatusException(
-                                           "Can't invoke 'isReadOnly()' before 'setReadOnly(boolean readOnly)' is invoked");
+                                                           "Can't invoke 'isReadOnly()' before 'setReadOnly(boolean readOnly)' is invoked");
                 }
             }
         }
@@ -1020,7 +1020,7 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
                     return val;
                 } else {
                     throw new UninitializedStatusException(
-                                           "Can't invoke 'getCatalog()' before 'setCatalog(String catalog)' is invoked or connection is initialized");
+                                                           "Can't invoke 'getCatalog()' before 'setCatalog(String catalog)' is invoked or connection is initialized");
                 }
             }
         }
@@ -1041,7 +1041,7 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
                     return val;
                 } else {
                     throw new UninitializedStatusException(
-                                           "Can't invoke 'getTypeMap()' before 'setTypeMap(Map<String, Class<?>> map)' is invoked or connection is initialized");
+                                                           "Can't invoke 'getTypeMap()' before 'setTypeMap(Map<String, Class<?>> map)' is invoked or connection is initialized");
                 }
             }
         }
@@ -1062,7 +1062,7 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
                     return val;
                 } else {
                     throw new UninitializedStatusException(
-                                           "Can't invoke 'getHoldability()' before 'setHoldability(int holdability)' is invoked or connection is initialized");
+                                                           "Can't invoke 'getHoldability()' before 'setHoldability(int holdability)' is invoked or connection is initialized");
                 }
             }
         }
@@ -1080,7 +1080,8 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
                     }
                     return val;
                 } else {
-                    throw new UninitializedStatusException("Can't invoke 'getMetaData()' before connection is initialized");
+                    throw new UninitializedStatusException(
+                                                           "Can't invoke 'getMetaData()' before connection is initialized");
                 }
             }
         }
@@ -1101,7 +1102,7 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
                     return val;
                 } else {
                     throw new UninitializedStatusException(
-                                           "Can't invoke 'getSchema()' before 'setSchema(String schema)' is invoked or connection is initialized");
+                                                           "Can't invoke 'getSchema()' before 'setSchema(String schema)' is invoked or connection is initialized");
                 }
             }
         }
@@ -1122,7 +1123,7 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
                     return val;
                 } else {
                     throw new UninitializedStatusException(
-                                           "Can't invoke 'getTransactionIsolation()' before 'setTransactionIsolation(int level)' is invoked or connection is initialized");
+                                                           "Can't invoke 'getTransactionIsolation()' before 'setTransactionIsolation(int level)' is invoked or connection is initialized");
                 }
             }
         }
@@ -1142,7 +1143,8 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
                     }
                     return val;
                 } else {
-                    throw new UninitializedStatusException("Can't invoke 'getAutoCommit()' before connection is initialized");
+                    throw new UninitializedStatusException(
+                                                           "Can't invoke 'getAutoCommit()' before connection is initialized");
                 }
             }
         }

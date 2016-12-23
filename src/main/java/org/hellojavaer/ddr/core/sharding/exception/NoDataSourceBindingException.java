@@ -13,30 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddr.core.exception;
+package org.hellojavaer.ddr.core.sharding.exception;
 
 /**
  *
- * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 06/11/2016.
+ * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 23/12/2016.
  */
-public class DDRException extends RuntimeException {
+public class NoDataSourceBindingException extends DDRShardingException {
 
-    public DDRException() {
+    public NoDataSourceBindingException() {
     }
 
-    public DDRException(String message) {
+    public NoDataSourceBindingException(String message) {
         super(message);
     }
 
-    public DDRException(String message, Throwable cause) {
+    public NoDataSourceBindingException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public DDRException(Throwable cause) {
+    public NoDataSourceBindingException(Throwable cause) {
         super(cause);
     }
 
-    public DDRException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+    public NoDataSourceBindingException(String message, Throwable cause, boolean enableSuppression,
+                                        boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 }

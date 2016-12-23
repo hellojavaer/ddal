@@ -18,7 +18,6 @@ package org.hellojavaer.ddr.core.datasource.jdbc;
 import org.hellojavaer.ddr.core.datasource.exception.CrossDataSourceException;
 import org.hellojavaer.ddr.core.datasource.exception.UninitializedStatusException;
 import org.hellojavaer.ddr.core.datasource.manager.DataSourceParam;
-import org.hellojavaer.ddr.core.exception.DDRException;
 
 import java.sql.*;
 import java.util.*;
@@ -515,7 +514,7 @@ public abstract class PreparedStatementWrapper extends StatementWrapper implemen
                     preparedStatement.setSQLXML(index, (java.sql.SQLXML) params[0]);
                     break;
                 default:
-                    throw new DDRException("Unknown setter method '" + method + "'");
+                    throw new UnsupportedOperationException("Unknown setter method '" + method + "'");
             }
         }
         jdbcParamInvocationList = null;
