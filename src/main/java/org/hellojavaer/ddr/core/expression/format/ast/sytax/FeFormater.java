@@ -18,7 +18,7 @@ package org.hellojavaer.ddr.core.expression.format.ast.sytax;
 import org.hellojavaer.ddr.core.expression.format.FormatExpressionContext;
 import org.hellojavaer.ddr.core.expression.format.ast.token.FeToken;
 import org.hellojavaer.ddr.core.expression.format.ast.token.FeTokenType;
-import org.hellojavaer.ddr.core.text.StringFormat;
+import org.hellojavaer.ddr.core.expression.format.StringFormat;
 
 import java.util.List;
 
