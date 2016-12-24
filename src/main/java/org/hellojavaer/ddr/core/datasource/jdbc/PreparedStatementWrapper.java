@@ -18,6 +18,9 @@ package org.hellojavaer.ddr.core.datasource.jdbc;
 import org.hellojavaer.ddr.core.datasource.exception.CrossingDataSourceException;
 import org.hellojavaer.ddr.core.datasource.exception.UninitializedStatusException;
 import org.hellojavaer.ddr.core.datasource.manager.DataSourceParam;
+import org.hellojavaer.ddr.core.utils.DDRJSONUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.util.*;
@@ -28,10 +31,12 @@ import java.util.*;
  */
 public abstract class PreparedStatementWrapper extends StatementWrapper implements DDRPreparedStatement {
 
-    protected PreparedStatement          preparedStatement;
-    private String                       sql;
-    private Map<Object, Object>          jdbcParameter = new HashMap<Object, Object>();
-    private List<JdbcParamInvocation>    jdbcParamInvocationList;
+    private Logger stdLogger = LoggerFactory.getLogger("org.hellojavaer.ddr.sql");
+
+    protected PreparedStatement           preparedStatement;
+    private String                        sql;
+    private Map<Object, Object>           jdbcParameter = new HashMap<Object, Object>();
+    private List<JdbcParamInvocation>     jdbcParamInvocationList;
 
     private DDRSQLParseResult.ParserState parserState;
 
@@ -179,14 +184,24 @@ public abstract class PreparedStatementWrapper extends StatementWrapper implemen
         } else {
             // 1. parse sql
             DDRSQLParseResult parseResult = parseSql(sql, this.jdbcParameter);
+            if (stdLogger.isDebugEnabled()) {
+                stdLogger.debug(new StringBuilder("[ParseSql] from:")//
+                .append(sql).append(" =>to: ")//
+                .append(parseResult.getSql()).toString());//
+                if (stdLogger.isTraceEnabled()) {
+                    stdLogger.trace("[JdbcParameter] " + DDRJSONUtils.toJSONString(jdbcParameter));
+                }
+            }
             parserState = parseResult.getParserState();
             // 2. check if crossing datasource
             if (isCrossDataSource(parseResult.getSchemas())) {
-                throw new CrossingDataSourceException("Sql schemas are " + parseSchemasToString(parseResult.getSchemas())
+                throw new CrossingDataSourceException("Sql schemas are "
+                                                      + DDRJSONUtils.toJSONString(parseResult.getSchemas())
                                                       + ",current datasource binding schemas are "
-                                                      + parseSchemasToString(schemas) + " and source original sql is '"
-                                                      + sql + "',  jdbc parameter is "
-                                                      + parseJdbcParamToString(jdbcParameter));
+                                                      + DDRJSONUtils.toJSONString(schemas)
+                                                      + " and source original sql is '" + sql
+                                                      + "',  jdbc parameter is "
+                                                      + DDRJSONUtils.toJSONString(jdbcParameter));
             }
             // 3. init preparedStatement if not
             if (preparedStatement == null) {
@@ -199,56 +214,6 @@ public abstract class PreparedStatementWrapper extends StatementWrapper implemen
                 super.playbackInvocation(statement);
                 playbackSetJdbcParamInvocation(preparedStatement, jdbcParamInvocationList);
             }
-        }
-    }
-
-    private String parseJdbcParamToString(Map<Object, Object> map) {
-        if (map == null) {
-            return "";
-        } else {
-            StringBuilder sb = new StringBuilder();
-            sb.append('{');
-            for (Map.Entry<Object, Object> entry : map.entrySet()) {
-                sb.append(entry.getKey());
-                sb.append(':');
-                if (entry.getValue() == null) {
-                    sb.append("null");
-                } else {
-                    if (entry.getValue() instanceof String) {
-                        sb.append('"');
-                        sb.append(entry.getValue().toString());
-                        sb.append('"');
-                    } else {
-                        sb.append(entry.getValue().toString());
-                    }
-                }
-                sb.append(',');
-            }
-            if (!map.isEmpty()) {
-                sb.deleteCharAt(sb.length() - 1);
-            }
-            sb.append('}');
-            return sb.toString();
-        }
-    }
-
-    private String parseSchemasToString(Set<String> schemas) {
-        if (schemas == null) {
-            return "";
-        } else {
-            StringBuilder sb = new StringBuilder();
-            sb.append('[');
-            for (String s : schemas) {
-                sb.append('\"');
-                sb.append(s);
-                sb.append('\"');
-                sb.append(',');
-            }
-            if (!schemas.isEmpty()) {
-                sb.deleteCharAt(sb.length() - 1);
-            }
-            sb.append(']');
-            return sb.toString();
         }
     }
 
@@ -1007,7 +972,7 @@ public abstract class PreparedStatementWrapper extends StatementWrapper implemen
         }
     }
 
-    // 特殊处理
+    // NOTE:特殊处理
     @Override
     public ResultSetMetaData getMetaData() throws SQLException {
         if (preparedStatement != null) {

@@ -24,7 +24,7 @@ import java.util.Set;
 public class DataSourceParam {
 
     private Set<String> scNames;
-    private boolean      readOnly;
+    private boolean     readOnly;
 
     public Set<String> getScNames() {
         return scNames;
@@ -40,5 +40,30 @@ public class DataSourceParam {
 
     public void setReadOnly(boolean readOnly) {
         this.readOnly = readOnly;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("{\"readOnly\":");
+        sb.append(readOnly);
+        sb.append(',');
+        sb.append("\"scNames\":");
+        if (scNames == null) {
+            sb.append("null");
+        } else {
+            sb.append('[');
+            for (String scName : scNames) {
+                sb.append('\"');
+                sb.append(scName);
+                sb.append('\"');
+                sb.append(',');
+            }
+            if (!scNames.isEmpty()) {
+                sb.deleteCharAt(sb.length() - 1);
+            }
+            sb.append(']');
+        }
+        sb.append('}');
+        return sb.toString();
     }
 }

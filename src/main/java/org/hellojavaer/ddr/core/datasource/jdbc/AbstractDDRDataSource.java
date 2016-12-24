@@ -23,6 +23,7 @@ import org.hellojavaer.ddr.core.datasource.jdbc.init.UninitializedDataSourceProc
 import org.hellojavaer.ddr.core.datasource.jdbc.property.ConnectionProperty;
 import org.hellojavaer.ddr.core.datasource.jdbc.property.DataSourceProperty;
 import org.hellojavaer.ddr.core.datasource.manager.DataSourceParam;
+import org.hellojavaer.ddr.core.utils.DDRJSONUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,11 +41,11 @@ import java.util.concurrent.Executor;
  */
 public abstract class AbstractDDRDataSource implements DDRDataSource {
 
-    protected final Logger           logger = LoggerFactory.getLogger(getClass());
+    protected final Logger           stdLogger = LoggerFactory.getLogger("org.hellojavaer.ddr.ds");
 
     private DataSourceSchemasBinding dataSourceSchemasBinding;
-    private InnerDataSourceProperty  prop   = new InnerDataSourceProperty();
-    private InvocationTag            tag    = new InvocationTag();
+    private InnerDataSourceProperty  prop      = new InnerDataSourceProperty();
+    private InvocationTag            tag       = new InvocationTag();
 
     @Override
     public boolean isCrossDataSource(Set<String> schemas) {
@@ -115,16 +116,7 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
         if (dataSourceSchemasBinding == null) {
             dataSourceSchemasBinding = this.getDataSource(param);
             if (dataSourceSchemasBinding == null) {
-                StringBuilder scNames = new StringBuilder("");
-                for (String item : param.getScNames()) {
-                    scNames.append(item);
-                    scNames.append(',');
-                }
-                if (scNames.length() > 0) {
-                    scNames.deleteCharAt(scNames.length() - 1);
-                }
-                throw new DataSourceNotFoundException("No datasource found for parameter[readOnly:" + param.isReadOnly()
-                                                      + ",scNames:'" + scNames.toString() + "']");
+                throw new DataSourceNotFoundException("No datasource found for parameter:" + param.toString());
             } else {
                 if (tag.isLoginTimeout()) {
                     dataSourceSchemasBinding.getDataSource().setLoginTimeout(prop.getLoginTimeout());
@@ -132,7 +124,13 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
                 if (tag.isLogWriter()) {
                     dataSourceSchemasBinding.getDataSource().setLogWriter(prop.getLogWriter());
                 }
-                logger.debug("");
+                if (stdLogger.isDebugEnabled()) {
+                    stdLogger.debug(new StringBuilder("[GetDataSource] ")//
+                    .append("param:").append(param.toString())//
+                    .append(" matched:")//
+                    .append(DDRJSONUtils.toJSONString(dataSourceSchemasBinding.getSchemas()))//
+                    .toString());
+                }
             }
         }
         return dataSourceSchemasBinding.getDataSource();

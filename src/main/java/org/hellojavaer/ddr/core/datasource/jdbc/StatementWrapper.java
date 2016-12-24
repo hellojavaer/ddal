@@ -20,6 +20,8 @@ import org.hellojavaer.ddr.core.datasource.jdbc.property.StatementProperty;
 import org.hellojavaer.ddr.core.datasource.manager.DataSourceParam;
 import org.hellojavaer.ddr.core.datasource.exception.CrossingDataSourceException;
 import org.hellojavaer.ddr.core.datasource.exception.UninitializedStatusException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.util.Set;
@@ -29,6 +31,8 @@ import java.util.Set;
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 20/11/2016.
  */
 public abstract class StatementWrapper implements DDRStatement {
+
+    private Logger        stdLogger = LoggerFactory.getLogger("org.hellojavaer.ddr.sql");
 
     protected Set<String> schemas;
     protected Statement   statement;
@@ -198,6 +202,12 @@ public abstract class StatementWrapper implements DDRStatement {
     private String initStatementAndConvertSql(String sql) throws SQLException {
         // 1. parse sql
         DDRSQLParseResult parseResult = parseSql(sql, null);
+        if (stdLogger.isDebugEnabled()) {
+            stdLogger.debug(new StringBuilder("[ParseSql] from:")//
+            .append(sql).append(" =>to: ")//
+            .append(parseResult.getSql())//
+            .toString());
+        }
         // 2. check if crossing datasource
         if (isCrossDataSource(parseResult.getSchemas())) {
             throw new CrossingDataSourceException("Sql '" + sql + "'");
@@ -357,7 +367,7 @@ public abstract class StatementWrapper implements DDRStatement {
                 return val;
             } else {
                 throw new UninitializedStatusException(
-                                       "Can't invoke 'getMaxFieldSize()' before 'setMaxFieldSize(int max)' is invoked or statement is initialized");
+                                                       "Can't invoke 'getMaxFieldSize()' before 'setMaxFieldSize(int max)' is invoked or statement is initialized");
             }
         }
     }
@@ -378,7 +388,7 @@ public abstract class StatementWrapper implements DDRStatement {
                 return val;
             } else {
                 throw new UninitializedStatusException(
-                                       "Can't invoke 'getMaxRows()' before 'setMaxRows' is invoked or statement is initialized");
+                                                       "Can't invoke 'getMaxRows()' before 'setMaxRows' is invoked or statement is initialized");
             }
         }
     }
@@ -419,7 +429,7 @@ public abstract class StatementWrapper implements DDRStatement {
                 return val;
             } else {
                 throw new UninitializedStatusException(
-                                       "Can't invoke 'getFetchDirection()' before 'setFetchDirection(int direction)' is invoked or statement is initialized");
+                                                       "Can't invoke 'getFetchDirection()' before 'setFetchDirection(int direction)' is invoked or statement is initialized");
             }
         }
     }
@@ -450,7 +460,7 @@ public abstract class StatementWrapper implements DDRStatement {
                 return val;
             } else {
                 throw new UninitializedStatusException(
-                                       "Can't invoke 'getFetchSize()' before 'setFetchSize(int rows)' is invoked or statement is initialized");
+                                                       "Can't invoke 'getFetchSize()' before 'setFetchSize(int rows)' is invoked or statement is initialized");
             }
         }
     }
@@ -481,7 +491,7 @@ public abstract class StatementWrapper implements DDRStatement {
                 return val;
             } else {
                 throw new UninitializedStatusException(
-                                       "Can't invoke 'getQueryTimeout()' before 'setQueryTimeout(int seconds)' is invoked or statement is initialized");
+                                                       "Can't invoke 'getQueryTimeout()' before 'setQueryTimeout(int seconds)' is invoked or statement is initialized");
             }
         }
     }
@@ -512,7 +522,7 @@ public abstract class StatementWrapper implements DDRStatement {
                 return val;
             } else {
                 throw new UninitializedStatusException(
-                                       "Can't invoke 'isCloseOnCompletion()' before 'closeOnCompletion()' is invoked or statement is initialized");
+                                                       "Can't invoke 'isCloseOnCompletion()' before 'closeOnCompletion()' is invoked or statement is initialized");
             }
         }
     }
@@ -543,7 +553,7 @@ public abstract class StatementWrapper implements DDRStatement {
                 return val;
             } else {
                 throw new UninitializedStatusException(
-                                       "Can't invoke 'isPoolable()' before 'setPoolable(boolean poolable)' is invoked or statement is initialized");
+                                                       "Can't invoke 'isPoolable()' before 'setPoolable(boolean poolable)' is invoked or statement is initialized");
             }
         }
     }
@@ -618,7 +628,8 @@ public abstract class StatementWrapper implements DDRStatement {
         if (statement != null) {
             return statement.getMoreResults(current);
         } else {
-            throw new UninitializedStatusException("Can't invoke 'getMoreResults(int current)' before statement is initialized");
+            throw new UninitializedStatusException(
+                                                   "Can't invoke 'getMoreResults(int current)' before statement is initialized");
         }
     }
 
@@ -636,7 +647,8 @@ public abstract class StatementWrapper implements DDRStatement {
         if (statement != null) {
             return statement.getResultSetHoldability();
         } else {
-            throw new UninitializedStatusException("Can't invoke 'getResultSetHoldability()' before statement is initialized");
+            throw new UninitializedStatusException(
+                                                   "Can't invoke 'getResultSetHoldability()' before statement is initialized");
         }
     }
 
@@ -663,7 +675,8 @@ public abstract class StatementWrapper implements DDRStatement {
         if (statement != null) {
             return statement.getResultSetConcurrency();
         } else {
-            throw new UninitializedStatusException("Can't invoke 'getResultSetConcurrency()' before statement is initialized");
+            throw new UninitializedStatusException(
+                                                   "Can't invoke 'getResultSetConcurrency()' before statement is initialized");
         }
     }
 
