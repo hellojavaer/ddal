@@ -105,14 +105,6 @@ public class WeightedRandom {
             this.value = value;
         }
 
-        public boolean isDisabled() {
-            return disabled;
-        }
-
-        public void setDisabled(boolean disabled) {
-            this.disabled = disabled;
-        }
-
     }
 
 }

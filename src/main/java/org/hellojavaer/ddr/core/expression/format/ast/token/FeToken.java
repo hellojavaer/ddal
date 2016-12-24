@@ -64,4 +64,9 @@ public class FeToken {
     public void setEndPos(int endPos) {
         this.endPos = endPos;
     }
+
+    @Override
+    public String toString() {
+        return "{" + "type=" + type + ", data=" + data + ", startPos=" + startPos + ", endPos=" + endPos + '}';
+    }
 }

@@ -52,7 +52,7 @@ public class FeSyntaxParser {
                 assert0(token, FeTokenType.RCURLY);
                 nodes.add(new FeFormater(fromToken, formats));
             } else {
-                throw new IllegalStateException("");
+                throw new IllegalStateException("Unexpected token " + token.toString());
             }
         }
         compoundExpression.setChildren(nodes);

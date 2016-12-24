@@ -699,7 +699,7 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
                     stdLogger.debug(new StringBuilder("[GetDataSource] ")//
                     .append("param:")//
                     .append(param)//
-                    .append(" matched:")//
+                    .append(" matched R:")//
                     .append(weightedDataSourceWrapper)//
                     .toString());
                 }
@@ -724,6 +724,15 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
                                                                   + dataSourceSchemasBinding.toString() + "'");
                         }
                     }
+                }
+                // log
+                if (stdLogger.isDebugEnabled()) {
+                    stdLogger.debug(new StringBuilder("[GetDataSource] ")//
+                                                                         .append("param:")//
+                                                                         .append(param)//
+                                                                         .append(" matched W:")//
+                                                                         .append(DDRJSONUtils.toJSONString(dataSourceSchemasBinding.getSchemas()))//
+                                                                         .toString());
                 }
                 return dataSourceSchemasBinding;
             }
