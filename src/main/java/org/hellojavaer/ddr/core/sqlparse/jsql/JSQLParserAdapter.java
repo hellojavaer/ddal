@@ -15,9 +15,6 @@
  */
 package org.hellojavaer.ddr.core.sqlparse.jsql;
 
-import java.io.StringReader;
-import java.util.*;
-
 import net.sf.jsqlparser.expression.*;
 import net.sf.jsqlparser.expression.operators.relational.*;
 import net.sf.jsqlparser.parser.CCJSqlParser;
@@ -29,14 +26,17 @@ import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.update.Update;
 import net.sf.jsqlparser.util.JSQLBaseVisitor;
-
-import org.hellojavaer.ddr.core.datasource.exception.CrossPreparedStatementException;
+import org.hellojavaer.ddr.core.datasource.exception.CrossingPreparedStatementException;
 import org.hellojavaer.ddr.core.datasource.jdbc.DDRSQLParseResult;
 import org.hellojavaer.ddr.core.sharding.*;
 import org.hellojavaer.ddr.core.sqlparse.exception.*;
+import org.hellojavaer.ddr.core.utils.DDRJSONUtils;
 import org.hellojavaer.ddr.core.utils.DDRStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.StringReader;
+import java.util.*;
 
 /**
  *
@@ -69,10 +69,10 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
             || statement instanceof Delete) {
             // ok
         } else {
-            throw new UnsupportedSqlOperationException(
-                                                        "sql["
+            throw new UnsupportedSQLExpressionException(
+                                                        "Sql '"
                                                                 + sql
-                                                                + "] is not supported. Only support select, insert, update or delete statement");
+                                                                + "' is not supported. Only support 'select' 'insert' 'update' and 'delete' sql statement");
         }
     }
 
@@ -96,11 +96,12 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
                                                                   null);
                             if (!equalsIgnoreCase(info.getScName(), tableWrapper.getTable().getSchemaName())
                                 || !equalsIgnoreCase(info.getTbName(), tableWrapper.getTable().getName())) {
-                                throw new CrossPreparedStatementException("Source sql is '" + sql
-                                                                          + "', converted table information is '"
-                                                                          + getStringMsgOfRoutedTables()
-                                                                          + "' and jdbc parameter is '"
-                                                                          + getStringMsgOfJdbcParam(jdbcParam) + "'");
+                                throw new CrossingPreparedStatementException("Source sql is '" + sql
+                                                                             + "', converted table information is '"
+                                                                             + DDRJSONUtils.toJSONString(routedTables)
+                                                                             + "' and jdbc parameter is '"
+                                                                             + DDRJSONUtils.toJSONString(jdbcParam)
+                                                                             + "'");
                             }
                         }
                     }
@@ -109,44 +110,6 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
             return parseResult;
         } finally {
             context.remove();
-        }
-    }
-
-    private String getStringMsgOfRoutedTables() {
-        if (routedTables == null) {
-            return "null";
-        } else {
-            StringBuilder sb = new StringBuilder();
-            sb.append('[');
-            for (TableWrapper tableWrapper : routedTables) {
-                sb.append(tableWrapper.getTable().toString());
-                sb.append(',');
-            }
-            if (!routedTables.isEmpty()) {
-                sb.deleteCharAt(sb.length() - 1);
-            }
-            sb.append(']');
-            return sb.toString();
-        }
-    }
-
-    private String getStringMsgOfJdbcParam(Map<Object, Object> jdbcParam) {
-        if (jdbcParam == null) {
-            return "null";
-        } else {
-            StringBuilder sb = new StringBuilder();
-            sb.append('{');
-            for (Map.Entry<Object, Object> entry : jdbcParam.entrySet()) {
-                sb.append(entry.getKey());
-                sb.append(':');
-                sb.append(entry.getValue());
-                sb.append(',');
-            }
-            if (!routedTables.isEmpty()) {
-                sb.deleteCharAt(sb.length() - 1);
-            }
-            sb.append('}');
-            return sb.toString();
         }
     }
 
@@ -165,9 +128,9 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
                 Object routeInfo = ShardingRouteContext.getRoute(tableWrapper.getScName(), tableWrapper.getTbName());
                 if (routeInfo == null) {
                     if (tableWrapper.getSdName() != null) {// 禁用sql路由后但未在ShardingRouteContext中设置路由
-                        throw new NoRouteInfoFoundException(
-                                                            "Disabled sql routing but not set route information by 'ShardingRouteContext'. detail information is "
-                                                                    + tableWrapper);
+                        throw new RouteInfoNotFoundException(
+                                                             "Disabled sql routing but not set route information by 'ShardingRouteContext'. detail information is "
+                                                                     + tableWrapper);
 
                     } else {
                         StringBuilder sb = new StringBuilder();
@@ -181,7 +144,7 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
                         sb.append(tableWrapper.getRouteInfo().getSdName());
                         sb.append("' route value. Detail information is ");
                         sb.append(tableWrapper.toString());
-                        throw new NoRouteInfoFoundException(sb.toString());
+                        throw new RouteInfoNotFoundException(sb.toString());
                     }
                 } else if (routeInfo instanceof RouteInfo) {
                     route0(tableWrapper, (RouteInfo) routeInfo);
@@ -200,12 +163,13 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
             if (!equalsIgnoreCase(shardingInfo.getScName(), tableWrapper.getTable().getSchemaName())
                 || !equalsIgnoreCase(shardingInfo.getTbName(), tableWrapper.getTable().getName())) {
                 throw new ConflictingRouteException(
-                                       "Sharding column '"
-                                               + tableWrapper.getSdName()
-                                               + "' has multiple values to route table name , but route result is conflict, conflict detail is [scName:"
-                                               + shardingInfo.getScName() + ",tbName:" + shardingInfo.getTbName()
-                                               + "]<->[scName:" + tableWrapper.getScName() + ","
-                                               + tableWrapper.getTbName() + "] , source sql is '" + sql + "'");
+                                                    "Sharding column '"
+                                                            + tableWrapper.getSdName()
+                                                            + "' has multiple values to route table name , but route result is conflict, conflict detail is [scName:"
+                                                            + shardingInfo.getScName() + ",tbName:"
+                                                            + shardingInfo.getTbName() + "]<->[scName:"
+                                                            + tableWrapper.getScName() + "," + tableWrapper.getTbName()
+                                                            + "] , source sql is '" + sql + "'");
             }
         } else {
             tableWrapper.getTable().setSchemaName(shardingInfo.getScName());
@@ -279,12 +243,12 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
     @Override
     public void visit(IsNullExpression isNullExpression) {
         if (getTableFromContext((Column) isNullExpression.getLeftExpression()) != null) {
-            throw new UnsupportedSqlOperationException(
-                                                        "sharding expression '"
+            throw new UnsupportedSQLExpressionException(
+                                                        "Sharding expression '"
                                                                 + isNullExpression.toString()
                                                                 + "' in sql["
                                                                 + sql
-                                                                + "] is not supported, only support '=', 'in' and 'between and' operation");
+                                                                + "] is not supported, only '=', 'in' and 'between' is supported");
         }
         super.visit(isNullExpression);
     }
@@ -292,12 +256,12 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
     @Override
     public void visit(GreaterThan greaterThan) {
         if (getTableFromContext((Column) greaterThan.getLeftExpression()) != null) {
-            throw new UnsupportedSqlOperationException(
-                                                        "sharding expression '"
+            throw new UnsupportedSQLExpressionException(
+                                                        "Sharding expression '"
                                                                 + greaterThan.toString()
                                                                 + "' in sql["
                                                                 + sql
-                                                                + "] is not supported, only support '=', 'in' and 'between and' operation");
+                                                                + "] is not supported, only '=', 'in' and 'between' is supported");
         }
         super.visit(greaterThan);
     }
@@ -305,12 +269,12 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
     @Override
     public void visit(GreaterThanEquals greaterThanEquals) {
         if (getTableFromContext((Column) greaterThanEquals.getLeftExpression()) != null) {
-            throw new UnsupportedSqlOperationException(
-                                                        "sharding expression '"
+            throw new UnsupportedSQLExpressionException(
+                                                        "Sharding expression '"
                                                                 + greaterThanEquals.toString()
                                                                 + "' in sql["
                                                                 + sql
-                                                                + "] is not supported, only support '=', 'in' and 'between and' operation");
+                                                                + "] is not supported, only '=', 'in' and 'between' is supported");
         }
         super.visit(greaterThanEquals);
     }
@@ -318,12 +282,12 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
     @Override
     public void visit(MinorThan minorThan) {
         if (getTableFromContext((Column) minorThan.getLeftExpression()) != null) {
-            throw new UnsupportedSqlOperationException(
-                                                        "sharding expression '"
+            throw new UnsupportedSQLExpressionException(
+                                                        "Sharding expression '"
                                                                 + minorThan.toString()
                                                                 + "' in sql["
                                                                 + sql
-                                                                + "] is not supported, only support '=', 'in' and 'between and' operation");
+                                                                + "] is not supported, only '=', 'in' and 'between' is supported");
         }
         super.visit(minorThan);
     }
@@ -331,12 +295,12 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
     @Override
     public void visit(MinorThanEquals minorThanEquals) {
         if (getTableFromContext((Column) minorThanEquals.getLeftExpression()) != null) {
-            throw new UnsupportedSqlOperationException(
-                                                        "sharding expression '"
+            throw new UnsupportedSQLExpressionException(
+                                                        "Sharding expression '"
                                                                 + minorThanEquals.toString()
                                                                 + "' in sql["
                                                                 + sql
-                                                                + "] is not supported, only support '=', 'in' and 'between and' operation");
+                                                                + "] is not supported, only '=', 'in' and 'between' is supported");
         }
         super.visit(minorThanEquals);
     }
@@ -344,12 +308,12 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
     @Override
     public void visit(NotEqualsTo notEqualsTo) {
         if (getTableFromContext((Column) notEqualsTo.getLeftExpression()) != null) {
-            throw new UnsupportedSqlOperationException(
-                                                        "sharding expression '"
+            throw new UnsupportedSQLExpressionException(
+                                                        "Sharding expression '"
                                                                 + notEqualsTo.toString()
                                                                 + "' in sql["
                                                                 + sql
-                                                                + "] is not supported, only support '=', 'in' and 'between and' operation");
+                                                                + "] is not supported, only '=', 'in' and 'between' is supported");
         }
         super.visit(notEqualsTo);
     }
@@ -357,12 +321,12 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
     @Override
     public void visit(LikeExpression likeExpression) {
         if (getTableFromContext((Column) likeExpression.getLeftExpression()) != null) {
-            throw new UnsupportedSqlOperationException(
-                                                        "sharding expression '"
+            throw new UnsupportedSQLExpressionException(
+                                                        "Sharding expression '"
                                                                 + likeExpression.toString()
                                                                 + "' in sql["
                                                                 + sql
-                                                                + "] is not supported, only support '=', 'in' and 'between and' operation");
+                                                                + "] is not supported, only '=', 'in' and 'between' is supported");
         }
         super.visit(likeExpression);
     }
@@ -455,10 +419,18 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
                     return val;
                 }
             }
+        } else if (obj instanceof DateValue) {// 不常见的
+            return ((DateValue) obj).getValue();
+        } else if (obj instanceof DoubleValue) {
+            return ((DoubleValue) obj).getValue();
+        } else if (obj instanceof TimeValue) {
+            return ((TimeValue) obj).getValue();
+        } else if (obj instanceof TimestampValue) {
+            return ((TimestampValue) obj).getValue();
         } else {
-            throw new UnsupportedShardingTypeException("sharding column value type '" + obj.getClass()
-                                                       + "' is not supported for sharding column '"
-                                                       + column.toString() + "', source sql is '" + sql + "'");
+            throw new UnsupportedColumnTypeException("Sharding column type '" + obj.getClass()
+                                                     + "' is not supported for sharding column '" + column.toString()
+                                                     + "', source sql is '" + sql + "'");
         }
     }
 
@@ -471,16 +443,16 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
             return;
         }
         if (inExpression.isNot()) {
-            throw new UnsupportedSqlOperationException("sharding expression '" + inExpression.toString()
-                                                       + "' is not supported for it contains 'not', source sql is '"
-                                                       + sql + "'");
+            throw new UnsupportedSQLExpressionException("Sharding expression '" + inExpression.toString()
+                                                        + "' is not supported for it contains 'not', source sql is '"
+                                                        + sql + "'");
         }
         // 普通in模式
         ExpressionList itemsList = (ExpressionList) inExpression.getRightItemsList();
         List<Expression> list = itemsList.getExpressions();
         if (list == null || list.isEmpty()) {
-            throw new UnsupportedSqlOperationException(
-                                                        "sharding expression '"
+            throw new UnsupportedSQLExpressionException(
+                                                        "Sharding expression '"
                                                                 + inExpression.toString()
                                                                 + "' is not supported for in-expression is empty. source sql is '"
                                                                 + sql + "'");
@@ -499,9 +471,9 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
             return;
         }
         if (between.isNot()) {
-            throw new UnsupportedSqlOperationException("sharding expression '" + between.toString()
-                                                       + "' is not supported for it contains 'not'. source sql is '"
-                                                       + sql + "'");
+            throw new UnsupportedSQLExpressionException("Sharding expression '" + between.toString()
+                                                        + "' is not supported for it contains 'not'. source sql is '"
+                                                        + sql + "'");
         }
         Expression begin = between.getBetweenExpressionStart();
         Expression end = between.getBetweenExpressionEnd();
@@ -535,7 +507,7 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
             return;
         }
         if (tableWrapper == AMBIGUOUS_TABLE) {
-            throw new RuntimeException("sharding column '" + column.toString()
+            throw new RuntimeException("Sharding column '" + column.toString()
                                        + "' in where clause is ambiguous. source sql is '" + sql + "'");
         }
         tableWrapper.setSdName(DDRStringUtils.toLowerCase(column.getColumnName()));

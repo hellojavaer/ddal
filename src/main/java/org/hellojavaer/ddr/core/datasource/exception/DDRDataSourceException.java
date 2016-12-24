@@ -17,27 +17,26 @@ package org.hellojavaer.ddr.core.datasource.exception;
 
 /**
  *
- * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 23/12/2016.
+ * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 16/12/2016.
  */
-public class AmbiguousDataSourceException extends DDRDataSourceException {
+public class DDRDataSourceException extends RuntimeException {
 
-    public AmbiguousDataSourceException() {
+    public DDRDataSourceException() {
     }
 
-    public AmbiguousDataSourceException(String message) {
+    public DDRDataSourceException(String message) {
         super(message);
     }
 
-    public AmbiguousDataSourceException(String message, Throwable cause) {
+    public DDRDataSourceException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public AmbiguousDataSourceException(Throwable cause) {
+    public DDRDataSourceException(Throwable cause) {
         super(cause);
     }
 
-    public AmbiguousDataSourceException(String message, Throwable cause, boolean enableSuppression,
-                                        boolean writableStackTrace) {
+    public DDRDataSourceException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 }

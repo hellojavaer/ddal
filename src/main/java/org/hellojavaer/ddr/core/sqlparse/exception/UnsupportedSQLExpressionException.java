@@ -17,27 +17,27 @@ package org.hellojavaer.ddr.core.sqlparse.exception;
 
 /**
  *
- * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 23/12/2016.
+ * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 24/12/2016.
  */
-public class UnsupportedShardingTypeException extends DDRSQLParseException {
+public class UnsupportedSQLExpressionException extends DDRSQLParseException {
 
-    public UnsupportedShardingTypeException() {
+    public UnsupportedSQLExpressionException() {
     }
 
-    public UnsupportedShardingTypeException(String message) {
+    public UnsupportedSQLExpressionException(String message) {
         super(message);
     }
 
-    public UnsupportedShardingTypeException(String message, Throwable cause) {
+    public UnsupportedSQLExpressionException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public UnsupportedShardingTypeException(Throwable cause) {
+    public UnsupportedSQLExpressionException(Throwable cause) {
         super(cause);
     }
 
-    public UnsupportedShardingTypeException(String message, Throwable cause, boolean enableSuppression,
-                                            boolean writableStackTrace) {
+    public UnsupportedSQLExpressionException(String message, Throwable cause, boolean enableSuppression,
+                                             boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 }

@@ -17,27 +17,27 @@ package org.hellojavaer.ddr.core.sqlparse.exception;
 
 /**
  *
- * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 23/12/2016.
+ * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 24/12/2016.
  */
-public class UnsupportedSqlOperationException extends DDRSQLParseException {
+public class UnsupportedColumnTypeException extends DDRSQLParseException {
 
-    public UnsupportedSqlOperationException() {
+    public UnsupportedColumnTypeException() {
     }
 
-    public UnsupportedSqlOperationException(String message) {
+    public UnsupportedColumnTypeException(String message) {
         super(message);
     }
 
-    public UnsupportedSqlOperationException(String message, Throwable cause) {
+    public UnsupportedColumnTypeException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public UnsupportedSqlOperationException(Throwable cause) {
+    public UnsupportedColumnTypeException(Throwable cause) {
         super(cause);
     }
 
-    public UnsupportedSqlOperationException(String message, Throwable cause, boolean enableSuppression,
-                                            boolean writableStackTrace) {
+    public UnsupportedColumnTypeException(String message, Throwable cause, boolean enableSuppression,
+                                          boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 }

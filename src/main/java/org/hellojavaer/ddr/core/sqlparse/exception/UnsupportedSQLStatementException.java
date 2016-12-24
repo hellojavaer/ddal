@@ -13,31 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddr.core.datasource.exception;
+package org.hellojavaer.ddr.core.sqlparse.exception;
 
 /**
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 23/12/2016.
  */
-public class NoDataSourceFoundException extends DDRSQLException {
+public class UnsupportedSQLStatementException extends DDRSQLParseException {
 
-    public NoDataSourceFoundException() {
+    public UnsupportedSQLStatementException() {
     }
 
-    public NoDataSourceFoundException(String message) {
+    public UnsupportedSQLStatementException(String message) {
         super(message);
     }
 
-    public NoDataSourceFoundException(String message, Throwable cause) {
+    public UnsupportedSQLStatementException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public NoDataSourceFoundException(Throwable cause) {
+    public UnsupportedSQLStatementException(Throwable cause) {
         super(cause);
     }
 
-    public NoDataSourceFoundException(String message, Throwable cause, boolean enableSuppression,
-                                      boolean writableStackTrace) {
+    public UnsupportedSQLStatementException(String message, Throwable cause, boolean enableSuppression,
+                                            boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 }

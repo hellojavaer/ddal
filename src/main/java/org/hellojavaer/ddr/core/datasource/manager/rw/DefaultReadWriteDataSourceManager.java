@@ -17,7 +17,7 @@ package org.hellojavaer.ddr.core.datasource.manager.rw;
 
 import org.hellojavaer.ddr.core.datasource.DataSourceSchemasBinding;
 import org.hellojavaer.ddr.core.datasource.WeightedDataSource;
-import org.hellojavaer.ddr.core.datasource.exception.CrossDataSourceException;
+import org.hellojavaer.ddr.core.datasource.exception.CrossingDataSourceException;
 import org.hellojavaer.ddr.core.datasource.manager.DataSourceParam;
 import org.hellojavaer.ddr.core.datasource.manager.rw.monitor.ReadOnlyDataSourceMonitor;
 import org.hellojavaer.ddr.core.datasource.manager.rw.monitor.ReadOnlyDataSourceMonitorServer;
@@ -572,9 +572,9 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
                         }
                     } else {
                         if (!dataSourceSchemasBinding.getSchemas().contains(scName)) {
-                            throw new CrossDataSourceException("scName:'" + scName
-                                                               + "' is not in 'readOnlyDataSource' binding '"
-                                                               + dataSourceSchemasBinding.toString() + "'");
+                            throw new CrossingDataSourceException("scName:'" + scName
+                                                                  + "' is not in 'readOnlyDataSource' binding '"
+                                                                  + dataSourceSchemasBinding.toString() + "'");
                         }
                     }
                 }
@@ -594,9 +594,9 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
                         }
                     } else {
                         if (!dataSourceSchemasBinding.getSchemas().contains(scName)) {
-                            throw new CrossDataSourceException("scName:'" + scName
-                                                               + "' is not in 'writeOnlyDataSource' binding '"
-                                                               + dataSourceSchemasBinding.toString() + "'");
+                            throw new CrossingDataSourceException("scName:'" + scName
+                                                                  + "' is not in 'writeOnlyDataSource' binding '"
+                                                                  + dataSourceSchemasBinding.toString() + "'");
                         }
                     }
                 }

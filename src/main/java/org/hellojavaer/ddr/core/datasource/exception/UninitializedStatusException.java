@@ -19,7 +19,7 @@ package org.hellojavaer.ddr.core.datasource.exception;
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 13/12/2016.
  */
-public class UninitializedStatusException extends DDRSQLException {
+public class UninitializedStatusException extends DDRDataSourceException {
 
     public UninitializedStatusException() {
     }

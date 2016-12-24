@@ -13,31 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddr.core.datasource.exception;
+package org.hellojavaer.ddr.core.sqlparse.exception;
 
 /**
  *
- * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 17/12/2016.
+ * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 23/12/2016.
  */
-public class CrossPreparedStatementException extends DDRSQLException {
+public class RouteInfoNotFoundException extends DDRSQLParseException {
 
-    public CrossPreparedStatementException() {
+    public RouteInfoNotFoundException() {
     }
 
-    public CrossPreparedStatementException(String message) {
+    public RouteInfoNotFoundException(String message) {
         super(message);
     }
 
-    public CrossPreparedStatementException(String message, Throwable cause) {
+    public RouteInfoNotFoundException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public CrossPreparedStatementException(Throwable cause) {
+    public RouteInfoNotFoundException(Throwable cause) {
         super(cause);
     }
 
-    public CrossPreparedStatementException(String message, Throwable cause, boolean enableSuppression,
-                                           boolean writableStackTrace) {
+    public RouteInfoNotFoundException(String message, Throwable cause, boolean enableSuppression,
+                                      boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 }

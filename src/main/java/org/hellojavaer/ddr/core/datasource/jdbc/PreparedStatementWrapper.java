@@ -15,7 +15,7 @@
  */
 package org.hellojavaer.ddr.core.datasource.jdbc;
 
-import org.hellojavaer.ddr.core.datasource.exception.CrossDataSourceException;
+import org.hellojavaer.ddr.core.datasource.exception.CrossingDataSourceException;
 import org.hellojavaer.ddr.core.datasource.exception.UninitializedStatusException;
 import org.hellojavaer.ddr.core.datasource.manager.DataSourceParam;
 
@@ -182,11 +182,11 @@ public abstract class PreparedStatementWrapper extends StatementWrapper implemen
             parseState = parseResult.getParseState();
             // 2. check if crossing datasource
             if (isCrossDataSource(parseResult.getSchemas())) {
-                throw new CrossDataSourceException("Sql schemas are " + parseSchemasToString(parseResult.getSchemas())
-                                                   + ",current datasource binding schemas are "
-                                                   + parseSchemasToString(schemas) + " and source original sql is '"
-                                                   + sql + "',  jdbc parameter is "
-                                                   + parseJdbcParamToString(jdbcParameter));
+                throw new CrossingDataSourceException("Sql schemas are " + parseSchemasToString(parseResult.getSchemas())
+                                                      + ",current datasource binding schemas are "
+                                                      + parseSchemasToString(schemas) + " and source original sql is '"
+                                                      + sql + "',  jdbc parameter is "
+                                                      + parseJdbcParamToString(jdbcParameter));
             }
             // 3. init preparedStatement if not
             if (preparedStatement == null) {

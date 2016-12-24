@@ -16,7 +16,7 @@
 package org.hellojavaer.ddr.core.datasource.jdbc;
 
 import org.hellojavaer.ddr.core.datasource.DataSourceSchemasBinding;
-import org.hellojavaer.ddr.core.datasource.exception.NoDataSourceFoundException;
+import org.hellojavaer.ddr.core.datasource.exception.DataSourceNotFoundException;
 import org.hellojavaer.ddr.core.datasource.exception.UninitializedStatusException;
 import org.hellojavaer.ddr.core.datasource.jdbc.init.UninitializedConnectionProcessor;
 import org.hellojavaer.ddr.core.datasource.jdbc.init.UninitializedDataSourceProcessor;
@@ -123,8 +123,8 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
                 if (scNames.length() > 0) {
                     scNames.deleteCharAt(scNames.length() - 1);
                 }
-                throw new NoDataSourceFoundException("No datasource found for parameter[readOnly:" + param.isReadOnly()
-                                                     + ",scNames:'" + scNames.toString() + "']");
+                throw new DataSourceNotFoundException("No datasource found for parameter[readOnly:" + param.isReadOnly()
+                                                      + ",scNames:'" + scNames.toString() + "']");
             } else {
                 if (tag.isLoginTimeout()) {
                     dataSourceSchemasBinding.getDataSource().setLoginTimeout(prop.getLoginTimeout());

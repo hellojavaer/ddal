@@ -15,7 +15,7 @@
  */
 package org.hellojavaer.ddr.core.datasource.jdbc;
 
-import org.hellojavaer.ddr.core.datasource.exception.CrossPreparedStatementException;
+import org.hellojavaer.ddr.core.datasource.exception.CrossingPreparedStatementException;
 
 import java.util.Map;
 import java.util.Set;
@@ -56,6 +56,6 @@ public class DDRSQLParseResult {
 
     public interface ParseState {
 
-        void validJdbcParam(Map<Object, Object> jdbcParam) throws CrossPreparedStatementException;
+        void validJdbcParam(Map<Object, Object> jdbcParam) throws CrossingPreparedStatementException;
     }
 }
