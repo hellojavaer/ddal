@@ -22,7 +22,6 @@ import org.hellojavaer.ddr.core.datasource.jdbc.property.ConnectionProperty;
 import org.hellojavaer.ddr.core.datasource.jdbc.property.DataSourceProperty;
 import org.hellojavaer.ddr.core.datasource.manager.DataSourceManager;
 import org.hellojavaer.ddr.core.datasource.manager.DataSourceParam;
-import org.hellojavaer.ddr.core.datasource.tr.DistributedTransactionLevel;
 import org.hellojavaer.ddr.core.sharding.ShardingParser;
 
 import java.util.Map;
@@ -35,7 +34,6 @@ public class DefaultDDRDataSource extends AbstractDDRDataSource {
 
     private DataSourceManager           dataSourceManager;
     private ShardingParser              shardingParser;
-    private DistributedTransactionLevel distributedTransactionLevel;
 
     static {
         UninitializedDataSourceProcessor.setDefaultValue(DataSourceProperty.loginTimeout, 0, false);
@@ -57,14 +55,6 @@ public class DefaultDDRDataSource extends AbstractDDRDataSource {
 
     public void setShardingParser(ShardingParser shardingParser) {
         this.shardingParser = shardingParser;
-    }
-
-    public DistributedTransactionLevel getDistributedTransactionLevel() {
-        return distributedTransactionLevel;
-    }
-
-    public void setDistributedTransactionLevel(DistributedTransactionLevel distributedTransactionLevel) {
-        this.distributedTransactionLevel = distributedTransactionLevel;
     }
 
     public DDRSQLParseResult parseSql(String sql, Map<Object, Object> jdbcParam) {
