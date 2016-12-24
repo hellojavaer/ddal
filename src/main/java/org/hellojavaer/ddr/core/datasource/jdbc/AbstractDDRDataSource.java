@@ -23,9 +23,6 @@ import org.hellojavaer.ddr.core.datasource.jdbc.init.UninitializedDataSourceProc
 import org.hellojavaer.ddr.core.datasource.jdbc.property.ConnectionProperty;
 import org.hellojavaer.ddr.core.datasource.jdbc.property.DataSourceProperty;
 import org.hellojavaer.ddr.core.datasource.manager.DataSourceParam;
-import org.hellojavaer.ddr.core.utils.DDRJSONUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
 import java.io.PrintWriter;
@@ -40,8 +37,6 @@ import java.util.concurrent.Executor;
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 05/11/2016.
  */
 public abstract class AbstractDDRDataSource implements DDRDataSource {
-
-    protected final Logger           stdLogger = LoggerFactory.getLogger("org.hellojavaer.ddr.ds");
 
     private DataSourceSchemasBinding dataSourceSchemasBinding;
     private InnerDataSourceProperty  prop      = new InnerDataSourceProperty();
@@ -123,13 +118,6 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
                 }
                 if (tag.isLogWriter()) {
                     dataSourceSchemasBinding.getDataSource().setLogWriter(prop.getLogWriter());
-                }
-                if (stdLogger.isDebugEnabled()) {
-                    stdLogger.debug(new StringBuilder("[GetDataSource] ")//
-                    .append("param:").append(param.toString())//
-                    .append(" matched:")//
-                    .append(DDRJSONUtils.toJSONString(dataSourceSchemasBinding.getSchemas()))//
-                    .toString());
                 }
             }
         }

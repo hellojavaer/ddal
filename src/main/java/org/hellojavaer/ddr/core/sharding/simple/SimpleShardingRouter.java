@@ -154,34 +154,6 @@ public class SimpleShardingRouter implements ShardingRouter {
         ruleBindingWrapper.getConflictSchemas().add(ruleBinding.getScName());
     }
 
-    @Override
-    public void beginExecution(ShardingRouteParamContext context) {
-
-    }
-
-    @Override
-    public void endExecution(ShardingRouteParamContext context) {
-
-    }
-
-    @Override
-    public void beginStatement(ShardingRouteParamContext context, int type) {
-    }
-
-    @Override
-    public void endStatement(ShardingRouteParamContext context) {
-    }
-
-    @Override
-    public void beginSubSelect(ShardingRouteParamContext context) {
-
-    }
-
-    @Override
-    public void endSubSelect(ShardingRouteParamContext context) {
-
-    }
-
     private InnerSimpleShardingRouteRuleBindingWrapper getBinding(String scName, String tbName) {
         if (tbName == null) {
             throw new IllegalArgumentException("tbName can't be empty");

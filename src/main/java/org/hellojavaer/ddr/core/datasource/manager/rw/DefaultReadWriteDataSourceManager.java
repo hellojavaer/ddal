@@ -28,6 +28,8 @@ import org.hellojavaer.ddr.core.lb.random.WeightItem;
 import org.hellojavaer.ddr.core.lb.random.WeightedRandom;
 import org.hellojavaer.ddr.core.utils.DDRJSONUtils;
 import org.hellojavaer.ddr.core.utils.DDRStringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
 import java.util.*;
@@ -38,6 +40,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 19/11/2016.
  */
 public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceManager {
+
+    protected final Logger                                         stdLogger                                  = LoggerFactory.getLogger("org.hellojavaer.ddr.ds");
 
     // Original input
     private ReadOnlyDataSourceMonitorServer                        readOnlyDataSourceMonitorServer;
@@ -63,28 +67,70 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
 
     private static class WeightedDataSourceWrapper extends WeightedDataSource implements Cloneable {
 
-        private Set<String> schemas;
+        private int                      index;
+        private DataSourceSchemasBinding dataSourceSchemasBinding;
 
         public WeightedDataSourceWrapper() {
         }
 
-        public Set<String> getSchemas() {
-            return schemas;
+        public int getIndex() {
+            return index;
         }
 
-        public void setSchemas(Set<String> schemas) {
-            this.schemas = schemas;
+        public void setIndex(int index) {
+            this.index = index;
+        }
+
+        public DataSourceSchemasBinding getDataSourceSchemasBinding() {
+            return dataSourceSchemasBinding;
+        }
+
+        public void setDataSourceSchemasBinding(DataSourceSchemasBinding dataSourceSchemasBinding) {
+            this.dataSourceSchemasBinding = dataSourceSchemasBinding;
         }
 
         @Override
         public WeightedDataSourceWrapper clone() {
             try {
                 WeightedDataSourceWrapper backup = (WeightedDataSourceWrapper) super.clone();
-                backup.setSchemas(this.schemas);
+                backup.setIndex(index);
+                backup.setDataSourceSchemasBinding(dataSourceSchemasBinding);
                 return backup;
             } catch (CloneNotSupportedException e) {
                 throw new RuntimeException(e);
             }
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("{");
+            sb.append("\"name\":");
+            if (getName() == null) {
+                sb.append("null");
+            } else {
+                sb.append('\"');
+                sb.append(getName());
+                sb.append('\"');
+            }
+            sb.append(",\"index\":");
+            sb.append(index);
+            sb.append(",\"weight\":");
+            sb.append(getWeight());
+            sb.append(",\"desc\":");
+            if (getDesc() == null) {
+                sb.append("null");
+            } else {
+                sb.append('\"');
+                sb.append(getDesc());
+                sb.append('\"');
+            }
+            sb.append(",\"schemas\"");
+            sb.append(getDataSourceSchemasBinding().getSchemas());
+            sb.append(",\"datasource\"");
+            sb.append(getDataSource().toString());
+            sb.append('}');
+            return sb.toString();
         }
     }
 
@@ -115,22 +161,27 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
             public String setWeight(String scName, int index, int weight) {
                 scName = DDRStringUtils.toLowerCase(scName);
                 if (scName == null || index < 0 || weight < 0) {
-                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_ILLEGAL_ARGUMENT, "parameter invalid").toString();
+                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_ILLEGAL_ARGUMENT,
+                                                         "parameter invalid").toString();
                 }
                 if (readOnlyDataSourceIndexCacheCurrentValues == null
                     || readOnlyDataSourceIndexCacheCurrentValues.isEmpty()) {
-                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_DATA_IS_EMPTY, "target data is empty").toString();
+                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_DATA_IS_EMPTY,
+                                                         "target data is empty").toString();
                 }
                 List<WeightedDataSourceWrapper> weightedDataSourceList = readOnlyDataSourceIndexCacheCurrentValues.get(scName);
                 if (weightedDataSourceList == null || weightedDataSourceList.isEmpty()) {
-                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_DATA_IS_EMPTY, "target data is empty").toString();
+                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_DATA_IS_EMPTY,
+                                                         "target data is empty").toString();
                 }
                 if (index < 0 || index >= weightedDataSourceList.size()) {
-                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_ILLEGAL_ARGUMENT, "illegal argument(s)").toString();
+                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_ILLEGAL_ARGUMENT,
+                                                         "illegal argument(s)").toString();
                 }
                 WeightedDataSource weightedDataSource = weightedDataSourceList.get(index);
                 if (weightedDataSource == null) {
-                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_DATA_IS_EMPTY, "target data is empty").toString();
+                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_DATA_IS_EMPTY,
+                                                         "target data is empty").toString();
                 }
                 // ok
                 weightedDataSource.setWeight(weight);
@@ -142,13 +193,15 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
             public String restoreWeight(String scName, int index) {
                 scName = DDRStringUtils.toLowerCase(scName);
                 if (scName == null || index < 0) {
-                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_ILLEGAL_ARGUMENT, "illegal argument(s)").toString();
+                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_ILLEGAL_ARGUMENT,
+                                                         "illegal argument(s)").toString();
                 }
                 if (readOnlyDataSourceIndexCacheOriginalValues == null
                     || readOnlyDataSourceIndexCacheOriginalValues.isEmpty()
                     || readOnlyDataSourceIndexCacheCurrentValues == null
                     || readOnlyDataSourceIndexCacheCurrentValues.isEmpty()) {
-                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_DATA_IS_EMPTY, "target data is empty").toString();
+                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_DATA_IS_EMPTY,
+                                                         "target data is empty").toString();
                 }
                 List<WeightedDataSourceWrapper> weightedDataSourceList0 = readOnlyDataSourceIndexCacheOriginalValues.get(scName);
                 List<WeightedDataSourceWrapper> weightedDataSourceList1 = readOnlyDataSourceIndexCacheCurrentValues.get(scName);
@@ -157,12 +210,14 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
                     || weightedDataSourceList0.size() <= index//
                     || weightedDataSourceList1 == null || weightedDataSourceList1.isEmpty()
                     || weightedDataSourceList1.size() <= index) {
-                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_DATA_IS_EMPTY, "target data is empty").toString();
+                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_DATA_IS_EMPTY,
+                                                         "target data is empty").toString();
                 }
                 WeightedDataSource weightedDataSource0 = weightedDataSourceList0.get(index);
                 WeightedDataSource weightedDataSource1 = weightedDataSourceList1.get(index);
                 if (weightedDataSource0 == null || weightedDataSource1 == null) {
-                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_DATA_IS_EMPTY, "target data is empty").toString();
+                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_DATA_IS_EMPTY,
+                                                         "target data is empty").toString();
                 }
                 // ok
                 weightedDataSource1.setWeight(weightedDataSource0.getWeight());
@@ -194,19 +249,23 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
                 scName = DDRStringUtils.toLowerCase(scName);
                 dataSourceName = DDRStringUtils.toLowerCase(dataSourceName);
                 if (scName == null || dataSourceName == null || weight < 0) {
-                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_ILLEGAL_ARGUMENT, "illegal argument(s)").toString();
+                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_ILLEGAL_ARGUMENT,
+                                                         "illegal argument(s)").toString();
                 }
                 if (readOnlyDataSourceMapCahceCurrentValues == null
                     || readOnlyDataSourceMapCahceCurrentValues.isEmpty()) {
-                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_DATA_IS_EMPTY, "target data is empty").toString();
+                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_DATA_IS_EMPTY,
+                                                         "target data is empty").toString();
                 }
                 Map<String, WeightedDataSourceWrapper> weightedDataSourceMap = readOnlyDataSourceMapCahceCurrentValues.get(scName);
                 if (weightedDataSourceMap == null || weightedDataSourceMap.isEmpty()) {
-                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_DATA_IS_EMPTY, "target data is empty").toString();
+                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_DATA_IS_EMPTY,
+                                                         "target data is empty").toString();
                 }
                 WeightedDataSource weightedDataSource = weightedDataSourceMap.get(dataSourceName);
                 if (weightedDataSource == null) {
-                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_DATA_IS_EMPTY, "target data is empty").toString();
+                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_DATA_IS_EMPTY,
+                                                         "target data is empty").toString();
                 }
                 // ok
                 weightedDataSource.setWeight(weight);
@@ -219,24 +278,28 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
                 scName = DDRStringUtils.toLowerCase(scName);
                 dataSourceName = DDRStringUtils.toLowerCase(dataSourceName);
                 if (scName == null || dataSourceName == null) {
-                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_ILLEGAL_ARGUMENT, "illegal argument(s)").toString();
+                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_ILLEGAL_ARGUMENT,
+                                                         "illegal argument(s)").toString();
                 }
                 if (readOnlyDataSourceMapCahceOriginalValues == null
                     || readOnlyDataSourceMapCahceOriginalValues.isEmpty()
                     || readOnlyDataSourceMapCahceCurrentValues == null
                     || readOnlyDataSourceMapCahceCurrentValues.isEmpty()) {
-                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_DATA_IS_EMPTY, "target data is empty").toString();
+                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_DATA_IS_EMPTY,
+                                                         "target data is empty").toString();
                 }
                 Map<String, WeightedDataSourceWrapper> weightedDataSourceMap0 = readOnlyDataSourceMapCahceOriginalValues.get(scName);
                 Map<String, WeightedDataSourceWrapper> weightedDataSourceMap1 = readOnlyDataSourceMapCahceCurrentValues.get(scName);
                 if (weightedDataSourceMap0 == null || weightedDataSourceMap0.isEmpty()//
                     || weightedDataSourceMap1 == null || weightedDataSourceMap1.isEmpty()) {
-                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_DATA_IS_EMPTY, "target data is empty").toString();
+                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_DATA_IS_EMPTY,
+                                                         "target data is empty").toString();
                 }
                 WeightedDataSource weightedDataSource0 = weightedDataSourceMap0.get(dataSourceName);
                 WeightedDataSource weightedDataSource1 = weightedDataSourceMap1.get(dataSourceName);
                 if (weightedDataSource0 == null || weightedDataSource1 == null) {
-                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_DATA_IS_EMPTY, "target data is empty").toString();
+                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_DATA_IS_EMPTY,
+                                                         "target data is empty").toString();
                 }
                 // ok
                 weightedDataSource1.setWeight(weightedDataSource0.getWeight());
@@ -256,27 +319,31 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
 
             @Override
             public String setWeight(String scName, String values) {// TODO
-                return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_OPERATION_NOT_SUPPORTED, "'setWeight(String scName, String values)' is not supported now").toString();
+                return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_OPERATION_NOT_SUPPORTED,
+                                                     "'setWeight(String scName, String values)' is not supported now").toString();
             }
 
             @Override
             public String restoreWeight(String scName) {
                 scName = DDRStringUtils.toLowerCase(scName);
                 if (scName == null) {
-                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_ILLEGAL_ARGUMENT, "illegal argument(s)").toString();
+                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_ILLEGAL_ARGUMENT,
+                                                         "illegal argument(s)").toString();
                 }
                 if (readOnlyDataSourceIndexCacheOriginalValues == null
                     || readOnlyDataSourceIndexCacheOriginalValues.isEmpty()
                     || readOnlyDataSourceIndexCacheCurrentValues == null
                     || readOnlyDataSourceIndexCacheCurrentValues.isEmpty()) {
-                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_DATA_IS_EMPTY, "target data is empty").toString();
+                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_DATA_IS_EMPTY,
+                                                         "target data is empty").toString();
                 }
                 List<WeightedDataSourceWrapper> weightedDataSourceList0 = readOnlyDataSourceIndexCacheOriginalValues.get(scName);
                 List<WeightedDataSourceWrapper> weightedDataSourceList1 = readOnlyDataSourceIndexCacheCurrentValues.get(scName);
 
                 if (weightedDataSourceList0 == null || weightedDataSourceList0.isEmpty()
                     || weightedDataSourceList0 == null || weightedDataSourceList0.isEmpty()) {
-                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_DATA_IS_EMPTY, "target data is empty").toString();
+                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_DATA_IS_EMPTY,
+                                                         "target data is empty").toString();
                 }
                 for (int i = 0; i < weightedDataSourceList0.size(); i++) {
                     WeightedDataSource weightedDataSource0 = weightedDataSourceList0.get(i);
@@ -294,7 +361,8 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
                     || readOnlyDataSourceIndexCacheOriginalValues.isEmpty()
                     || readOnlyDataSourceIndexCacheCurrentValues == null
                     || readOnlyDataSourceIndexCacheCurrentValues.isEmpty()) {
-                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_DATA_IS_EMPTY, "data exception").toString();
+                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_DATA_IS_EMPTY,
+                                                         "data exception").toString();
                 }
                 for (Map.Entry<String, List<WeightedDataSourceWrapper>> entry : readOnlyDataSourceIndexCacheOriginalValues.entrySet()) {
                     List<WeightedDataSourceWrapper> weightedDataSourceList0 = entry.getValue();
@@ -302,7 +370,8 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
 
                     if (weightedDataSourceList0 == null || weightedDataSourceList0.isEmpty()
                         || weightedDataSourceList0 == null || weightedDataSourceList0.isEmpty()) {
-                        return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_DATA_IS_EMPTY, "data exception").toString();
+                        return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_DATA_IS_EMPTY,
+                                                             "data exception").toString();
                     }
                     for (int i = 0; i < weightedDataSourceList0.size(); i++) {
                         WeightedDataSource weightedDataSource0 = weightedDataSourceList0.get(i);
@@ -498,10 +567,7 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
         List<WeightItem> dataSourceSchemasBindings = new ArrayList<WeightItem>();
         for (WeightedDataSourceWrapper weightedDataSourceWrapper : weightedDataSourceWrappers) {
             if (weightedDataSourceWrapper.getWeight() > 0) {
-                DataSourceSchemasBinding dataSourceSchemasBinding = new DataSourceSchemasBinding(
-                                                                                                 weightedDataSourceWrapper.getDataSource(),
-                                                                                                 weightedDataSourceWrapper.getSchemas());
-                WeightItem weightItem = new WeightItem(weightedDataSourceWrapper.getWeight(), dataSourceSchemasBinding);
+                WeightItem weightItem = new WeightItem(weightedDataSourceWrapper.getWeight(), weightedDataSourceWrapper);
                 dataSourceSchemasBindings.add(weightItem);
             }
         }
@@ -521,7 +587,7 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
                 if (s == null) {
                     throw new IllegalArgumentException("scName cann't be empty");
                 } else if (uniqSchemas.contains(s)) {
-                    throw new IllegalArgumentException("duplicate scName '"+s+"'");
+                    throw new IllegalArgumentException("duplicate scName '" + s + "'");
                 } else {
                     uniqSchemas.add(s);
                 }
@@ -545,7 +611,8 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
                 List<WeightItem> itemList = new ArrayList<WeightItem>();
                 List<WeightedDataSourceWrapper> dataSourceSchemasBindings = new ArrayList<WeightedDataSourceWrapper>();
                 Set<String> nameSet = new HashSet<String>();
-                for (WeightedDataSource weightedDataSource : dataSources) {
+                for (int i = 0; i < dataSources.size(); i++) {
+                    WeightedDataSource weightedDataSource = dataSources.get(i);
                     if (weightedDataSource.getWeight() == null || weightedDataSource.getWeight() < 0) {
                         throw new IllegalArgumentException("weight can't be null or less than 0 for schemas '"
                                                            + DDRJSONUtils.toJSONString(uniqSchemas)
@@ -556,30 +623,35 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
                                                            + DDRJSONUtils.toJSONString(uniqSchemas)
                                                            + "' of 'readOnlyDataSources'");
                     }
-                    WeightedDataSourceWrapper dataSourceSchemasBinding = new WeightedDataSourceWrapper();
-                    dataSourceSchemasBinding.setDataSource(weightedDataSource.getDataSource());
-                    dataSourceSchemasBinding.setName(DDRStringUtils.trim(weightedDataSource.getName()));
-                    dataSourceSchemasBinding.setDesc(weightedDataSource.getDesc());
-                    dataSourceSchemasBinding.setSchemas(uniqSchemas);
-                    dataSourceSchemasBinding.setWeight(weightedDataSource.getWeight());
+                    WeightedDataSourceWrapper weightedDataSourceWrapper = new WeightedDataSourceWrapper();
+                    weightedDataSourceWrapper.setDataSource(weightedDataSource.getDataSource());
+                    weightedDataSourceWrapper.setName(DDRStringUtils.trim(weightedDataSource.getName()));
+                    weightedDataSourceWrapper.setIndex(i);
+                    weightedDataSourceWrapper.setDesc(weightedDataSource.getDesc());
+                    weightedDataSourceWrapper.setWeight(weightedDataSource.getWeight());
+                    DataSourceSchemasBinding dssb = new DataSourceSchemasBinding(
+                                                                                 weightedDataSourceWrapper.getDataSource(),
+                                                                                 uniqSchemas);
+                    weightedDataSourceWrapper.setDataSourceSchemasBinding(dssb);
                     // check
-                    if (dataSourceSchemasBinding.getName() != null) {
-                        if (nameSet.contains(dataSourceSchemasBinding.getName())) {
+                    if (weightedDataSourceWrapper.getName() != null) {
+                        if (nameSet.contains(weightedDataSourceWrapper.getName())) {
                             throw new IllegalArgumentException("Duplicate datasource name '"
-                                                               + dataSourceSchemasBinding.getName() + "' for scNames '"
+                                                               + weightedDataSourceWrapper.getName()
+                                                               + "' for scNames '"
                                                                + DDRJSONUtils.toJSONString(uniqSchemas) + "'");
                         } else {
-                            nameSet.add(dataSourceSchemasBinding.getName());
+                            nameSet.add(weightedDataSourceWrapper.getName());
                         }
                     }
                     // add
-                    dataSourceSchemasBindings.add(dataSourceSchemasBinding);
+                    dataSourceSchemasBindings.add(weightedDataSourceWrapper);
                     if (weightedDataSource.getWeight() == 0) {
                         continue;
                     } else {
                         WeightItem weightItem = new WeightItem();
                         weightItem.setWeight(weightedDataSource.getWeight());
-                        weightItem.setValue(dataSourceSchemasBinding);
+                        weightItem.setValue(weightedDataSourceWrapper);
                         itemList.add(weightItem);
                     }
                 }
@@ -601,25 +673,37 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
             if (this.readOnlyDataSourceQueryCache == null) {
                 throw new IllegalStateException("No 'readOnlyDataSource' is configured");
             } else {
-                DataSourceSchemasBinding dataSourceSchemasBinding = null;
+                WeightedDataSourceWrapper weightedDataSourceWrapper = null;
                 for (String scName : param.getScNames()) {
-                    if (dataSourceSchemasBinding == null) {
+                    if (weightedDataSourceWrapper == null) {
                         WeightedRandom weightedRandom = this.readOnlyDataSourceQueryCache.get(scName);
                         if (weightedRandom == null) {
-                            throw new IllegalStateException("No 'readOnlyDataSource' is configured for schema:'"
-                                                            + scName + "'");
+                            throw new IllegalStateException("schema:'" + scName
+                                                            + "' isn't configured in 'readOnlyDataSource' list ");
                         } else {
-                            dataSourceSchemasBinding = (DataSourceSchemasBinding) weightedRandom.nextValue();
+                            weightedDataSourceWrapper = (WeightedDataSourceWrapper) weightedRandom.nextValue();
                         }
                     } else {
-                        if (!dataSourceSchemasBinding.getSchemas().contains(scName)) {
-                            throw new CrossingDataSourceException("scName:'" + scName
-                                                                  + "' is not in 'readOnlyDataSource' binding '"
-                                                                  + dataSourceSchemasBinding.toString() + "'");
+                        if (!weightedDataSourceWrapper.getDataSourceSchemasBinding().getSchemas().contains(scName)) {
+                            throw new CrossingDataSourceException(
+                                                                  "scName:'"
+                                                                          + scName
+                                                                          + "' is not in 'readOnlyDataSource' binding '"
+                                                                          + weightedDataSourceWrapper.getDataSourceSchemasBinding().toString()
+                                                                          + "'");
                         }
                     }
                 }
-                return dataSourceSchemasBinding;
+                // log
+                if (stdLogger.isDebugEnabled()) {
+                    stdLogger.debug(new StringBuilder("[GetDataSource] ")//
+                    .append("param:")//
+                    .append(param)//
+                    .append(" matched:")//
+                    .append(weightedDataSourceWrapper)//
+                    .toString());
+                }
+                return weightedDataSourceWrapper.getDataSourceSchemasBinding();
             }
         } else {
             if (this.writeOnlyDataSourceQueryCache == null) {
@@ -630,8 +714,8 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
                     if (dataSourceSchemasBinding == null) {
                         dataSourceSchemasBinding = this.writeOnlyDataSourceQueryCache.get(scName);
                         if (dataSourceSchemasBinding == null) {
-                            throw new IllegalStateException("No 'writeOnlyDataSource' is configured for schema:'"
-                                                            + scName + "'");
+                            throw new IllegalStateException("schema '" + scName
+                                                            + "' isn't configured in 'writeOnlyDataSource' list");
                         }
                     } else {
                         if (!dataSourceSchemasBinding.getSchemas().contains(scName)) {

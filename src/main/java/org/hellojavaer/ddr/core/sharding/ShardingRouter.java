@@ -21,30 +21,6 @@ package org.hellojavaer.ddr.core.sharding;
  */
 public interface ShardingRouter {
 
-    class SqlStatementType {
-
-        public static final int INSERT = 0;
-
-        public static final int DELETE = 1;
-
-        public static final int UPDATE = 2;
-
-        public static final int SELECT = 3;
-
-    }
-
-    void beginExecution(ShardingRouteParamContext context);
-
-    void endExecution(ShardingRouteParamContext context);
-
-    void beginStatement(ShardingRouteParamContext context, int sqlStatementType);
-
-    void endStatement(ShardingRouteParamContext context);
-
-    void beginSubSelect(ShardingRouteParamContext context);
-
-    void endSubSelect(ShardingRouteParamContext context);
-
     RouteConfig getRouteConfig(ShardingRouteParamContext context, String scName, String tbName);
 
     RouteInfo route(ShardingRouteParamContext context, String scName, String tbName, Object sdValue);
