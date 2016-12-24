@@ -124,35 +124,43 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
         StackContext context = this.getContext().getStack().pop();
         for (Map.Entry<String, TableWrapper> entry : context.entrySet()) {
             TableWrapper tableWrapper = entry.getValue();
-            if (!entry.getValue().isConverted()) {
-                Object routeInfo = ShardingRouteContext.getRoute(tableWrapper.getScName(), tableWrapper.getTbName());
-                if (routeInfo == null) {
-                    if (tableWrapper.getSdName() != null) {// 禁用sql路由后但未在ShardingRouteContext中设置路由
-                        throw new RouteInfoNotFoundException(
-                                                             "Disabled sql routing but not set route information by 'ShardingRouteContext'. detail information is "
-                                                                     + tableWrapper);
+            if (!entry.getValue().isConverted()) {// 回溯没有被转换的表
+                // 首先通过标准规则转换
+                RouteInfo shardingRouterRouteInfo = this.shardingRouter.route(this.getContext().getTableRouterContext(),
+                                                                              tableWrapper.getScName(),
+                                                                              tableWrapper.getTbName(), null);
+                if (shardingRouterRouteInfo != null) {
+                    route0(tableWrapper, shardingRouterRouteInfo);
+                } else {// 如果没有转换信息则通过ShardingRouteContext 转换
+                    Object routeInfo = ShardingRouteContext.getRoute(tableWrapper.getScName(), tableWrapper.getTbName());
+                    if (routeInfo == null) {
+                        if (tableWrapper.getSdName() != null) {// 禁用sql路由后但未在ShardingRouteContext中设置路由
+                            throw new RouteInfoNotFoundException(
+                                                                 "Disabled sql routing but not set route information by 'ShardingRouteContext'. detail information is "
+                                                                         + tableWrapper);
 
-                    } else {
-                        StringBuilder sb = new StringBuilder();
-                        sb.append("No route column was found. expect '");
-                        if (tableWrapper.getTable().getAlias() != null) {
-                            sb.append(tableWrapper.getTable().getAlias().getName());
                         } else {
-                            sb.append(tableWrapper.getTable().getName());
+                            StringBuilder sb = new StringBuilder();
+                            sb.append("No route column was found. expect '");
+                            if (tableWrapper.getTable().getAlias() != null) {
+                                sb.append(tableWrapper.getTable().getAlias().getName());
+                            } else {
+                                sb.append(tableWrapper.getTable().getName());
+                            }
+                            sb.append('.');
+                            sb.append(tableWrapper.getRouteInfo().getSdName());
+                            sb.append("' route value. Detail information is ");
+                            sb.append(tableWrapper.toString());
+                            throw new RouteInfoNotFoundException(sb.toString());
                         }
-                        sb.append('.');
-                        sb.append(tableWrapper.getRouteInfo().getSdName());
-                        sb.append("' route value. Detail information is ");
-                        sb.append(tableWrapper.toString());
-                        throw new RouteInfoNotFoundException(sb.toString());
+                    } else if (routeInfo instanceof RouteInfo) {
+                        route0(tableWrapper, (RouteInfo) routeInfo);
+                    } else {
+                        RouteInfo shardingInfo = this.shardingRouter.route(this.getContext().getTableRouterContext(),
+                                                                           tableWrapper.getScName(),
+                                                                           tableWrapper.getTbName(), routeInfo);
+                        route0(tableWrapper, shardingInfo);
                     }
-                } else if (routeInfo instanceof RouteInfo) {
-                    route0(tableWrapper, (RouteInfo) routeInfo);
-                } else {
-                    RouteInfo shardingInfo = this.shardingRouter.route(this.getContext().getTableRouterContext(),
-                                                                       tableWrapper.getScName(),
-                                                                       tableWrapper.getTbName(), routeInfo);
-                    route0(tableWrapper, shardingInfo);
                 }
             }
         }
@@ -360,13 +368,14 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
                 table.setAlias(new Alias(tbName, true));
             }
         }
+        String sdName = DDRStringUtils.toLowerCase(routeInfo.getSdName());
         if (table.getSchemaName() != null) {
             StringBuilder sb = new StringBuilder();
             sb.append(DDRStringUtils.toLowerCase(table.getSchemaName()));
             sb.append('.');
             sb.append(DDRStringUtils.toLowerCase(tbAliasName));
             sb.append('.');
-            sb.append(DDRStringUtils.toLowerCase(routeInfo.getSdName()));
+            sb.append(sdName);
             String key = sb.toString();
             TableWrapper tableWrapper = new TableWrapper(table, routeInfo);
             putIntoContext(stackContext, key, tableWrapper);
@@ -377,7 +386,7 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
             StringBuilder sb = new StringBuilder();
             sb.append(DDRStringUtils.toLowerCase(tbAliasName));
             sb.append('.');
-            sb.append(DDRStringUtils.toLowerCase(routeInfo.getSdName()));
+            sb.append(sdName);
             String key = sb.toString();
             TableWrapper tableWrapper = new TableWrapper(table, routeInfo);
             putIntoContext(stackContext, key, tableWrapper);
