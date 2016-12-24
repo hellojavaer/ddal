@@ -406,7 +406,7 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
             boolean exist = dataSourceMap.containsKey(schema);
             if (exist) {
                 throw new IllegalArgumentException("Schema '" + schema
-                                                   + "' repeated binding in 'writeOnlyDataSources' configuration");
+                                                   + "' duplicate binding in 'writeOnlyDataSources' configuration");
             } else {
                 dataSourceMap.put(schema, new DataSourceSchemasBinding(dataSource, uniqSchemas));
             }
@@ -521,7 +521,7 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
                 if (s == null) {
                     throw new IllegalArgumentException("scName cann't be empty");
                 } else if (uniqSchemas.contains(s)) {
-                    throw new IllegalArgumentException("scName cann't repeat");
+                    throw new IllegalArgumentException("duplicate scName '"+s+"'");
                 } else {
                     uniqSchemas.add(s);
                 }
@@ -539,8 +539,8 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
             }
             schema = DDRStringUtils.toLowerCase(schema);
             if (schemaDataSourceMapping.containsKey(schema)) {
-                throw new IllegalArgumentException("Schema '" + schema
-                                                   + "' repeated bind in 'readOnlyDataSources' configuration");
+                throw new IllegalArgumentException("Duplicate schema '" + schema
+                                                   + "' bind in 'readOnlyDataSources' configuration");
             } else {
                 List<WeightItem> itemList = new ArrayList<WeightItem>();
                 List<WeightedDataSourceWrapper> dataSourceSchemasBindings = new ArrayList<WeightedDataSourceWrapper>();
@@ -565,7 +565,7 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
                     // check
                     if (dataSourceSchemasBinding.getName() != null) {
                         if (nameSet.contains(dataSourceSchemasBinding.getName())) {
-                            throw new IllegalArgumentException("Repeated datasource name '"
+                            throw new IllegalArgumentException("Duplicate datasource name '"
                                                                + dataSourceSchemasBinding.getName() + "' for scNames '"
                                                                + DDRJSONUtils.toJSONString(uniqSchemas) + "'");
                         } else {
