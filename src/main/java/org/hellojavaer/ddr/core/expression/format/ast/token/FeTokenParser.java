@@ -69,7 +69,7 @@ public class FeTokenParser {
                     if (ch == '{') {
                         break;
                     } else if (ch == '}') {
-                        throw new IllegalStateException("unexpected '}' at index " + index);
+                        throw new IllegalStateException("Unexpected '}' at index " + index);
                     } else {
                         continue;
                     }
@@ -99,8 +99,8 @@ public class FeTokenParser {
                         if (c0 == '\\' || c0 == '\'' || c0 == '\"') {
                             sb.append(c0);
                         } else {
-                            throw new IllegalArgumentException("Can't escape for character '" + c0
-                                                               + "' in source string of " + str);
+                            throw new IllegalArgumentException("Can't escape character '" + c0
+                                                               + "' for string :" + str +" at index:"+index);
                         }
                         escape = false;
                     } else {

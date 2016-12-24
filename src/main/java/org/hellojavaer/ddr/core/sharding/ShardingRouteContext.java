@@ -58,10 +58,10 @@ public class ShardingRouteContext {
         scName = DDRStringUtils.toLowerCase(scName);
         tbName = DDRStringUtils.toLowerCase(tbName);
         if (scName == null) {
-            throw new IllegalArgumentException("scName can't be null");
+            throw new IllegalArgumentException("'scName' can't be null");
         }
         if (tbName == null) {
-            throw new IllegalArgumentException("tbName can't be null");
+            throw new IllegalArgumentException("'tbName' can't be null");
         }
         Map<String, InnerShadingInfoWrapper> map = ROUTE_VALUE.get();
         String fullKey = buildQueryKey(scName, tbName);
@@ -103,10 +103,10 @@ public class ShardingRouteContext {
         scName = DDRStringUtils.toLowerCase(scName);
         tbName = DDRStringUtils.toLowerCase(tbName);
         if (scName == null) {
-            throw new IllegalArgumentException("scName can't be null");
+            throw new IllegalArgumentException("'scName' can't be null");
         }
         if (tbName == null) {
-            throw new IllegalArgumentException("tbName can't be null");
+            throw new IllegalArgumentException("'tbName' can't be null");
         }
 
         Map<String, InnerShadingInfoWrapper> map = ROUTE_VALUE.get();
@@ -125,14 +125,14 @@ public class ShardingRouteContext {
         scName = DDRStringUtils.toLowerCase(scName);
         tbName = DDRStringUtils.toLowerCase(tbName);
         if (tbName == null) {
-            throw new IllegalArgumentException("tbName can't be null");
+            throw new IllegalArgumentException("'tbName' can't be null");
         }
         Map<String, InnerShadingInfoWrapper> map = ROUTE_VALUE.get();
         InnerShadingInfoWrapper shadingInfoWrapper = map.get(buildQueryKey(scName, tbName));
         if (shadingInfoWrapper == null) {
             return null;
         } else if (shadingInfoWrapper.getConflictSchemas().size() > 1) {
-            throw new AmbiguousDataSourceException("datasource binding for scName:" + scName + ", tbName:" + tbName
+            throw new AmbiguousDataSourceException("Datasource binding for scName:" + scName + ", tbName:" + tbName
                                                    + " is ambiguous");
         } else {
             return shadingInfoWrapper.getShardingInfo();

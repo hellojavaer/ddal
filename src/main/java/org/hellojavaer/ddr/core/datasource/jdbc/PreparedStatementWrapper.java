@@ -17,6 +17,7 @@ package org.hellojavaer.ddr.core.datasource.jdbc;
 
 import org.hellojavaer.ddr.core.datasource.exception.CrossingDataSourceException;
 import org.hellojavaer.ddr.core.datasource.exception.UninitializedStatusException;
+import org.hellojavaer.ddr.core.datasource.exception.UnsupportedPreparedStatementInvocationException;
 import org.hellojavaer.ddr.core.datasource.manager.DataSourceParam;
 import org.hellojavaer.ddr.core.utils.DDRJSONUtils;
 import org.slf4j.Logger;
@@ -31,7 +32,7 @@ import java.util.*;
  */
 public abstract class PreparedStatementWrapper extends StatementWrapper implements DDRPreparedStatement {
 
-    private Logger stdLogger = LoggerFactory.getLogger("org.hellojavaer.ddr.sql");
+    private Logger                        stdLogger     = LoggerFactory.getLogger("org.hellojavaer.ddr.sql");
 
     protected PreparedStatement           preparedStatement;
     private String                        sql;
@@ -479,7 +480,7 @@ public abstract class PreparedStatementWrapper extends StatementWrapper implemen
                     preparedStatement.setSQLXML(index, (java.sql.SQLXML) params[0]);
                     break;
                 default:
-                    throw new UnsupportedOperationException("Unknown setter method '" + method + "'");
+                    throw new UnsupportedPreparedStatementInvocationException("Unknown setter method '" + method + "'");
             }
         }
         jdbcParamInvocationList = null;

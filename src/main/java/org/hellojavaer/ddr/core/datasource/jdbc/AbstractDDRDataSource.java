@@ -18,6 +18,7 @@ package org.hellojavaer.ddr.core.datasource.jdbc;
 import org.hellojavaer.ddr.core.datasource.DataSourceSchemasBinding;
 import org.hellojavaer.ddr.core.datasource.exception.DataSourceNotFoundException;
 import org.hellojavaer.ddr.core.datasource.exception.UninitializedStatusException;
+import org.hellojavaer.ddr.core.datasource.exception.UnsupportedConnectionInvocationException;
 import org.hellojavaer.ddr.core.datasource.jdbc.init.UninitializedConnectionProcessor;
 import org.hellojavaer.ddr.core.datasource.jdbc.init.UninitializedDataSourceProcessor;
 import org.hellojavaer.ddr.core.datasource.jdbc.property.ConnectionProperty;
@@ -955,18 +956,18 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
         @Override
         public CallableStatement prepareCall(String sql, int resultSetType, int resultSetConcurrency,
                                              int resultSetHoldability) throws SQLException {
-            throw new UnsupportedOperationException("prepareCall");
+            throw new UnsupportedConnectionInvocationException("prepareCall");
         }
 
         @Override
         public CallableStatement prepareCall(String sql, int resultSetType, int resultSetConcurrency)
                                                                                                      throws SQLException {
-            throw new UnsupportedOperationException("prepareCall");
+            throw new UnsupportedConnectionInvocationException("prepareCall");
         }
 
         @Override
         public CallableStatement prepareCall(String sql) throws SQLException {
-            throw new UnsupportedOperationException("prepareCall");
+            throw new UnsupportedConnectionInvocationException("prepareCall");
         }
 
         @Override
