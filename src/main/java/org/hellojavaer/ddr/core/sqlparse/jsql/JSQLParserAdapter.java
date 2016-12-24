@@ -85,7 +85,7 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
             DDRSQLParseResult parseResult = new DDRSQLParseResult();
             parseResult.setSql(targetSql);
             parseResult.setSchemas(schemas);
-            parseResult.setParseState(new DDRSQLParseResult.ParseState() {
+            parseResult.setParserState(new DDRSQLParseResult.ParserState() {
 
                 @Override
                 public void validJdbcParam(Map<Object, Object> jdbcParam) {

@@ -28,7 +28,7 @@ public class DDRSQLParseResult {
 
     private String      sql;
     private Set<String> schemas;
-    private ParseState  parseState;
+    private ParserState parserState;
 
     public String getSql() {
         return sql;
@@ -46,15 +46,15 @@ public class DDRSQLParseResult {
         this.schemas = schemas;
     }
 
-    public ParseState getParseState() {
-        return parseState;
+    public ParserState getParserState() {
+        return parserState;
     }
 
-    public void setParseState(ParseState parseState) {
-        this.parseState = parseState;
+    public void setParserState(ParserState parserState) {
+        this.parserState = parserState;
     }
 
-    public interface ParseState {
+    public interface ParserState {
 
         void validJdbcParam(Map<Object, Object> jdbcParam) throws CrossingPreparedStatementException;
     }

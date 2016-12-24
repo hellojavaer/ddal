@@ -33,7 +33,7 @@ public abstract class PreparedStatementWrapper extends StatementWrapper implemen
     private Map<Object, Object>          jdbcParameter = new HashMap<Object, Object>();
     private List<JdbcParamInvocation>    jdbcParamInvocationList;
 
-    private DDRSQLParseResult.ParseState parseState;
+    private DDRSQLParseResult.ParserState parserState;
 
     public PreparedStatementWrapper(String sql, boolean readOnly, Set<String> schemas) {
         super(readOnly, schemas);
@@ -174,12 +174,12 @@ public abstract class PreparedStatementWrapper extends StatementWrapper implemen
     }
 
     private void initPreparedStatementIfAbsent() throws SQLException {
-        if (parseState != null) {
-            parseState.validJdbcParam(this.jdbcParameter);
+        if (parserState != null) {
+            parserState.validJdbcParam(this.jdbcParameter);
         } else {
             // 1. parse sql
             DDRSQLParseResult parseResult = parseSql(sql, this.jdbcParameter);
-            parseState = parseResult.getParseState();
+            parserState = parseResult.getParserState();
             // 2. check if crossing datasource
             if (isCrossDataSource(parseResult.getSchemas())) {
                 throw new CrossingDataSourceException("Sql schemas are " + parseSchemasToString(parseResult.getSchemas())
