@@ -21,6 +21,7 @@ import org.hellojavaer.ddr.core.datasource.exception.CrossingDataSourceException
 import org.hellojavaer.ddr.core.datasource.manager.DataSourceParam;
 import org.hellojavaer.ddr.core.datasource.manager.rw.monitor.ReadOnlyDataSourceMonitor;
 import org.hellojavaer.ddr.core.datasource.manager.rw.monitor.ReadOnlyDataSourceMonitorServer;
+import org.hellojavaer.ddr.core.datasource.manager.rw.monitor.WritingMethodInvokeResult;
 import org.hellojavaer.ddr.core.expression.range.RangeExpression;
 import org.hellojavaer.ddr.core.expression.range.RangeItemVisitor;
 import org.hellojavaer.ddr.core.lb.random.WeightItem;
@@ -40,23 +41,27 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
 
     // Original input
     private ReadOnlyDataSourceMonitorServer                        readOnlyDataSourceMonitorServer;
-    private AtomicBoolean                                          inited                                     = new AtomicBoolean(
-                                                                                                                                  false);
 
-    private List<WriteOnlyDataSourceBinding>                       writeOnlyDataSources;
-    private List<ReadOnlyDataSourceBinding>                        readOnlyDataSources;
+    // Original input
+    private List<WriteOnlyDataSourceBinding>                       writeOnlyDataSources                       = null;
+    private List<ReadOnlyDataSourceBinding>                        readOnlyDataSources                        = null;
 
     // cache
     private Map<String, WeightedRandom>                            readOnlyDataSourceQueryCache               = null;
     private Map<String, DataSourceSchemasBinding>                  writeOnlyDataSourceQueryCache              = null;
 
+    // backup
     private LinkedHashMap<String, List<WeightedDataSourceWrapper>> readOnlyDataSourceIndexCacheOriginalValues = null;
     private Map<String, Map<String, WeightedDataSourceWrapper>>    readOnlyDataSourceMapCahceOriginalValues   = null;
 
     private LinkedHashMap<String, List<WeightedDataSourceWrapper>> readOnlyDataSourceIndexCacheCurrentValues  = null;
     private Map<String, Map<String, WeightedDataSourceWrapper>>    readOnlyDataSourceMapCahceCurrentValues    = null;
 
-    private class WeightedDataSourceWrapper extends WeightedDataSource {
+    // tag
+    private AtomicBoolean                                          inited                                     = new AtomicBoolean(
+                                                                                                                                  false);
+
+    private static class WeightedDataSourceWrapper extends WeightedDataSource implements Cloneable {
 
         private Set<String> schemas;
 
@@ -69,6 +74,17 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
 
         public void setSchemas(Set<String> schemas) {
             this.schemas = schemas;
+        }
+
+        @Override
+        public WeightedDataSourceWrapper clone() {
+            try {
+                WeightedDataSourceWrapper backup = (WeightedDataSourceWrapper) super.clone();
+                backup.setSchemas(this.schemas);
+                return backup;
+            } catch (CloneNotSupportedException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
@@ -99,40 +115,40 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
             public String setWeight(String scName, int index, int weight) {
                 scName = DDRStringUtils.toLowerCase(scName);
                 if (scName == null || index < 0 || weight < 0) {
-                    return new SetResult(SetResult.CODE_OF_PARAM_ERROR, "parameter invalid").toString();
+                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_ILLEGAL_ARGUMENT, "parameter invalid").toString();
                 }
                 if (readOnlyDataSourceIndexCacheCurrentValues == null
                     || readOnlyDataSourceIndexCacheCurrentValues.isEmpty()) {
-                    return new SetResult(SetResult.CODE_OF_ILLEGAL_STATUS, "cache in empty").toString();
+                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_DATA_IS_EMPTY, "target data is empty").toString();
                 }
                 List<WeightedDataSourceWrapper> weightedDataSourceList = readOnlyDataSourceIndexCacheCurrentValues.get(scName);
                 if (weightedDataSourceList == null || weightedDataSourceList.isEmpty()) {
-                    return new SetResult(SetResult.CODE_OF_ILLEGAL_STATUS, "cache in empty").toString();
+                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_DATA_IS_EMPTY, "target data is empty").toString();
                 }
                 if (index < 0 || index >= weightedDataSourceList.size()) {
-                    return new SetResult(SetResult.CODE_OF_PARAM_ERROR, "parameter invalid").toString();
+                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_ILLEGAL_ARGUMENT, "illegal argument(s)").toString();
                 }
                 WeightedDataSource weightedDataSource = weightedDataSourceList.get(index);
                 if (weightedDataSource == null) {
-                    return new SetResult(SetResult.CODE_OF_ILLEGAL_STATUS, "cache in empty").toString();
+                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_DATA_IS_EMPTY, "target data is empty").toString();
                 }
                 // ok
                 weightedDataSource.setWeight(weight);
                 refreshReadDataSourceQueryCache(scName, weightedDataSourceList);
-                return new SetResult(SetResult.CODE_OF_SUCCESS, "OK").toString();
+                return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_SUCCESS, "OK").toString();
             }
 
             @Override
             public String restoreWeight(String scName, int index) {
                 scName = DDRStringUtils.toLowerCase(scName);
                 if (scName == null || index < 0) {
-                    return new SetResult(SetResult.CODE_OF_PARAM_ERROR, "parameter invalid").toString();
+                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_ILLEGAL_ARGUMENT, "illegal argument(s)").toString();
                 }
                 if (readOnlyDataSourceIndexCacheOriginalValues == null
                     || readOnlyDataSourceIndexCacheOriginalValues.isEmpty()
                     || readOnlyDataSourceIndexCacheCurrentValues == null
                     || readOnlyDataSourceIndexCacheCurrentValues.isEmpty()) {
-                    return new SetResult(SetResult.CODE_OF_ILLEGAL_STATUS, "cache in empty").toString();
+                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_DATA_IS_EMPTY, "target data is empty").toString();
                 }
                 List<WeightedDataSourceWrapper> weightedDataSourceList0 = readOnlyDataSourceIndexCacheOriginalValues.get(scName);
                 List<WeightedDataSourceWrapper> weightedDataSourceList1 = readOnlyDataSourceIndexCacheCurrentValues.get(scName);
@@ -141,17 +157,17 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
                     || weightedDataSourceList0.size() <= index//
                     || weightedDataSourceList1 == null || weightedDataSourceList1.isEmpty()
                     || weightedDataSourceList1.size() <= index) {
-                    return new SetResult(SetResult.CODE_OF_ILLEGAL_STATUS, "cache in empty").toString();
+                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_DATA_IS_EMPTY, "target data is empty").toString();
                 }
                 WeightedDataSource weightedDataSource0 = weightedDataSourceList0.get(index);
-                WeightedDataSource weightedDataSource1 = weightedDataSourceList0.get(index);
+                WeightedDataSource weightedDataSource1 = weightedDataSourceList1.get(index);
                 if (weightedDataSource0 == null || weightedDataSource1 == null) {
-                    return new SetResult(SetResult.CODE_OF_DATA_EXCEPTION, "cache in empty").toString();
+                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_DATA_IS_EMPTY, "target data is empty").toString();
                 }
                 // ok
                 weightedDataSource1.setWeight(weightedDataSource0.getWeight());
                 refreshReadDataSourceQueryCache(scName, weightedDataSourceList1);
-                return new SetResult(SetResult.CODE_OF_SUCCESS, "OK").toString();
+                return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_SUCCESS, "OK").toString();
             }
 
             @Override
@@ -178,24 +194,24 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
                 scName = DDRStringUtils.toLowerCase(scName);
                 dataSourceName = DDRStringUtils.toLowerCase(dataSourceName);
                 if (scName == null || dataSourceName == null || weight < 0) {
-                    return new SetResult(SetResult.CODE_OF_PARAM_ERROR, "parameter invalid").toString();
+                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_ILLEGAL_ARGUMENT, "illegal argument(s)").toString();
                 }
                 if (readOnlyDataSourceMapCahceCurrentValues == null
                     || readOnlyDataSourceMapCahceCurrentValues.isEmpty()) {
-                    return new SetResult(SetResult.CODE_OF_ILLEGAL_STATUS, "cache in empty").toString();
+                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_DATA_IS_EMPTY, "target data is empty").toString();
                 }
                 Map<String, WeightedDataSourceWrapper> weightedDataSourceMap = readOnlyDataSourceMapCahceCurrentValues.get(scName);
                 if (weightedDataSourceMap == null || weightedDataSourceMap.isEmpty()) {
-                    return new SetResult(SetResult.CODE_OF_ILLEGAL_STATUS, "cache in empty").toString();
+                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_DATA_IS_EMPTY, "target data is empty").toString();
                 }
                 WeightedDataSource weightedDataSource = weightedDataSourceMap.get(dataSourceName);
                 if (weightedDataSource == null) {
-                    return new SetResult(SetResult.CODE_OF_ILLEGAL_STATUS, "cache in empty").toString();
+                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_DATA_IS_EMPTY, "target data is empty").toString();
                 }
                 // ok
                 weightedDataSource.setWeight(weight);
                 refreshReadDataSourceQueryCache(scName, readOnlyDataSourceIndexCacheCurrentValues.get(scName));
-                return new SetResult(SetResult.CODE_OF_SUCCESS, "OK").toString();
+                return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_SUCCESS, "OK").toString();
             }
 
             @Override
@@ -203,29 +219,29 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
                 scName = DDRStringUtils.toLowerCase(scName);
                 dataSourceName = DDRStringUtils.toLowerCase(dataSourceName);
                 if (scName == null || dataSourceName == null) {
-                    return new SetResult(SetResult.CODE_OF_PARAM_ERROR, "parameter invalid").toString();
+                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_ILLEGAL_ARGUMENT, "illegal argument(s)").toString();
                 }
                 if (readOnlyDataSourceMapCahceOriginalValues == null
                     || readOnlyDataSourceMapCahceOriginalValues.isEmpty()
                     || readOnlyDataSourceMapCahceCurrentValues == null
                     || readOnlyDataSourceMapCahceCurrentValues.isEmpty()) {
-                    return new SetResult(SetResult.CODE_OF_ILLEGAL_STATUS, "cache in empty").toString();
+                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_DATA_IS_EMPTY, "target data is empty").toString();
                 }
                 Map<String, WeightedDataSourceWrapper> weightedDataSourceMap0 = readOnlyDataSourceMapCahceOriginalValues.get(scName);
                 Map<String, WeightedDataSourceWrapper> weightedDataSourceMap1 = readOnlyDataSourceMapCahceCurrentValues.get(scName);
                 if (weightedDataSourceMap0 == null || weightedDataSourceMap0.isEmpty()//
                     || weightedDataSourceMap1 == null || weightedDataSourceMap1.isEmpty()) {
-                    return new SetResult(SetResult.CODE_OF_ILLEGAL_STATUS, "cache in empty").toString();
+                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_DATA_IS_EMPTY, "target data is empty").toString();
                 }
                 WeightedDataSource weightedDataSource0 = weightedDataSourceMap0.get(dataSourceName);
                 WeightedDataSource weightedDataSource1 = weightedDataSourceMap1.get(dataSourceName);
                 if (weightedDataSource0 == null || weightedDataSource1 == null) {
-                    return new SetResult(SetResult.CODE_OF_DATA_EXCEPTION, "cache in empty").toString();
+                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_DATA_IS_EMPTY, "target data is empty").toString();
                 }
                 // ok
                 weightedDataSource1.setWeight(weightedDataSource0.getWeight());
                 refreshReadDataSourceQueryCache(scName, readOnlyDataSourceIndexCacheCurrentValues.get(scName));
-                return new SetResult(SetResult.CODE_OF_SUCCESS, "OK").toString();
+                return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_SUCCESS, "OK").toString();
             }
 
             @Override
@@ -240,27 +256,27 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
 
             @Override
             public String setWeight(String scName, String values) {// TODO
-                return new SetResult(SetResult.CODE_OF_OPERATION_NOT_SUPPORTED, "").toString();
+                return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_OPERATION_NOT_SUPPORTED, "'setWeight(String scName, String values)' is not supported now").toString();
             }
 
             @Override
             public String restoreWeight(String scName) {
                 scName = DDRStringUtils.toLowerCase(scName);
                 if (scName == null) {
-                    return new SetResult(SetResult.CODE_OF_PARAM_ERROR, "").toString();
+                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_ILLEGAL_ARGUMENT, "illegal argument(s)").toString();
                 }
                 if (readOnlyDataSourceIndexCacheOriginalValues == null
                     || readOnlyDataSourceIndexCacheOriginalValues.isEmpty()
                     || readOnlyDataSourceIndexCacheCurrentValues == null
                     || readOnlyDataSourceIndexCacheCurrentValues.isEmpty()) {
-                    return new SetResult(SetResult.CODE_OF_ILLEGAL_STATUS, "").toString();
+                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_DATA_IS_EMPTY, "target data is empty").toString();
                 }
                 List<WeightedDataSourceWrapper> weightedDataSourceList0 = readOnlyDataSourceIndexCacheOriginalValues.get(scName);
                 List<WeightedDataSourceWrapper> weightedDataSourceList1 = readOnlyDataSourceIndexCacheCurrentValues.get(scName);
 
                 if (weightedDataSourceList0 == null || weightedDataSourceList0.isEmpty()
                     || weightedDataSourceList0 == null || weightedDataSourceList0.isEmpty()) {
-                    return new SetResult(SetResult.CODE_OF_ILLEGAL_STATUS, "").toString();
+                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_DATA_IS_EMPTY, "target data is empty").toString();
                 }
                 for (int i = 0; i < weightedDataSourceList0.size(); i++) {
                     WeightedDataSource weightedDataSource0 = weightedDataSourceList0.get(i);
@@ -269,7 +285,7 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
                 }
                 // ok
                 refreshReadDataSourceQueryCache(scName, weightedDataSourceList1);
-                return new SetResult(SetResult.CODE_OF_SUCCESS, "").toString();
+                return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_SUCCESS, "OK").toString();
             }
 
             @Override
@@ -278,7 +294,7 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
                     || readOnlyDataSourceIndexCacheOriginalValues.isEmpty()
                     || readOnlyDataSourceIndexCacheCurrentValues == null
                     || readOnlyDataSourceIndexCacheCurrentValues.isEmpty()) {
-                    return new SetResult(SetResult.CODE_OF_ILLEGAL_STATUS, "").toString();
+                    return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_DATA_IS_EMPTY, "data exception").toString();
                 }
                 for (Map.Entry<String, List<WeightedDataSourceWrapper>> entry : readOnlyDataSourceIndexCacheOriginalValues.entrySet()) {
                     List<WeightedDataSourceWrapper> weightedDataSourceList0 = entry.getValue();
@@ -286,7 +302,7 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
 
                     if (weightedDataSourceList0 == null || weightedDataSourceList0.isEmpty()
                         || weightedDataSourceList0 == null || weightedDataSourceList0.isEmpty()) {
-                        return new SetResult(SetResult.CODE_OF_ILLEGAL_STATUS, "").toString();
+                        return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_DATA_IS_EMPTY, "data exception").toString();
                     }
                     for (int i = 0; i < weightedDataSourceList0.size(); i++) {
                         WeightedDataSource weightedDataSource0 = weightedDataSourceList0.get(i);
@@ -295,7 +311,7 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
                     }
                 }
                 DefaultReadWriteDataSourceManager.this.refreshReadDataSourceQueryCache();
-                return new SetResult(SetResult.CODE_OF_SUCCESS, "").toString();
+                return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_SUCCESS, "OK").toString();
             }
 
             @Override
@@ -419,29 +435,44 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
         }
         //
         this.readOnlyDataSourceIndexCacheOriginalValues = readOnlyDataSourceIndexCacheOriginalValues;
-        this.readOnlyDataSourceIndexCacheCurrentValues = (LinkedHashMap<String, List<WeightedDataSourceWrapper>>) readOnlyDataSourceIndexCacheOriginalValues.clone();
-
-        if (readOnlyDataSourceIndexCacheOriginalValues != null && !readOnlyDataSourceIndexCacheOriginalValues.isEmpty()) {
-            HashMap<String, Map<String, WeightedDataSourceWrapper>> originalValues = new HashMap<String, Map<String, WeightedDataSourceWrapper>>();
+        if (readOnlyDataSourceIndexCacheOriginalValues == null) {
+            this.readOnlyDataSourceIndexCacheCurrentValues = null;// list
+            this.readOnlyDataSourceMapCahceCurrentValues = null;// map
+            this.readOnlyDataSourceMapCahceOriginalValues = null;// map
+        } else {
+            LinkedHashMap<String, List<WeightedDataSourceWrapper>> curList = new LinkedHashMap<String, List<WeightedDataSourceWrapper>>();
+            LinkedHashMap<String, Map<String, WeightedDataSourceWrapper>> curMap = new LinkedHashMap<String, Map<String, WeightedDataSourceWrapper>>();
+            LinkedHashMap<String, Map<String, WeightedDataSourceWrapper>> orgMap = new LinkedHashMap<String, Map<String, WeightedDataSourceWrapper>>();
             for (Map.Entry<String, List<WeightedDataSourceWrapper>> entry : readOnlyDataSourceIndexCacheOriginalValues.entrySet()) {
-                if (entry.getValue() != null && !entry.getValue().isEmpty()) {
-                    Map<String, WeightedDataSourceWrapper> weightedDataSourceWrapperMap = new HashMap<String, WeightedDataSourceWrapper>();
+                if (entry.getValue() == null) {
+                    curList.put(entry.getKey(), null);
+                } else {
+                    List<WeightedDataSourceWrapper> list = new ArrayList<WeightedDataSourceWrapper>(
+                                                                                                    entry.getValue().size());
+                    Map<String, WeightedDataSourceWrapper> map0 = new LinkedHashMap<String, WeightedDataSourceWrapper>();
+                    Map<String, WeightedDataSourceWrapper> map1 = new LinkedHashMap<String, WeightedDataSourceWrapper>();
                     for (WeightedDataSourceWrapper weightedDataSourceWrapper : entry.getValue()) {
-                        if (weightedDataSourceWrapper.getName() != null) {
-                            weightedDataSourceWrapperMap.put(weightedDataSourceWrapper.getName(),
-                                                             weightedDataSourceWrapper);
+                        WeightedDataSourceWrapper backup = weightedDataSourceWrapper.clone();
+                        list.add(backup);
+                        if (backup.getName() != null) {
+                            map0.put(weightedDataSourceWrapper.getName(), backup);
+                            map1.put(weightedDataSourceWrapper.getName(), weightedDataSourceWrapper);
                         }
                     }
-                    if (!weightedDataSourceWrapperMap.isEmpty()) {
-                        originalValues.put(entry.getKey(), weightedDataSourceWrapperMap);
+                    if (!list.isEmpty()) {// deep copy
+                        curList.put(entry.getKey(), list);
+                    }
+                    if (!map0.isEmpty()) {// deep copy
+                        curMap.put(entry.getKey(), map0);
+                    }
+                    if (!map1.isEmpty()) {// normal copy
+                        orgMap.put(entry.getKey(), map1);
                     }
                 }
             }
-            this.readOnlyDataSourceMapCahceOriginalValues = originalValues;
-            this.readOnlyDataSourceMapCahceCurrentValues = (Map<String, Map<String, WeightedDataSourceWrapper>>) originalValues.clone();
-        } else {
-            this.readOnlyDataSourceMapCahceOriginalValues = null;
-            this.readOnlyDataSourceMapCahceCurrentValues = null;
+            this.readOnlyDataSourceIndexCacheCurrentValues = curList;// list
+            this.readOnlyDataSourceMapCahceCurrentValues = curMap;// map
+            this.readOnlyDataSourceMapCahceOriginalValues = orgMap;// map
         }
         refreshReadDataSourceQueryCache();
     }
@@ -496,38 +527,7 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
                 }
             }
         }
-        //
-        List<WeightItem> itemList = new ArrayList<WeightItem>();
-        List<WeightedDataSourceWrapper> dataSourceSchemasBindings = new ArrayList<WeightedDataSourceWrapper>();
-        for (WeightedDataSource weightedDataSource : dataSources) {
-            if (weightedDataSource.getWeight() == null || weightedDataSource.getWeight() < 0) {
-                throw new IllegalArgumentException("weight can't be null or less than 0 for schemas '"
-                                                   + DDRJSONUtils.toJSONString(uniqSchemas)
-                                                   + "' of readOnlyDataSources");
-            }
-            if (weightedDataSource.getDataSource() == null) {
-                throw new IllegalArgumentException("datasource can't be null for schemas '"
-                                                   + DDRJSONUtils.toJSONString(uniqSchemas)
-                                                   + "' of 'readOnlyDataSources'");
-            }
-            // 这里必须唯一索引
-            WeightedDataSourceWrapper dataSourceSchemasBinding = new WeightedDataSourceWrapper();
-            dataSourceSchemasBinding.setDataSource(weightedDataSource.getDataSource());
-            dataSourceSchemasBinding.setName(DDRStringUtils.trim(weightedDataSource.getName()));
-            dataSourceSchemasBinding.setDesc(weightedDataSource.getDesc());
-            dataSourceSchemasBinding.setSchemas(uniqSchemas);
-            dataSourceSchemasBinding.setWeight(weightedDataSource.getWeight());
-            // add
-            dataSourceSchemasBindings.add(dataSourceSchemasBinding);
-            if (weightedDataSource.getWeight() == 0) {
-                continue;
-            } else {
-                WeightItem weightItem = new WeightItem();
-                weightItem.setWeight(weightedDataSource.getWeight());
-                weightItem.setValue(dataSourceSchemasBinding);
-                itemList.add(weightItem);
-            }
-        }
+
         //
         for (String schema : uniqSchemas) {
             if (schema == null) {
@@ -542,6 +542,47 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
                 throw new IllegalArgumentException("Schema '" + schema
                                                    + "' repeated bind in 'readOnlyDataSources' configuration");
             } else {
+                List<WeightItem> itemList = new ArrayList<WeightItem>();
+                List<WeightedDataSourceWrapper> dataSourceSchemasBindings = new ArrayList<WeightedDataSourceWrapper>();
+                Set<String> nameSet = new HashSet<String>();
+                for (WeightedDataSource weightedDataSource : dataSources) {
+                    if (weightedDataSource.getWeight() == null || weightedDataSource.getWeight() < 0) {
+                        throw new IllegalArgumentException("weight can't be null or less than 0 for schemas '"
+                                                           + DDRJSONUtils.toJSONString(uniqSchemas)
+                                                           + "' of readOnlyDataSources");
+                    }
+                    if (weightedDataSource.getDataSource() == null) {
+                        throw new IllegalArgumentException("datasource can't be null for schemas '"
+                                                           + DDRJSONUtils.toJSONString(uniqSchemas)
+                                                           + "' of 'readOnlyDataSources'");
+                    }
+                    WeightedDataSourceWrapper dataSourceSchemasBinding = new WeightedDataSourceWrapper();
+                    dataSourceSchemasBinding.setDataSource(weightedDataSource.getDataSource());
+                    dataSourceSchemasBinding.setName(DDRStringUtils.trim(weightedDataSource.getName()));
+                    dataSourceSchemasBinding.setDesc(weightedDataSource.getDesc());
+                    dataSourceSchemasBinding.setSchemas(uniqSchemas);
+                    dataSourceSchemasBinding.setWeight(weightedDataSource.getWeight());
+                    // check
+                    if (dataSourceSchemasBinding.getName() != null) {
+                        if (nameSet.contains(dataSourceSchemasBinding.getName())) {
+                            throw new IllegalArgumentException("Repeated datasource name '"
+                                                               + dataSourceSchemasBinding.getName() + "' for scNames '"
+                                                               + DDRJSONUtils.toJSONString(uniqSchemas) + "'");
+                        } else {
+                            nameSet.add(dataSourceSchemasBinding.getName());
+                        }
+                    }
+                    // add
+                    dataSourceSchemasBindings.add(dataSourceSchemasBinding);
+                    if (weightedDataSource.getWeight() == 0) {
+                        continue;
+                    } else {
+                        WeightItem weightItem = new WeightItem();
+                        weightItem.setWeight(weightedDataSource.getWeight());
+                        weightItem.setValue(dataSourceSchemasBinding);
+                        itemList.add(weightItem);
+                    }
+                }
                 schemaDataSourceMapping.put(schema, dataSourceSchemasBindings);
             }
         }

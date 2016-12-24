@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddr.core.datasource.manager.rw;
+package org.hellojavaer.ddr.core.datasource.manager.rw.monitor;
 
 import java.io.Serializable;
 
@@ -21,21 +21,20 @@ import java.io.Serializable;
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 22/12/2016.
  */
-public class SetResult implements Serializable {
+public class WritingMethodInvokeResult implements Serializable {
 
     public static final int CODE_OF_SUCCESS                 = 0;
-    public static final int CODE_OF_PARAM_ERROR             = 1; // 格式错误,参数必填项为空
-    public static final int CODE_OF_ILLEGAL_STATUS          = 0; //
-    public static final int CODE_OF_DATA_EXCEPTION          = 0; //
-    public static final int CODE_OF_OPERATION_NOT_SUPPORTED = 0;
+    public static final int CODE_OF_ILLEGAL_ARGUMENT        = 20; // 格式错误,参数必填项为空
+    public static final int CODE_OF_DATA_IS_EMPTY           = 40; //
+    public static final int CODE_OF_OPERATION_NOT_SUPPORTED = 60;
 
     private Integer         code;
     private String          desc;
 
-    public SetResult() {
+    public WritingMethodInvokeResult() {
     }
 
-    public SetResult(Integer code, String desc) {
+    public WritingMethodInvokeResult(Integer code, String desc) {
         this.code = code;
         this.desc = desc;
     }
