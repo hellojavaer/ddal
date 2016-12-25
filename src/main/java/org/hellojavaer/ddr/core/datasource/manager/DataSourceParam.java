@@ -15,6 +15,8 @@
  */
 package org.hellojavaer.ddr.core.datasource.manager;
 
+import org.hellojavaer.ddr.core.utils.DDRToStringBuilder;
+
 import java.util.Set;
 
 /**
@@ -44,26 +46,6 @@ public class DataSourceParam {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder("{\"readOnly\":");
-        sb.append(readOnly);
-        sb.append(',');
-        sb.append("\"scNames\":");
-        if (scNames == null) {
-            sb.append("null");
-        } else {
-            sb.append('[');
-            for (String scName : scNames) {
-                sb.append('\"');
-                sb.append(scName);
-                sb.append('\"');
-                sb.append(',');
-            }
-            if (!scNames.isEmpty()) {
-                sb.deleteCharAt(sb.length() - 1);
-            }
-            sb.append(']');
-        }
-        sb.append('}');
-        return sb.toString();
+        return new DDRToStringBuilder().append("readOnly", readOnly).append("scNames", scNames).toString();
     }
 }

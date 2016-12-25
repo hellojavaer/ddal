@@ -15,6 +15,8 @@
  */
 package org.hellojavaer.ddr.core.datasource;
 
+import org.hellojavaer.ddr.core.utils.DDRToStringBuilder;
+
 import javax.sql.DataSource;
 import java.util.Set;
 
@@ -53,22 +55,6 @@ public class DataSourceSchemasBinding {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("{schemas:");
-        if (schemas != null) {
-            sb.append("[");
-            for (String s : schemas) {
-                sb.append('\'');
-                sb.append(s);
-                sb.append('\'');
-                sb.append(',');
-            }
-            sb.deleteCharAt(sb.length() - 1);
-            sb.append("]");
-        } else {
-            sb.append("null");
-        }
-        sb.append("}");
-        return super.toString();
+       return new DDRToStringBuilder().append("schemas", schemas).append("dataSource", dataSource).toString();
     }
 }

@@ -15,6 +15,8 @@
  */
 package org.hellojavaer.ddr.core.expression.format.ast.token;
 
+import org.hellojavaer.ddr.core.utils.DDRToStringBuilder;
+
 /**
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 17/11/2016.
@@ -67,6 +69,7 @@ public class FeToken {
 
     @Override
     public String toString() {
-        return "{" + "type=" + type + ", data=" + data + ", startPos=" + startPos + ", endPos=" + endPos + '}';
+        return new DDRToStringBuilder().append("type", type).append("data", data).append("startPos", startPos).append("endPos",
+                                                                                                                      endPos).toString();
     }
 }

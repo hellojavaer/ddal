@@ -32,6 +32,7 @@ import org.hellojavaer.ddr.core.sharding.RouteInfo;
 import org.hellojavaer.ddr.core.sharding.ShardingRouteHelper;
 import org.hellojavaer.ddr.core.utils.DDRJSONUtils;
 import org.hellojavaer.ddr.core.utils.DDRStringUtils;
+import org.hellojavaer.ddr.core.utils.DDRToStringBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -112,34 +113,14 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
 
         @Override
         public String toString() {
-            StringBuilder sb = new StringBuilder();
-            sb.append("{");
-            sb.append("\"name\":");
-            if (getName() == null) {
-                sb.append("null");
-            } else {
-                sb.append('\"');
-                sb.append(getName());
-                sb.append('\"');
-            }
-            sb.append(",\"index\":");
-            sb.append(index);
-            sb.append(",\"weight\":");
-            sb.append(getWeight());
-            sb.append(",\"desc\":");
-            if (getDesc() == null) {
-                sb.append("null");
-            } else {
-                sb.append('\"');
-                sb.append(getDesc());
-                sb.append('\"');
-            }
-            sb.append(",\"schemas\"");
-            sb.append(getDataSourceSchemasBinding().getSchemas());
-            sb.append(",\"datasource\"");
-            sb.append(getDataSource().toString());
-            sb.append('}');
-            return sb.toString();
+            return new DDRToStringBuilder()//
+            .append("name", getName())//
+            .append("index", index)//
+            .append("weight", getWeight())//
+            .append("desc", getDesc())//
+            .append("schemas", getDataSourceSchemasBinding().getSchemas())//
+            .append("datasource", getDataSource())//
+            .toString();
         }
     }
 

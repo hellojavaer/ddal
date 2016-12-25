@@ -15,6 +15,8 @@
  */
 package org.hellojavaer.ddr.core.datasource;
 
+import org.hellojavaer.ddr.core.utils.DDRToStringBuilder;
+
 import javax.sql.DataSource;
 
 /**
@@ -62,26 +64,7 @@ public class WeightedDataSource {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("{\"name\":");
-        if (name != null) {
-            sb.append('\"');
-            sb.append(name);
-            sb.append('\"');
-        } else {
-            sb.append("null");
-        }
-        sb.append(",\"weight\":");
-        sb.append(weight);
-        sb.append(",\"desc\":");
-        if (desc != null) {
-            sb.append('\"');
-            sb.append(desc);
-            sb.append('\"');
-        } else {
-            sb.append("null");
-        }
-        sb.append("}");
-        return sb.toString();
+        return new DDRToStringBuilder().append("name", name).append("weight", weight).append("desc", desc).append("dataSource",
+                                                                                                                  dataSource).toString();
     }
 }

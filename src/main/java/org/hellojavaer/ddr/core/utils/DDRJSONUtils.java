@@ -33,7 +33,7 @@ public class DDRJSONUtils {
             for (Object item : collection) {
                 if (item == null) {
                     sb.append("null");
-                } else if (item instanceof String) {
+                } else if (item instanceof String || item instanceof Character) {
                     sb.append('\"');
                     sb.append(item);
                     sb.append('\"');
@@ -61,7 +61,7 @@ public class DDRJSONUtils {
             for (Map.Entry<Object, Object> entry : ((Map<Object, Object>) map).entrySet()) {
                 if (entry.getKey() == null) {
                     sb.append("null");
-                } else if (entry.getKey() instanceof String) {
+                } else if (entry.getKey() instanceof String || entry.getKey() instanceof Character) {
                     sb.append('\"');
                     sb.append(entry.getKey());
                     sb.append('\"');

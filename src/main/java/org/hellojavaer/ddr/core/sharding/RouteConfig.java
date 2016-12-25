@@ -15,6 +15,8 @@
  */
 package org.hellojavaer.ddr.core.sharding;
 
+import org.hellojavaer.ddr.core.utils.DDRToStringBuilder;
+
 /**
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 20/12/2016.
@@ -60,6 +62,6 @@ public class RouteConfig {
 
     @Override
     public String toString() {
-        return new StringBuilder().append("{scName:'" + scName + "', tbName:'" + tbName + "', sdName:'" + sdName + "'}").toString();
+        return new DDRToStringBuilder().append("scName", scName).append("tbName", tbName).append("sdName", sdName).toString();
     }
 }

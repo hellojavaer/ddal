@@ -32,6 +32,7 @@ import org.hellojavaer.ddr.core.sharding.*;
 import org.hellojavaer.ddr.core.sqlparse.exception.*;
 import org.hellojavaer.ddr.core.utils.DDRJSONUtils;
 import org.hellojavaer.ddr.core.utils.DDRStringUtils;
+import org.hellojavaer.ddr.core.utils.DDRToStringBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -648,18 +649,12 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
 
         @Override
         public String toString() {
-            return new StringBuilder()//
-            .append("{scName:'")//
-            .append(scName)//
-            .append('\'')//
-            .append(", tbName:'")//
-            .append(tbName).append('\'')//
-            .append(", sdName:'")//
-            .append(sdName)//
-            .append('\'')//
-            .append(", routeInfo:")//
-            .append(routeInfo)//
-            .append('}').toString();
+            return new DDRToStringBuilder()//
+            .append("scName", scName)//
+            .append("tbName", tbName)//
+            .append("sdName", sdName)//
+            .append("routeInfo", routeInfo)//
+            .toString();
         }
     }
 

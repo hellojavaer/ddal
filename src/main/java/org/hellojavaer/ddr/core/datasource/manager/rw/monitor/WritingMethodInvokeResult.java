@@ -15,6 +15,8 @@
  */
 package org.hellojavaer.ddr.core.datasource.manager.rw.monitor;
 
+import org.hellojavaer.ddr.core.utils.DDRToStringBuilder;
+
 import java.io.Serializable;
 
 /**
@@ -57,6 +59,6 @@ public class WritingMethodInvokeResult implements Serializable {
 
     @Override
     public String toString() {
-        return new StringBuilder().append("{code:").append(code).append(",desc:").append(desc).append('}').toString();
+        return new DDRToStringBuilder().append("code", code).append("desc", desc).toString();
     }
 }
