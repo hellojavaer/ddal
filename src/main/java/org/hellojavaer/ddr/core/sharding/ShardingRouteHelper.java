@@ -17,10 +17,7 @@ package org.hellojavaer.ddr.core.sharding;
 
 import org.hellojavaer.ddr.core.utils.DDRStringUtils;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import java.util.List;
+import java.util.*;
 
 /**
  *
@@ -28,14 +25,34 @@ import java.util.List;
  */
 public class ShardingRouteHelper {
 
-    private static Map<String, List> map = new HashMap<String, List>();
+    private static Map<String, List>        routeMap  = new HashMap<String, List>();
+    private static Map<String, Set<String>> schemaMap = new HashMap<String, Set<String>>();
 
-    public static void setConfiguredShardingInfos(String scName, String tbName, List<RouteInfo> shardingInfos) {
-        map.put(buildQueryKey(scName, tbName), shardingInfos);
+    public static Set<String> getConfiguredSchemas() {
+        return schemaMap.keySet();
     }
 
-    public static List<RouteInfo> getConfigedShardingInfos(String scName, String tbName) {
-        return map.get(buildQueryKey(scName, tbName));
+    public static Set<String> getConfiguredTables(String scName) {
+        return schemaMap.get(scName);
+    }
+
+    public static void setConfiguredRouteInfos(String scName, String tbName, List<RouteInfo> routeInfos) {
+        Set<String> tables = schemaMap.get(scName);
+        if (tables == null) {
+            synchronized (ShardingRouteHelper.class) {
+                tables = schemaMap.get(scName);
+                if (tables == null) {
+                    tables = new HashSet<String>();
+                    schemaMap.put(scName, tables);
+                }
+            }
+        }
+        tables.add(tbName);
+        routeMap.put(buildQueryKey(scName, tbName), routeInfos);
+    }
+
+    public static List<RouteInfo> getConfiguredRouteInfos(String scName, String tbName) {
+        return routeMap.get(buildQueryKey(scName, tbName));
     }
 
     private static String buildQueryKey(String scName, String tbName) {
@@ -47,5 +64,10 @@ public class ShardingRouteHelper {
         }
         sb.append(DDRStringUtils.toLowerCase(tbName));
         return sb.toString();
+    }
+
+    public static void clear() {
+        routeMap.clear();
+        schemaMap.clear();
     }
 }

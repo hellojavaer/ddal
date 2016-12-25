@@ -129,7 +129,7 @@ public class SimpleShardingRouter implements ShardingRouter {
                         }
                     });
                 }
-                ShardingRouteHelper.setConfiguredShardingInfos(scName, tbName, shardingInfos);
+                ShardingRouteHelper.setConfiguredRouteInfos(scName, tbName, shardingInfos);
             }
         }
         this.cache = cache0;

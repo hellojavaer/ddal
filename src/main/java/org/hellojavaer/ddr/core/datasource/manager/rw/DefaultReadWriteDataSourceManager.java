@@ -22,16 +22,22 @@ import org.hellojavaer.ddr.core.datasource.manager.DataSourceParam;
 import org.hellojavaer.ddr.core.datasource.manager.rw.monitor.ReadOnlyDataSourceMonitor;
 import org.hellojavaer.ddr.core.datasource.manager.rw.monitor.ReadOnlyDataSourceMonitorServer;
 import org.hellojavaer.ddr.core.datasource.manager.rw.monitor.WritingMethodInvokeResult;
+import org.hellojavaer.ddr.core.datasource.security.metadata.DDRMetaDataChecker;
+import org.hellojavaer.ddr.core.datasource.security.metadata.DefaultDDRMetaDataChecker;
 import org.hellojavaer.ddr.core.expression.range.RangeExpression;
 import org.hellojavaer.ddr.core.expression.range.RangeItemVisitor;
 import org.hellojavaer.ddr.core.lb.random.WeightItem;
 import org.hellojavaer.ddr.core.lb.random.WeightedRandom;
+import org.hellojavaer.ddr.core.sharding.RouteInfo;
+import org.hellojavaer.ddr.core.sharding.ShardingRouteHelper;
 import org.hellojavaer.ddr.core.utils.DDRJSONUtils;
 import org.hellojavaer.ddr.core.utils.DDRStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -50,11 +56,14 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
     private List<WriteOnlyDataSourceBinding>                       writeOnlyDataSources                       = null;
     private List<ReadOnlyDataSourceBinding>                        readOnlyDataSources                        = null;
 
+    //
+    private DDRMetaDataChecker                                     ddrMetaDataChecker                         = new DefaultDDRMetaDataChecker();
+
     // cache
     private Map<String, WeightedRandom>                            readOnlyDataSourceQueryCache               = null;
     private Map<String, DataSourceSchemasBinding>                  writeOnlyDataSourceQueryCache              = null;
 
-    // backup
+    // backup {physical schema name <-> datasources}
     private LinkedHashMap<String, List<WeightedDataSourceWrapper>> readOnlyDataSourceIndexCacheOriginalValues = null;
     private Map<String, Map<String, WeightedDataSourceWrapper>>    readOnlyDataSourceMapCahceOriginalValues   = null;
 
@@ -418,7 +427,41 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
 
     public synchronized void setWriteOnlyDataSources(List<WriteOnlyDataSourceBinding> writeOnlyDataSources) {
         initWriteOnlyDataSource(writeOnlyDataSources);
+        check(writeOnlyDataSourceQueryCache);
         this.writeOnlyDataSources = writeOnlyDataSources;
+    }
+
+    private void check(Map<String, DataSourceSchemasBinding> writeOnlyDataSourceQueryCache) {
+        if (writeOnlyDataSourceQueryCache == null || writeOnlyDataSourceQueryCache.isEmpty()
+            || ddrMetaDataChecker == null) {
+            return;
+        }
+        Map<String, Set<String>> groupedRouteInfo = getGroupedRouteInfo();
+        for (Map.Entry<String, DataSourceSchemasBinding> entry : writeOnlyDataSourceQueryCache.entrySet()) {
+            Connection conn = null;
+            try {
+                conn = entry.getValue().getDataSource().getConnection();
+                boolean readOnly = conn.isReadOnly();
+                if (readOnly == false) {
+                    conn.setReadOnly(true);
+                }
+                String scName = entry.getKey();
+                ddrMetaDataChecker.check(conn, scName, groupedRouteInfo.get(scName));
+                if (readOnly == false) {
+                    conn.setReadOnly(false);
+                }
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            } finally {
+                if (conn != null) {
+                    try {
+                        conn.close();
+                    } catch (SQLException e) {
+                        // igonre;
+                    }
+                }
+            }
+        }
     }
 
     public synchronized List<ReadOnlyDataSourceBinding> getReadOnlyDataSources() {
@@ -427,12 +470,81 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
 
     public synchronized void setReadOnlyDataSources(List<ReadOnlyDataSourceBinding> readOnlyDataSources) {
         initReadOnlyDataSource(readOnlyDataSources);
+        check(readOnlyDataSourceIndexCacheOriginalValues);
         this.readOnlyDataSources = readOnlyDataSources;
+    }
+
+    private void check(LinkedHashMap<String, List<WeightedDataSourceWrapper>> readOnlyDataSourceIndexCacheOriginalValues) {
+        if (readOnlyDataSourceIndexCacheOriginalValues == null || readOnlyDataSourceIndexCacheOriginalValues.isEmpty()
+            || ddrMetaDataChecker == null) {
+            return;
+        }
+        Map<String, Set<String>> groupedRouteInfo = getGroupedRouteInfo();
+        for (Map.Entry<String, List<WeightedDataSourceWrapper>> entry : readOnlyDataSourceIndexCacheOriginalValues.entrySet()) {
+            for (WeightedDataSourceWrapper dataSource : entry.getValue()) {
+                Connection conn = null;
+                try {
+                    conn = dataSource.getDataSource().getConnection();
+                    boolean readOnly = conn.isReadOnly();
+                    if (readOnly == false) {
+                        conn.setReadOnly(true);
+                    }
+                    String scName = entry.getKey();
+                    ddrMetaDataChecker.check(conn, scName, groupedRouteInfo.get(scName));
+                    if (readOnly == false) {
+                        conn.setReadOnly(false);
+                    }
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                } finally {
+                    if (conn != null) {
+                        try {
+                            conn.close();
+                        } catch (SQLException e) {
+                            // igonre;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * group configured route information
+     */
+    private Map<String, Set<String>> getGroupedRouteInfo() {
+        // do group{physics schema name <-> physics table names}
+        Map<String, Set<String>> phyMap = new HashMap<String, Set<String>>();
+        Set<String> schemas = ShardingRouteHelper.getConfiguredSchemas();
+        if (schemas == null || schemas.isEmpty()) {
+            return phyMap;
+        }
+        for (String scName : schemas) {
+            Set<String> tbNames = ShardingRouteHelper.getConfiguredTables(scName);
+            if (tbNames == null || tbNames.isEmpty()) {
+                continue;
+            }
+            for (String tbName : tbNames) {
+                List<RouteInfo> routeInfos = ShardingRouteHelper.getConfiguredRouteInfos(scName, tbName);
+                if (routeInfos == null || routeInfos.isEmpty()) {
+                    continue;
+                }
+                for (RouteInfo routeInfo : routeInfos) {
+                    Set<String> ts = phyMap.get(routeInfo.getScName());
+                    if (ts == null) {
+                        ts = new HashSet<String>();
+                        phyMap.put(routeInfo.getScName(), ts);
+                    }
+                    ts.add(routeInfo.getTbName());
+                }
+            }
+        }
+        return phyMap;
     }
 
     private void initWriteOnlyDataSource(List<WriteOnlyDataSourceBinding> bindings) {
         if (bindings == null || bindings.isEmpty()) {
-            throw new IllegalArgumentException("'writeOnlyDataSourceQueryCache' can't be empty");
+            return;
         }
         final Map<String, DataSourceSchemasBinding> dataSourceMap = new HashMap<String, DataSourceSchemasBinding>();
         for (final WriteOnlyDataSourceBinding binding : bindings) {
@@ -449,7 +561,6 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
                 }
             });
             buildWriteOnlyDataSource(dataSourceMap, schemas, binding.getDataSource());
-
         }
         this.writeOnlyDataSourceQueryCache = dataSourceMap;
     }
@@ -484,7 +595,7 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
 
     private void initReadOnlyDataSource(List<ReadOnlyDataSourceBinding> bindings) {
         if (bindings == null || bindings.isEmpty()) {
-            throw new IllegalArgumentException("'readOnlyDataSourceQueryCache' can't be empty");
+            return;
         }
         final LinkedHashMap<String, List<WeightedDataSourceWrapper>> readOnlyDataSourceIndexCacheOriginalValues = new LinkedHashMap<String, List<WeightedDataSourceWrapper>>();
         for (final ReadOnlyDataSourceBinding binding : bindings) {
@@ -728,11 +839,11 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
                 // log
                 if (stdLogger.isDebugEnabled()) {
                     stdLogger.debug(new StringBuilder("[GetDataSource] ")//
-                                                                         .append("param:")//
-                                                                         .append(param)//
-                                                                         .append(" matched W:")//
-                                                                         .append(dataSourceSchemasBinding)//
-                                                                         .toString());
+                    .append("param:")//
+                    .append(param)//
+                    .append(" matched W:")//
+                    .append(dataSourceSchemasBinding)//
+                    .toString());
                 }
                 return dataSourceSchemasBinding;
             }
