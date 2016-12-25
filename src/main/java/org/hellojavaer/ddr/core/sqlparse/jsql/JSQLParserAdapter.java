@@ -133,7 +133,7 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
                 if (shardingRouterRouteInfo != null) {
                     route0(tableWrapper, shardingRouterRouteInfo);
                 } else {// 如果没有转换信息则通过ShardingRouteContext 转换
-                    Object routeInfo = ShardingRouteContext.getRoute(tableWrapper.getScName(), tableWrapper.getTbName());
+                    Object routeInfo = ShardingRouteContext.getRouteInfo(tableWrapper.getScName(), tableWrapper.getTbName());
                     if (routeInfo == null) {
                         if (tableWrapper.getSdName() != null) {// 禁用sql路由后但未在ShardingRouteContext中设置路由
                             throw new RouteInfoNotFoundException(
@@ -157,34 +157,34 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
                     } else if (routeInfo instanceof RouteInfo) {
                         route0(tableWrapper, (RouteInfo) routeInfo);
                     } else {
-                        RouteInfo shardingInfo = this.shardingRouter.route(this.getContext().getTableRouterContext(),
+                        RouteInfo routeInfo1 = this.shardingRouter.route(this.getContext().getTableRouterContext(),
                                                                            tableWrapper.getScName(),
                                                                            tableWrapper.getTbName(), routeInfo);
-                        route0(tableWrapper, shardingInfo);
+                        route0(tableWrapper, routeInfo1);
                     }
                 }
             }
         }
     }
 
-    private void route0(TableWrapper tableWrapper, RouteInfo shardingInfo) {
+    private void route0(TableWrapper tableWrapper, RouteInfo routeInfo) {
         if (tableWrapper.isConverted()) {// 多重路由
-            if (!equalsIgnoreCase(shardingInfo.getScName(), tableWrapper.getTable().getSchemaName())
-                || !equalsIgnoreCase(shardingInfo.getTbName(), tableWrapper.getTable().getName())) {
+            if (!equalsIgnoreCase(routeInfo.getScName(), tableWrapper.getTable().getSchemaName())
+                || !equalsIgnoreCase(routeInfo.getTbName(), tableWrapper.getTable().getName())) {
                 throw new ConflictingRouteException(
                                                     "Sharding column '"
                                                             + tableWrapper.getSdName()
                                                             + "' has multiple values to route table name , but route result is conflict, conflict detail is [scName:"
-                                                            + shardingInfo.getScName() + ",tbName:"
-                                                            + shardingInfo.getTbName() + "]<->[scName:"
+                                                            + routeInfo.getScName() + ",tbName:"
+                                                            + routeInfo.getTbName() + "]<->[scName:"
                                                             + tableWrapper.getScName() + "," + tableWrapper.getTbName()
                                                             + "] , source sql is '" + sql + "'");
             }
         } else {
-            tableWrapper.getTable().setSchemaName(shardingInfo.getScName());
-            tableWrapper.getTable().setName(shardingInfo.getTbName());
+            tableWrapper.getTable().setSchemaName(routeInfo.getScName());
+            tableWrapper.getTable().setName(routeInfo.getTbName());
             tableWrapper.setConverted(true);
-            schemas.add(shardingInfo.getScName());
+            schemas.add(routeInfo.getScName());
             routedTables.add(tableWrapper);
         }
     }
@@ -528,9 +528,9 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
             }
             return;
         }
-        RouteInfo shardingInfo = this.shardingRouter.route(this.getContext().getTableRouterContext(),
+        RouteInfo routeInfo = this.shardingRouter.route(this.getContext().getTableRouterContext(),
                                                            tableWrapper.getScName(), tableWrapper.getTbName(), val);
-        route0(tableWrapper, shardingInfo);
+        route0(tableWrapper, routeInfo);
     }
 
     private boolean equalsIgnoreCase(String str0, String str1) {

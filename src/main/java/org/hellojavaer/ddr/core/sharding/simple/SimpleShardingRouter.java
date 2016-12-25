@@ -106,7 +106,7 @@ public class SimpleShardingRouter implements ShardingRouter {
                 b0.setRule(binding.getRule());
                 putToCache(cache0, tbName, b0, false);
 
-                final List<RouteInfo> shardingInfos = new ArrayList<RouteInfo>();
+                final List<RouteInfo> routeInfos = new ArrayList<RouteInfo>();
                 if (sdScanValues != null) {
                     if (sdScanValueType == null) {
                         throw new IllegalArgumentException(
@@ -125,11 +125,11 @@ public class SimpleShardingRouter implements ShardingRouter {
                                 throw new IllegalArgumentException("Unknown 'sdScanValueType':" + sdScanValueType);
                             }
                             RouteInfo routeInfo = getRouteInfo(b0.getRule(), scName, tbName, v);
-                            shardingInfos.add(routeInfo);
+                            routeInfos.add(routeInfo);
                         }
                     });
                 }
-                ShardingRouteHelper.setConfiguredRouteInfos(scName, tbName, shardingInfos);
+                ShardingRouteHelper.setConfiguredRouteInfos(scName, tbName, routeInfos);
             }
         }
         this.cache = cache0;

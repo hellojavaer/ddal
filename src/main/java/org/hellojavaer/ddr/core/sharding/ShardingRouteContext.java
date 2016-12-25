@@ -29,13 +29,13 @@ import java.util.Map;
  */
 public class ShardingRouteContext {
 
-    private static final ThreadLocal<Map<String, InnerShadingInfoWrapper>> ROUTE_VALUE         = new ThreadLocal<Map<String, InnerShadingInfoWrapper>>() {
+    private static final ThreadLocal<Map<String, InnerRouteInfoWrapper>> ROUTE_VALUE         = new ThreadLocal<Map<String, InnerRouteInfoWrapper>>() {
 
-                                                                                                   protected Map<String, InnerShadingInfoWrapper> initialValue() {
-                                                                                                       return new HashMap<String, InnerShadingInfoWrapper>();
+                                                                                                   protected Map<String, InnerRouteInfoWrapper> initialValue() {
+                                                                                                       return new HashMap<String, InnerRouteInfoWrapper>();
                                                                                                    }
                                                                                                };
-    private static final ThreadLocal<Boolean>                              DISABLE_SQL_ROUTING = new ThreadLocal<Boolean>();
+    private static final ThreadLocal<Boolean>                            DISABLE_SQL_ROUTING = new ThreadLocal<Boolean>();
 
     public static void setDisableSqlRouting(boolean disableSqlRoute) {
         if (disableSqlRoute) {
@@ -54,7 +54,7 @@ public class ShardingRouteContext {
      * 1.sql中没有设置sdValue (如果设置了但为null不会使用),
      * 2.设置DisableSqlRouting为true
      */
-    public static void setRoute(String scName, String tbName, Object value) {
+    public static void setRouteInfo(String scName, String tbName, Object value) {
         scName = DDRStringUtils.toLowerCase(scName);
         tbName = DDRStringUtils.toLowerCase(tbName);
         if (scName == null) {
@@ -63,11 +63,11 @@ public class ShardingRouteContext {
         if (tbName == null) {
             throw new IllegalArgumentException("'tbName' can't be null");
         }
-        Map<String, InnerShadingInfoWrapper> map = ROUTE_VALUE.get();
+        Map<String, InnerRouteInfoWrapper> map = ROUTE_VALUE.get();
         String fullKey = buildQueryKey(scName, tbName);
-        InnerShadingInfoWrapper innerShadingInfoWrapper = map.get(fullKey);
-        if (innerShadingInfoWrapper != null) {
-            InnerShadingInfoWrapper tableNameShadingInfo = map.get(tbName);
+        InnerRouteInfoWrapper innerRouteInfoWrapper = map.get(fullKey);
+        if (innerRouteInfoWrapper != null) {
+            InnerRouteInfoWrapper tableNameShadingInfo = map.get(tbName);
             if (tableNameShadingInfo.getConflictSchemas().size() > 1) {
                 tableNameShadingInfo.getConflictSchemas().remove(scName);
             } else {
@@ -75,12 +75,12 @@ public class ShardingRouteContext {
             }
         }
         // 覆盖
-        map.put(fullKey, new InnerShadingInfoWrapper(scName, value));
-        InnerShadingInfoWrapper tableNameShadingInfo = map.get(tbName);
+        map.put(fullKey, new InnerRouteInfoWrapper(scName, value));
+        InnerRouteInfoWrapper tableNameShadingInfo = map.get(tbName);
         if (tableNameShadingInfo != null) {
             tableNameShadingInfo.getConflictSchemas().add(scName);
         } else {
-            map.put(tbName, new InnerShadingInfoWrapper(scName, value));
+            map.put(tbName, new InnerRouteInfoWrapper(scName, value));
         }
     }
 
@@ -91,15 +91,15 @@ public class ShardingRouteContext {
      * 1.sql中没有设置sdValue (如果设置了但为null不会使用),
      * 2.设置DisableSqlRouting为true
      */
-    public static void setRoute(String scName, String tbName, RouteInfo value) {
-        setRoute(scName, tbName, (Object) value);
+    public static void setRouteInfo(String scName, String tbName, RouteInfo value) {
+        setRouteInfo(scName, tbName, (Object) value);
     }
 
     /**
      * 
      * 删除路由信息
      */
-    public static void removeRoute(String scName, String tbName) {
+    public static void removeRouteInfo(String scName, String tbName) {
         scName = DDRStringUtils.toLowerCase(scName);
         tbName = DDRStringUtils.toLowerCase(tbName);
         if (scName == null) {
@@ -109,9 +109,9 @@ public class ShardingRouteContext {
             throw new IllegalArgumentException("'tbName' can't be null");
         }
 
-        Map<String, InnerShadingInfoWrapper> map = ROUTE_VALUE.get();
+        Map<String, InnerRouteInfoWrapper> map = ROUTE_VALUE.get();
         map.remove(buildQueryKey(scName, tbName));
-        InnerShadingInfoWrapper tableNameShadingInfo = map.get(tbName);
+        InnerRouteInfoWrapper tableNameShadingInfo = map.get(tbName);
         if (tableNameShadingInfo != null) {
             if (tableNameShadingInfo.conflictSchemas.size() > 1) {
                 tableNameShadingInfo.conflictSchemas.remove(scName);
@@ -121,21 +121,21 @@ public class ShardingRouteContext {
         }
     }
 
-    public static Object getRoute(String scName, String tbName) {
+    public static Object getRouteInfo(String scName, String tbName) {
         scName = DDRStringUtils.toLowerCase(scName);
         tbName = DDRStringUtils.toLowerCase(tbName);
         if (tbName == null) {
             throw new IllegalArgumentException("'tbName' can't be null");
         }
-        Map<String, InnerShadingInfoWrapper> map = ROUTE_VALUE.get();
-        InnerShadingInfoWrapper shadingInfoWrapper = map.get(buildQueryKey(scName, tbName));
-        if (shadingInfoWrapper == null) {
+        Map<String, InnerRouteInfoWrapper> map = ROUTE_VALUE.get();
+        InnerRouteInfoWrapper routeInfoWrapper = map.get(buildQueryKey(scName, tbName));
+        if (routeInfoWrapper == null) {
             return null;
-        } else if (shadingInfoWrapper.getConflictSchemas().size() > 1) {
+        } else if (routeInfoWrapper.getConflictSchemas().size() > 1) {
             throw new AmbiguousDataSourceException("Datasource binding for scName:" + scName + ", tbName:" + tbName
                                                    + " is ambiguous");
         } else {
-            return shadingInfoWrapper.getShardingInfo();
+            return routeInfoWrapper.getRouteInfo();
         }
     }
 
@@ -152,14 +152,14 @@ public class ShardingRouteContext {
         DISABLE_SQL_ROUTING.remove();
     }
 
-    protected static class InnerShadingInfoWrapper {
+    protected static class InnerRouteInfoWrapper {
 
         private List<String> conflictSchemas = new LinkedList<String>();
-        private Object       shardingInfo;
+        private Object       routeInfo;
 
-        public InnerShadingInfoWrapper(String scName, Object shardingInfo) {
+        public InnerRouteInfoWrapper(String scName, Object routeInfo) {
             this.conflictSchemas.add(scName);
-            this.shardingInfo = shardingInfo;
+            this.routeInfo = routeInfo;
         }
 
         public List<String> getConflictSchemas() {
@@ -170,12 +170,12 @@ public class ShardingRouteContext {
             this.conflictSchemas = conflictSchemas;
         }
 
-        public Object getShardingInfo() {
-            return shardingInfo;
+        public Object getRouteInfo() {
+            return routeInfo;
         }
 
-        public void setShardingInfo(Object shardingInfo) {
-            this.shardingInfo = shardingInfo;
+        public void setRouteInfo(Object routeInfo) {
+            this.routeInfo = routeInfo;
         }
     }
 
