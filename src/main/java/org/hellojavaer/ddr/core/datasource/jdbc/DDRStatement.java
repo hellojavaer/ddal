@@ -20,7 +20,6 @@ import org.hellojavaer.ddr.core.datasource.manager.DataSourceParam;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Map;
-import java.util.Set;
 
 /**
  *
@@ -32,5 +31,4 @@ public interface DDRStatement extends Statement {
 
     StatementBean getStatement(DataSourceParam param, String sql) throws SQLException;
 
-    boolean isCrossDataSource(Set<String> schemas) throws SQLException;
 }

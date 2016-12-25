@@ -731,7 +731,7 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
                                                                          .append("param:")//
                                                                          .append(param)//
                                                                          .append(" matched W:")//
-                                                                         .append(DDRJSONUtils.toJSONString(dataSourceSchemasBinding.getSchemas()))//
+                                                                         .append(dataSourceSchemasBinding)//
                                                                          .toString());
                 }
                 return dataSourceSchemasBinding;

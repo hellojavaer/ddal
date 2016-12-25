@@ -47,6 +47,14 @@ public abstract class StatementWrapper implements DDRStatement {
     private StatementPropertyBean prop = new StatementPropertyBean();
     private InvocationTag         tag  = new InvocationTag();
 
+    protected boolean isCrossDataSource(Set<String> schemas) {
+        if (this.schemas == null) {
+            return false;
+        } else {
+            return this.schemas.containsAll(schemas);
+        }
+    }
+
     private class StatementPropertyBean {
 
         private int     maxFieldSize;

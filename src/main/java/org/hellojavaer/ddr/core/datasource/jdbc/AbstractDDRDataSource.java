@@ -40,28 +40,13 @@ import java.util.concurrent.Executor;
 public abstract class AbstractDDRDataSource implements DDRDataSource {
 
     private DataSourceSchemasBinding dataSourceSchemasBinding;
-    private InnerDataSourceProperty  prop      = new InnerDataSourceProperty();
-    private InvocationTag            tag       = new InvocationTag();
+    private InnerDataSourceProperty  prop     = new InnerDataSourceProperty();
+    private InvocationTag            tag      = new InvocationTag();
 
-    @Override
-    public boolean isCrossDataSource(Set<String> schemas) {
-        if (dataSourceSchemasBinding == null) {
-            return false;
-        } else {
-            return !dataSourceSchemasBinding.getSchemas().containsAll(schemas);
-        }
-    }
+    private boolean                  useReset = false;
 
-    private Set<String> getSchemas0() {
-        if (dataSourceSchemasBinding == null) {
-            return null;
-        } else {
-            return dataSourceSchemasBinding.getSchemas();
-        }
-    }
-
-    private boolean isCrossDataSource0(Set<String> schemas) {
-        return isCrossDataSource(schemas);
+    public void reset() {
+        useReset = true;
     }
 
     private class InnerDataSourceProperty {
@@ -109,11 +94,12 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
     }
 
     private DataSource getDataSource0(DataSourceParam param) throws SQLException {
-        if (dataSourceSchemasBinding == null) {
+        if (dataSourceSchemasBinding == null || useReset) {
             dataSourceSchemasBinding = this.getDataSource(param);
             if (dataSourceSchemasBinding == null) {
                 throw new DataSourceNotFoundException("No datasource found for parameter:" + param.toString());
             } else {
+                // '设置'回放
                 if (tag.isLoginTimeout()) {
                     dataSourceSchemasBinding.getDataSource().setLoginTimeout(prop.getLoginTimeout());
                 }
@@ -121,6 +107,7 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
                     dataSourceSchemasBinding.getDataSource().setLogWriter(prop.getLogWriter());
                 }
             }
+            useReset = false;
         }
         return dataSourceSchemasBinding.getDataSource();
     }
@@ -132,10 +119,10 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
 
     @Override
     public int getLoginTimeout() throws SQLException {
-        if (tag.isLoginTimeout()) {
-            return prop.getLoginTimeout();
-        } else if (dataSourceSchemasBinding != null) {
+        if (dataSourceSchemasBinding != null) {
             return dataSourceSchemasBinding.getDataSource().getLoginTimeout();
+        } else if (tag.isLoginTimeout()) {
+            return prop.getLoginTimeout();
         } else {
             if (UninitializedDataSourceProcessor.isSetDefaultValue(DataSourceProperty.loginTimeout)) {
                 int val = ((Number) UninitializedDataSourceProcessor.getDefaultValue(DataSourceProperty.loginTimeout)).intValue();
@@ -153,16 +140,19 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
 
     @Override
     public void setLoginTimeout(int timeout) throws SQLException {
+        if (dataSourceSchemasBinding != null) {
+            dataSourceSchemasBinding.getDataSource().setLoginTimeout(timeout);
+        }
         tag.setLoginTimeout(true);
         prop.setLoginTimeout(timeout);
     }
 
     @Override
     public PrintWriter getLogWriter() throws SQLException {
-        if (tag.isLogWriter()) {
-            return prop.getLogWriter();
-        } else if (dataSourceSchemasBinding != null) {
+        if (dataSourceSchemasBinding != null) {
             return dataSourceSchemasBinding.getDataSource().getLogWriter();
+        } else if (tag.isLogWriter()) {
+            return prop.getLogWriter();
         } else {
             if (UninitializedDataSourceProcessor.isSetDefaultValue(DataSourceProperty.logWriter)) {
                 PrintWriter val = (PrintWriter) UninitializedDataSourceProcessor.getDefaultValue(DataSourceProperty.logWriter);
@@ -180,6 +170,9 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
 
     @Override
     public void setLogWriter(PrintWriter pw) throws SQLException {
+        if (dataSourceSchemasBinding != null) {
+            dataSourceSchemasBinding.getDataSource().setLogWriter(pw);
+        }
         tag.setLogWriter(true);
         prop.setLogWriter(pw);
     }
@@ -203,8 +196,9 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
         return new ConnectionWrapper() {
 
             @Override
-            public Connection getConnection(DataSourceParam param) throws SQLException {
-                return getDataSource0(param).getConnection();
+            public ConnectionResult getConnection(DataSourceParam param) throws SQLException {
+                Connection connection = getDataSource0(param).getConnection();
+                return new ConnectionResult(connection, dataSourceSchemasBinding.getSchemas());
             }
         };
     }
@@ -214,10 +208,38 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
         return new ConnectionWrapper() {
 
             @Override
-            public Connection getConnection(DataSourceParam param) throws SQLException {
-                return getDataSource0(param).getConnection(username, password);
+            public ConnectionResult getConnection(DataSourceParam param) throws SQLException {
+                Connection connection = getDataSource0(param).getConnection(username, password);
+                return new ConnectionResult(connection, dataSourceSchemasBinding.getSchemas());
             }
         };
+    }
+
+    private class ConnectionResult {
+
+        private Connection  connection;
+        private Set<String> schemas;
+
+        public ConnectionResult(Connection connection, Set<String> schemas) {
+            this.connection = connection;
+            this.schemas = schemas;
+        }
+
+        public Connection getConnection() {
+            return connection;
+        }
+
+        public void setConnection(Connection connection) {
+            this.connection = connection;
+        }
+
+        public Set<String> getSchemas() {
+            return schemas;
+        }
+
+        public void setSchemas(Set<String> schemas) {
+            this.schemas = schemas;
+        }
     }
 
     private abstract class ConnectionWrapper implements Connection {
@@ -374,7 +396,10 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
             }
         }
 
+        //
+        private ConnectionResult       connectionResult;
         private Connection             connection;
+
         private ConnectionPropertyBean prop = new ConnectionPropertyBean();
         private InvocationTag          tag  = new InvocationTag();
 
@@ -382,34 +407,57 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
             return prop.isReadOnly();
         }
 
-        public abstract Connection getConnection(DataSourceParam param) throws SQLException;
+        private Set<String> getSchemas0() {
+            if (connectionResult == null) {
+                return null;
+            } else {
+                return connectionResult.getSchemas();
+            }
+        }
 
-        private Connection getConnection0(DataSourceParam param) throws SQLException {
-            if (connection == null) {
-                connection = getConnection(param);
-                if (tag.isAutoCommit()) {
-                    connection.setAutoCommit(prop.isAutoCommit());
-                }
-                if (tag.isReadOnly()) {
-                    connection.setReadOnly(prop.isReadOnly());
-                }
-                if (tag.isSchema()) {
-                    connection.setSchema(prop.getSchema());
-                }
-                if (tag.isTypeMap()) {
-                    connection.setTypeMap(prop.getTypeMap());
-                }
-                if (tag.isTransactionIsolation()) {
-                    connection.setTransactionIsolation(prop.getTransactionIsolation());
-                }
-                if (tag.isHoldability()) {
-                    connection.setHoldability(prop.getHoldability());
-                }
-                if (tag.isCatalog()) {
-                    connection.setCatalog(prop.getCatalog());
+        public abstract ConnectionResult getConnection(DataSourceParam param) throws SQLException;
+
+        private ConnectionResult getConnection0(DataSourceParam param) throws SQLException {
+            if (connectionResult != null) {
+                if (!connectionResult.getConnection().getAutoCommit()) {
+                    return connectionResult;
+                } else {
+                    connectionResult = null;
+                    connection = null;
+                    AbstractDDRDataSource.this.reset();
                 }
             }
-            return connection;
+            ConnectionResult connectionResult = getConnection(param);
+            Connection connection = connectionResult.getConnection();
+            // playback
+            if (tag.isAutoCommit()) {
+                connection.setAutoCommit(prop.isAutoCommit());
+            }
+            if (tag.isReadOnly()) {
+                connection.setReadOnly(prop.isReadOnly());
+            }
+            if (tag.isSchema()) {
+                connection.setSchema(prop.getSchema());
+            }
+            if (tag.isTypeMap()) {
+                connection.setTypeMap(prop.getTypeMap());
+            }
+            if (tag.isTransactionIsolation()) {
+                connection.setTransactionIsolation(prop.getTransactionIsolation());
+            }
+            if (tag.isHoldability()) {
+                connection.setHoldability(prop.getHoldability());
+            }
+            if (tag.isCatalog()) {
+                connection.setCatalog(prop.getCatalog());
+            }
+            // is reset
+            if (connection.getAutoCommit()) {
+                reset();
+            }
+            this.connectionResult = connectionResult;
+            this.connection = connection;
+            return connectionResult;
         }
 
         @Override
@@ -422,15 +470,10 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
                 }
 
                 @Override
-                public boolean isCrossDataSource(Set<String> schemas) {
-                    return isCrossDataSource0(schemas);
-                }
-
-                @Override
                 public StatementBean getStatement(DataSourceParam param, String sql) throws SQLException {
-                    Connection connection = getConnection0(param);
-                    Statement statement = connection.createStatement();
-                    return new StatementBean(ConnectionWrapper.this, statement, getSchemas0());
+                    ConnectionResult connectionResult = getConnection0(param);
+                    Statement statement = connectionResult.getConnection().createStatement();
+                    return new StatementBean(ConnectionWrapper.this, statement, connectionResult.getSchemas());
                 }
             };
         }
@@ -445,15 +488,10 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
                 }
 
                 @Override
-                public boolean isCrossDataSource(Set<String> schemas) {
-                    return isCrossDataSource0(schemas);
-                }
-
-                @Override
                 public StatementBean getStatement(DataSourceParam param, String routedSql) throws SQLException {
-                    Connection connection = getConnection0(param);
-                    Statement statement = connection.prepareStatement(routedSql);
-                    return new StatementBean(ConnectionWrapper.this, statement, getSchemas0());
+                    ConnectionResult connectionResult = getConnection0(param);
+                    Statement statement = connectionResult.getConnection().prepareStatement(routedSql);
+                    return new StatementBean(ConnectionWrapper.this, statement, connectionResult.getSchemas());
                 }
             };
         }
@@ -468,15 +506,11 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
                 }
 
                 @Override
-                public boolean isCrossDataSource(Set<String> schemas) {
-                    return isCrossDataSource0(schemas);
-                }
-
-                @Override
                 public StatementBean getStatement(DataSourceParam param, String sql) throws SQLException {
-                    Connection connection = getConnection0(param);
-                    Statement statement = connection.createStatement(resultSetType, resultSetConcurrency);
-                    return new StatementBean(ConnectionWrapper.this, statement, getSchemas0());
+                    ConnectionResult connectionResult = getConnection0(param);
+                    Statement statement = connectionResult.getConnection().createStatement(resultSetType,
+                                                                                           resultSetConcurrency);
+                    return new StatementBean(ConnectionWrapper.this, statement, connectionResult.getSchemas());
                 }
             };
         }
@@ -492,15 +526,11 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
                 }
 
                 @Override
-                public boolean isCrossDataSource(Set<String> schemas) {
-                    return isCrossDataSource0(schemas);
-                }
-
-                @Override
                 public StatementBean getStatement(DataSourceParam param, String routedSql) throws SQLException {
-                    Connection connection = getConnection0(param);
-                    Statement statement = connection.prepareStatement(routedSql, resultSetType, resultSetConcurrency);
-                    return new StatementBean(ConnectionWrapper.this, statement, getSchemas0());
+                    ConnectionResult connectionResult = getConnection0(param);
+                    Statement statement = connectionResult.getConnection().prepareStatement(routedSql, resultSetType,
+                                                                                            resultSetConcurrency);
+                    return new StatementBean(ConnectionWrapper.this, statement, connectionResult.getSchemas());
                 }
             };
         }
@@ -516,16 +546,11 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
                 }
 
                 @Override
-                public boolean isCrossDataSource(Set<String> schemas) {
-                    return isCrossDataSource0(schemas);
-                }
-
-                @Override
                 public StatementBean getStatement(DataSourceParam param, String sql) throws SQLException {
-                    Connection connection = getConnection0(param);
+                    ConnectionResult connectionResult = getConnection0(param);
                     Statement statement = connection.createStatement(resultSetType, resultSetConcurrency,
                                                                      resultSetHoldability);
-                    return new StatementBean(ConnectionWrapper.this, statement, getSchemas0());
+                    return new StatementBean(ConnectionWrapper.this, statement, connectionResult.getSchemas());
                 }
             };
         }
@@ -541,16 +566,11 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
                 }
 
                 @Override
-                public boolean isCrossDataSource(Set<String> schemas) {
-                    return isCrossDataSource0(schemas);
-                }
-
-                @Override
                 public StatementBean getStatement(DataSourceParam param, String routedSql) throws SQLException {
-                    Connection connection = getConnection0(param);
+                    ConnectionResult connectionResult = getConnection0(param);
                     Statement statement = connection.prepareStatement(routedSql, resultSetType, resultSetConcurrency,
                                                                       resultSetHoldability);
-                    return new StatementBean(ConnectionWrapper.this, statement, getSchemas0());
+                    return new StatementBean(ConnectionWrapper.this, statement, connectionResult.getSchemas());
                 }
             };
         }
@@ -565,15 +585,10 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
                 }
 
                 @Override
-                public boolean isCrossDataSource(Set<String> schemas) {
-                    return isCrossDataSource0(schemas);
-                }
-
-                @Override
                 public StatementBean getStatement(DataSourceParam param, String routedSql) throws SQLException {
-                    Connection connection = getConnection0(param);
+                    ConnectionResult connectionResult = getConnection0(param);
                     Statement statement = connection.prepareStatement(routedSql, autoGeneratedKeys);
-                    return new StatementBean(ConnectionWrapper.this, statement, getSchemas0());
+                    return new StatementBean(ConnectionWrapper.this, statement, connectionResult.getSchemas());
                 }
             };
         }
@@ -588,15 +603,10 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
                 }
 
                 @Override
-                public boolean isCrossDataSource(Set<String> schemas) {
-                    return isCrossDataSource0(schemas);
-                }
-
-                @Override
                 public StatementBean getStatement(DataSourceParam param, String routedSql) throws SQLException {
-                    Connection connection = getConnection0(param);
-                    Statement statement = connection.prepareStatement(routedSql, columnIndexes);
-                    return new StatementBean(ConnectionWrapper.this, statement, getSchemas0());
+                    ConnectionResult connectionResult = getConnection0(param);
+                    Statement statement = connectionResult.getConnection().prepareStatement(routedSql, columnIndexes);
+                    return new StatementBean(ConnectionWrapper.this, statement, connectionResult.getSchemas());
                 }
             };
         }
@@ -611,15 +621,10 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
                 }
 
                 @Override
-                public boolean isCrossDataSource(Set<String> schemas) {
-                    return isCrossDataSource0(schemas);
-                }
-
-                @Override
                 public StatementBean getStatement(DataSourceParam param, String routedSql) throws SQLException {
-                    Connection connection = getConnection0(param);
-                    Statement statement = connection.prepareStatement(routedSql, columnNames);
-                    return new StatementBean(ConnectionWrapper.this, statement, getSchemas0());
+                    ConnectionResult connectionResult = getConnection0(param);
+                    Statement statement = connectionResult.getConnection().prepareStatement(routedSql, columnNames);
+                    return new StatementBean(ConnectionWrapper.this, statement, connectionResult.getSchemas());
                 }
             };
         }
@@ -629,40 +634,36 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
         public void setAutoCommit(boolean autoCommit) throws SQLException {
             if (connection != null) {
                 connection.setAutoCommit(autoCommit);
-            } else {
-                tag.setAutoCommit(true);
-                prop.setAutoCommit(autoCommit);
             }
+            tag.setAutoCommit(true);
+            prop.setAutoCommit(autoCommit);
         }
 
         @Override
         public void setReadOnly(boolean readOnly) throws SQLException {
             if (connection != null) {
                 connection.setReadOnly(readOnly);
-            } else {
-                tag.setReadOnly(true);
-                prop.setReadOnly(readOnly);
             }
+            tag.setReadOnly(true);
+            prop.setReadOnly(readOnly);
         }
 
         @Override
         public void setCatalog(String catalog) throws SQLException {
             if (connection != null) {
                 connection.setCatalog(catalog);
-            } else {
-                tag.setCatalog(true);
-                prop.setCatalog(catalog);
             }
+            tag.setCatalog(true);
+            prop.setCatalog(catalog);
         }
 
         @Override
         public void setTransactionIsolation(int level) throws SQLException {
             if (connection != null) {
                 connection.setTransactionIsolation(level);
-            } else {
-                tag.setTransactionIsolation(true);
-                prop.setTransactionIsolation(level);
             }
+            tag.setTransactionIsolation(true);
+            prop.setTransactionIsolation(level);
         }
 
         @Override
@@ -688,30 +689,27 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
         public void setTypeMap(Map<String, Class<?>> map) throws SQLException {
             if (connection != null) {
                 connection.setTypeMap(map);
-            } else {
-                tag.setTypeMap(true);
-                prop.setTypeMap(map);
             }
+            tag.setTypeMap(true);
+            prop.setTypeMap(map);
         }
 
         @Override
         public void setHoldability(int holdability) throws SQLException {
             if (connection != null) {
                 connection.setHoldability(holdability);
-            } else {
-                tag.setHoldability(true);
-                prop.setHoldability(holdability);
             }
+            tag.setHoldability(true);
+            prop.setHoldability(holdability);
         }
 
         @Override
         public void setSchema(String schema) throws SQLException {
             if (connection != null) {
                 connection.setSchema(schema);
-            } else {
-                tag.setSchema(true);
-                prop.setSchema(schema);
             }
+            tag.setSchema(true);
+            prop.setSchema(schema);
         }
 
         // 初始化后才能调动的方法
@@ -883,7 +881,8 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
         @Override
         public void commit() throws SQLException {
             if (connection != null) {
-                connection.commit();// TODO
+                connection.commit();
+                AbstractDDRDataSource.this.reset();
             } else {
                 throw new UninitializedStatusException("Can't invoke 'commit()' before connection is initialized");
             }

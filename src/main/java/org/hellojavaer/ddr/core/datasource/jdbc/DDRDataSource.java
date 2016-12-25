@@ -20,7 +20,6 @@ import org.hellojavaer.ddr.core.datasource.manager.DataSourceParam;
 
 import javax.sql.DataSource;
 import java.util.Map;
-import java.util.Set;
 
 /**
  *
@@ -32,6 +31,6 @@ public interface DDRDataSource extends DataSource {
 
     DataSourceSchemasBinding getDataSource(DataSourceParam param);
 
-    boolean isCrossDataSource(Set<String> schemas);
+    void reset();
 
 }
