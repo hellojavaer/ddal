@@ -26,11 +26,11 @@ public class SimpleShardingRouteRuleBinding implements Serializable {
     public static final String       VALUE_TYPE_OF_NUMBER = "number";
     public static final String       VALUE_TYPE_OF_STRING = "string";
 
-    private String                   scName;
-    private String                   tbName;
-    private String                   sdName;
-    private SimpleShardingRouterRule rule;
-    private String                   sdScanValues;
+    private String                  scName;
+    private String                  tbName;
+    private String                  sdName;
+    private SimpleShardingRouteRule rule;
+    private String                  sdScanValues;
     private String                   sdScanValueType      = VALUE_TYPE_OF_NUMBER;
 
     public String getScName() {
@@ -57,11 +57,11 @@ public class SimpleShardingRouteRuleBinding implements Serializable {
         this.sdName = sdName;
     }
 
-    public SimpleShardingRouterRule getRule() {
+    public SimpleShardingRouteRule getRule() {
         return rule;
     }
 
-    public void setRule(SimpleShardingRouterRule rule) {
+    public void setRule(SimpleShardingRouteRule rule) {
         this.rule = rule;
     }
 

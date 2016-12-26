@@ -201,7 +201,7 @@ public class SimpleShardingRouter implements ShardingRouter {
         }
     }
 
-    private RouteInfo getRouteInfo(SimpleShardingRouterRule rule, String scName, String tbName, Object sdValue) {
+    private RouteInfo getRouteInfo(SimpleShardingRouteRule rule, String scName, String tbName, Object sdValue) {
         if (sdValue == null || rule == null) {
             if (rule == null && rule == null) {
                 RouteInfo info = new RouteInfo();
