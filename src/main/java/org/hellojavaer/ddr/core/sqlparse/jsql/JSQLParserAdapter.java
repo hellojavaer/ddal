@@ -49,12 +49,12 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
 
     private String              sql;
     private Map<Object, Object> jdbcParam;
-    private ShardingRouter      shardingRouter;
+    private ShardRouter         shardingRouter;
     private Statement           statement;
     private Set<String>         schemas      = new HashSet<>();
     private List<TableWrapper>  routedTables = new ArrayList<TableWrapper>();
 
-    public JSQLParserAdapter(String sql, Map<Object, Object> jdbcParam, ShardingRouter shardingRouter) {
+    public JSQLParserAdapter(String sql, Map<Object, Object> jdbcParam, ShardRouter shardingRouter) {
         this.sql = sql;
         this.jdbcParam = jdbcParam;
         this.shardingRouter = shardingRouter;
@@ -133,7 +133,7 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
                 if (shardingRouterRouteInfo != null) {
                     route0(tableWrapper, shardingRouterRouteInfo);
                 } else {// 如果没有转换信息则通过ShardingRouteContext 转换
-                    Object routeInfo = ShardingRouteContext.getRouteInfo(tableWrapper.getScName(), tableWrapper.getTbName());
+                    Object routeInfo = ShardRouteContext.getRouteInfo(tableWrapper.getScName(), tableWrapper.getTbName());
                     if (routeInfo == null) {
                         if (tableWrapper.getSdName() != null) {// 禁用sql路由后但未在ShardingRouteContext中设置路由
                             throw new RouteInfoNotFoundException(
@@ -521,7 +521,7 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
                                        + "' in where clause is ambiguous. source sql is '" + sql + "'");
         }
         tableWrapper.setSdName(DDRStringUtils.toLowerCase(column.getColumnName()));
-        if (ShardingRouteContext.isDisableSqlRouting() == Boolean.TRUE) {
+        if (ShardRouteContext.isDisableSqlRouting() == Boolean.TRUE) {
             if (logger.isDebugEnabled()) {
                 logger.debug("[DisableSqlRouting] scName:" + tableWrapper.getScName() + ", tbName:"
                              + tableWrapper.getTbName() + ", sdName:" + tableWrapper.getSdName() + ", sdValue:" + val);
@@ -660,10 +660,10 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
 
     private class ConverterContext {
 
-        private Stack<StackContext>       stack              = null;
-        private ShardingRouteParamContext tableRouterContext = null;
+        private Stack<StackContext>    stack              = null;
+        private ShardRouteParamContext tableRouterContext = null;
 
-        private class TableRouterContextImpl extends HashMap<String, Object> implements ShardingRouteParamContext {
+        private class TableRouterContextImpl extends HashMap<String, Object> implements ShardRouteParamContext {
 
         }
 
@@ -672,7 +672,7 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
             this.tableRouterContext = new TableRouterContextImpl();
         }
 
-        public ConverterContext(Stack<StackContext> stack, ShardingRouteParamContext tableRouterContext) {
+        public ConverterContext(Stack<StackContext> stack, ShardRouteParamContext tableRouterContext) {
             this.stack = stack;
             this.tableRouterContext = tableRouterContext;
         }
@@ -681,7 +681,7 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
             return stack;
         }
 
-        public ShardingRouteParamContext getTableRouterContext() {
+        public ShardRouteParamContext getTableRouterContext() {
             return tableRouterContext;
         }
     }

@@ -29,7 +29,7 @@ import org.hellojavaer.ddr.core.expression.range.RangeItemVisitor;
 import org.hellojavaer.ddr.core.lb.random.WeightItem;
 import org.hellojavaer.ddr.core.lb.random.WeightedRandom;
 import org.hellojavaer.ddr.core.sharding.RouteInfo;
-import org.hellojavaer.ddr.core.sharding.ShardingRouteHelper;
+import org.hellojavaer.ddr.core.sharding.ShardRouteHelper;
 import org.hellojavaer.ddr.core.utils.DDRJSONUtils;
 import org.hellojavaer.ddr.core.utils.DDRStringUtils;
 import org.hellojavaer.ddr.core.utils.DDRToStringBuilder;
@@ -496,17 +496,17 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
     private Map<String, Set<String>> getGroupedRouteInfo() {
         // do group{physics schema name <-> physics table names}
         Map<String, Set<String>> phyMap = new HashMap<String, Set<String>>();
-        Set<String> schemas = ShardingRouteHelper.getConfiguredSchemas();
+        Set<String> schemas = ShardRouteHelper.getConfiguredSchemas();
         if (schemas == null || schemas.isEmpty()) {
             return phyMap;
         }
         for (String scName : schemas) {
-            Set<String> tbNames = ShardingRouteHelper.getConfiguredTables(scName);
+            Set<String> tbNames = ShardRouteHelper.getConfiguredTables(scName);
             if (tbNames == null || tbNames.isEmpty()) {
                 continue;
             }
             for (String tbName : tbNames) {
-                List<RouteInfo> routeInfos = ShardingRouteHelper.getConfiguredRouteInfos(scName, tbName);
+                List<RouteInfo> routeInfos = ShardRouteHelper.getConfiguredRouteInfos(scName, tbName);
                 if (routeInfos == null || routeInfos.isEmpty()) {
                     continue;
                 }

@@ -35,7 +35,7 @@ import java.util.Map;
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 15/11/2016.
  */
-public class SimpleShardingRouteRule implements Serializable {
+public class SimpleShardRouteRule implements Serializable {
 
     private String           scRoute;
     private String           scFormat;

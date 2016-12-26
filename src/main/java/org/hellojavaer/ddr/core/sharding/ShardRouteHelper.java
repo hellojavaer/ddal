@@ -23,7 +23,7 @@ import java.util.*;
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 23/11/2016.
  */
-public class ShardingRouteHelper {
+public class ShardRouteHelper {
 
     private static Map<String, List>        routeMap  = new HashMap<String, List>();
     private static Map<String, Set<String>> schemaMap = new HashMap<String, Set<String>>();
@@ -39,7 +39,7 @@ public class ShardingRouteHelper {
     public static void setConfiguredRouteInfos(String scName, String tbName, List<RouteInfo> routeInfos) {
         Set<String> tables = schemaMap.get(scName);
         if (tables == null) {
-            synchronized (ShardingRouteHelper.class) {
+            synchronized (ShardRouteHelper.class) {
                 tables = schemaMap.get(scName);
                 if (tables == null) {
                     tables = new HashSet<String>();

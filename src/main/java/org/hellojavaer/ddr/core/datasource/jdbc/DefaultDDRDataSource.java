@@ -22,7 +22,7 @@ import org.hellojavaer.ddr.core.datasource.jdbc.property.ConnectionProperty;
 import org.hellojavaer.ddr.core.datasource.jdbc.property.DataSourceProperty;
 import org.hellojavaer.ddr.core.datasource.manager.DataSourceManager;
 import org.hellojavaer.ddr.core.datasource.manager.DataSourceParam;
-import org.hellojavaer.ddr.core.sharding.ShardingParser;
+import org.hellojavaer.ddr.core.sharding.ShardParser;
 
 import java.util.Map;
 
@@ -32,8 +32,8 @@ import java.util.Map;
  */
 public class DefaultDDRDataSource extends AbstractDDRDataSource {
 
-    private DataSourceManager           dataSourceManager;
-    private ShardingParser              shardingParser;
+    private DataSourceManager dataSourceManager;
+    private ShardParser       shardingParser;
 
     static {
         UninitializedDataSourceProcessor.setDefaultValue(DataSourceProperty.loginTimeout, 0, false);
@@ -49,11 +49,11 @@ public class DefaultDDRDataSource extends AbstractDDRDataSource {
         this.dataSourceManager = dataSourceManager;
     }
 
-    public ShardingParser getShardingParser() {
+    public ShardParser getShardingParser() {
         return shardingParser;
     }
 
-    public void setShardingParser(ShardingParser shardingParser) {
+    public void setShardingParser(ShardParser shardingParser) {
         this.shardingParser = shardingParser;
     }
 

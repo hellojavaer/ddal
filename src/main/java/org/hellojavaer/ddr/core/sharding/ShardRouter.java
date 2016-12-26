@@ -15,16 +15,14 @@
  */
 package org.hellojavaer.ddr.core.sharding;
 
-import org.hellojavaer.ddr.core.datasource.jdbc.SQLParseResult;
-
-import java.util.Map;
-
 /**
  *
- * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 23/11/2016.
+ * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 05/11/2016.
  */
-public interface ShardingParser {
+public interface ShardRouter {
 
-    SQLParseResult parse(String sql, Map<Object, Object> jdbcParams);
+    RouteConfig getRouteConfig(ShardRouteParamContext context, String scName, String tbName);
+
+    RouteInfo route(ShardRouteParamContext context, String scName, String tbName, Object sdValue);
 
 }

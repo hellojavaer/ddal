@@ -24,7 +24,7 @@ import java.util.*;
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 15/11/2016.
  */
-public class ShardingRouteContext {
+public class ShardRouteContext {
 
     private static final ThreadLocal<LinkedList<SubContext>> STACK = new ThreadLocal<LinkedList<SubContext>>() {
 
