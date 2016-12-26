@@ -35,7 +35,7 @@ public class FeSyntaxParser {
         List<FeNodeImpl> nodes = new ArrayList<FeNodeImpl>();
         for (FeToken token = tokenParser.next(); token != null; token = tokenParser.next()) {
             if (token.getType() == FeTokenType.PLAIN_TEXT) {
-                nodes.add(new PlainText((String) token.getData()));
+                nodes.add(new FePlainText((String) token.getData()));
             } else if (token.getType() == FeTokenType.LCURLY) {
                 token = tokenParser.next();
                 FeToken fromToken = token;

@@ -21,11 +21,11 @@ import org.hellojavaer.ddr.core.expression.format.FormatExpressionContext;
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 17/11/2016.
  */
-public class PlainText extends FeNodeImpl {
+public class FePlainText extends FeNodeImpl {
 
     private String data;
 
-    public PlainText(String data) {
+    public FePlainText(String data) {
         this.data = data;
     }
 
