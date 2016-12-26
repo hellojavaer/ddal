@@ -57,7 +57,7 @@ public class DefaultDDRDataSource extends AbstractDDRDataSource {
         this.shardingParser = shardingParser;
     }
 
-    public DDRSQLParseResult parseSql(String sql, Map<Object, Object> jdbcParam) {
+    public SQLParseResult parseSql(String sql, Map<Object, Object> jdbcParam) {
         return shardingParser.parse(sql, jdbcParam);
     }
 

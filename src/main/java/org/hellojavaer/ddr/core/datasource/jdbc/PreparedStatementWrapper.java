@@ -39,7 +39,7 @@ public abstract class PreparedStatementWrapper extends StatementWrapper implemen
     private Map<Object, Object>           jdbcParameter = new HashMap<Object, Object>();
     private List<JdbcParamInvocation>     jdbcParamInvocationList;
 
-    private DDRSQLParseResult.ParserState parserState;
+    private SQLParseResult.ParserState parserState;
 
     public PreparedStatementWrapper(String sql, boolean readOnly, Set<String> schemas) {
         super(readOnly, schemas);
@@ -184,7 +184,7 @@ public abstract class PreparedStatementWrapper extends StatementWrapper implemen
             parserState.validJdbcParam(this.jdbcParameter);
         } else {
             // 1. parse sql
-            DDRSQLParseResult parseResult = parseSql(sql, this.jdbcParameter);
+            SQLParseResult parseResult = parseSql(sql, this.jdbcParameter);
             if (stdLogger.isDebugEnabled()) {
                 stdLogger.debug(new StringBuilder("[ParseSql] from:")//
                 .append(sql).append(" =>to: ")//

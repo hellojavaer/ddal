@@ -209,7 +209,7 @@ public abstract class StatementWrapper implements DDRStatement {
 
     private String initStatementAndConvertSql(String sql) throws SQLException {
         // 1. parse sql
-        DDRSQLParseResult parseResult = parseSql(sql, null);
+        SQLParseResult parseResult = parseSql(sql, null);
         if (stdLogger.isDebugEnabled()) {
             stdLogger.debug(new StringBuilder("[ParseSql] from:")//
             .append(sql).append(" =>to: ")//

@@ -15,7 +15,7 @@
  */
 package org.hellojavaer.ddr.core.sharding.simple;
 
-import org.hellojavaer.ddr.core.datasource.jdbc.DDRSQLParseResult;
+import org.hellojavaer.ddr.core.datasource.jdbc.SQLParseResult;
 import org.hellojavaer.ddr.core.sharding.ShardingParser;
 import org.hellojavaer.ddr.core.sharding.ShardingRouter;
 import org.hellojavaer.ddr.core.sqlparse.SqlParser;
@@ -49,7 +49,7 @@ public class SimpleShardingParser implements ShardingParser {
     }
 
     @Override
-    public DDRSQLParseResult parse(String sql, Map<Object, Object> jdbcParams) {
+    public SQLParseResult parse(String sql, Map<Object, Object> jdbcParams) {
         return sqlParser.parse(sql, jdbcParams, shardingRouter);
     }
 }

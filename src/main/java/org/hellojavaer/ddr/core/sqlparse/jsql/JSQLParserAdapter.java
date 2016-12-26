@@ -27,7 +27,7 @@ import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.update.Update;
 import net.sf.jsqlparser.util.JSQLBaseVisitor;
 import org.hellojavaer.ddr.core.datasource.exception.CrossingPreparedStatementException;
-import org.hellojavaer.ddr.core.datasource.jdbc.DDRSQLParseResult;
+import org.hellojavaer.ddr.core.datasource.jdbc.SQLParseResult;
 import org.hellojavaer.ddr.core.sharding.*;
 import org.hellojavaer.ddr.core.sqlparse.exception.*;
 import org.hellojavaer.ddr.core.utils.DDRJSONUtils;
@@ -77,16 +77,16 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
         }
     }
 
-    public DDRSQLParseResult parse() {
+    public SQLParseResult parse() {
         try {
             ConverterContext converterContext = new ConverterContext();
             context.set(converterContext);
             statement.accept(this);
             String targetSql = statement.toString();
-            DDRSQLParseResult parseResult = new DDRSQLParseResult();
+            SQLParseResult parseResult = new SQLParseResult();
             parseResult.setSql(targetSql);
             parseResult.setSchemas(schemas);
-            parseResult.setParserState(new DDRSQLParseResult.ParserState() {
+            parseResult.setParserState(new SQLParseResult.ParserState() {
 
                 @Override
                 public void validJdbcParam(Map<Object, Object> jdbcParam) {

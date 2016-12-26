@@ -24,7 +24,7 @@ import java.util.Set;
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 17/12/2016.
  */
-public class DDRSQLParseResult {
+public class SQLParseResult {
 
     private String      sql;
     private Set<String> schemas;

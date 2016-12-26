@@ -27,7 +27,7 @@ import java.util.Map;
  */
 public interface DDRDataSource extends DataSource {
 
-    DDRSQLParseResult parseSql(String sql, Map<Object, Object> jdbcParam);
+    SQLParseResult parseSql(String sql, Map<Object, Object> jdbcParam);
 
     DataSourceSchemasBinding getDataSource(DataSourceParam param);
 

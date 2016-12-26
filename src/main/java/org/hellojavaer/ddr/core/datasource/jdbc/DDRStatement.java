@@ -27,7 +27,7 @@ import java.util.Map;
  */
 public interface DDRStatement extends Statement {
 
-    DDRSQLParseResult parseSql(String sql, Map<Object, Object> jdbcParams) throws SQLException;
+    SQLParseResult parseSql(String sql, Map<Object, Object> jdbcParams) throws SQLException;
 
     StatementBean getStatement(DataSourceParam param, String sql) throws SQLException;
 

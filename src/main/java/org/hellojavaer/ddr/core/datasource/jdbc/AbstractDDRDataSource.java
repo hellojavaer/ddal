@@ -465,7 +465,7 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
             return new StatementWrapper(isReadOnly0(), getSchemas0()) {
 
                 @Override
-                public DDRSQLParseResult parseSql(String sql, Map<Object, Object> jdbcParams) throws SQLException {
+                public SQLParseResult parseSql(String sql, Map<Object, Object> jdbcParams) throws SQLException {
                     return AbstractDDRDataSource.this.parseSql(sql, jdbcParams);
                 }
 
@@ -483,7 +483,7 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
             return new PreparedStatementWrapper(sql, isReadOnly0(), getSchemas0()) {
 
                 @Override
-                public DDRSQLParseResult parseSql(String sql, Map<Object, Object> jdbcParams) throws SQLException {
+                public SQLParseResult parseSql(String sql, Map<Object, Object> jdbcParams) throws SQLException {
                     return AbstractDDRDataSource.this.parseSql(sql, jdbcParams);
                 }
 
@@ -501,7 +501,7 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
             return new StatementWrapper(isReadOnly0(), getSchemas0()) {
 
                 @Override
-                public DDRSQLParseResult parseSql(String sql, Map<Object, Object> jdbcParams) throws SQLException {
+                public SQLParseResult parseSql(String sql, Map<Object, Object> jdbcParams) throws SQLException {
                     return AbstractDDRDataSource.this.parseSql(sql, jdbcParams);
                 }
 
@@ -521,7 +521,7 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
             return new PreparedStatementWrapper(sql, isReadOnly0(), getSchemas0()) {
 
                 @Override
-                public DDRSQLParseResult parseSql(String sql, Map<Object, Object> jdbcParams) throws SQLException {
+                public SQLParseResult parseSql(String sql, Map<Object, Object> jdbcParams) throws SQLException {
                     return AbstractDDRDataSource.this.parseSql(sql, jdbcParams);
                 }
 
@@ -541,7 +541,7 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
             return new StatementWrapper(isReadOnly0(), getSchemas0()) {
 
                 @Override
-                public DDRSQLParseResult parseSql(String sql, Map<Object, Object> jdbcParams) throws SQLException {
+                public SQLParseResult parseSql(String sql, Map<Object, Object> jdbcParams) throws SQLException {
                     return AbstractDDRDataSource.this.parseSql(sql, jdbcParams);
                 }
 
@@ -561,7 +561,7 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
             return new PreparedStatementWrapper(sql, isReadOnly0(), getSchemas0()) {
 
                 @Override
-                public DDRSQLParseResult parseSql(String sql, Map<Object, Object> jdbcParams) throws SQLException {
+                public SQLParseResult parseSql(String sql, Map<Object, Object> jdbcParams) throws SQLException {
                     return AbstractDDRDataSource.this.parseSql(sql, jdbcParams);
                 }
 
@@ -580,7 +580,7 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
             return new PreparedStatementWrapper(sql, isReadOnly0(), getSchemas0()) {
 
                 @Override
-                public DDRSQLParseResult parseSql(String sql, Map<Object, Object> jdbcParams) throws SQLException {
+                public SQLParseResult parseSql(String sql, Map<Object, Object> jdbcParams) throws SQLException {
                     return AbstractDDRDataSource.this.parseSql(sql, jdbcParams);
                 }
 
@@ -598,7 +598,7 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
             return new PreparedStatementWrapper(sql, isReadOnly0(), getSchemas0()) {
 
                 @Override
-                public DDRSQLParseResult parseSql(String sql, Map<Object, Object> jdbcParams) throws SQLException {
+                public SQLParseResult parseSql(String sql, Map<Object, Object> jdbcParams) throws SQLException {
                     return AbstractDDRDataSource.this.parseSql(sql, jdbcParams);
                 }
 
@@ -616,7 +616,7 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
             return new PreparedStatementWrapper(sql, isReadOnly0(), getSchemas0()) {
 
                 @Override
-                public DDRSQLParseResult parseSql(String sql, Map<Object, Object> jdbcParams) throws SQLException {
+                public SQLParseResult parseSql(String sql, Map<Object, Object> jdbcParams) throws SQLException {
                     return AbstractDDRDataSource.this.parseSql(sql, jdbcParams);
                 }
 
