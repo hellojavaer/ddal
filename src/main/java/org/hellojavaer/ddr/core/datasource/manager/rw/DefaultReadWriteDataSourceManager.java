@@ -22,8 +22,8 @@ import org.hellojavaer.ddr.core.datasource.manager.DataSourceParam;
 import org.hellojavaer.ddr.core.datasource.manager.rw.monitor.ReadOnlyDataSourceMonitor;
 import org.hellojavaer.ddr.core.datasource.manager.rw.monitor.ReadOnlyDataSourceMonitorServer;
 import org.hellojavaer.ddr.core.datasource.manager.rw.monitor.WritingMethodInvokeResult;
-import org.hellojavaer.ddr.core.datasource.security.metadata.DDRMetaDataChecker;
-import org.hellojavaer.ddr.core.datasource.security.metadata.DefaultDDRMetaDataChecker;
+import org.hellojavaer.ddr.core.datasource.security.metadata.MetaDataChecker;
+import org.hellojavaer.ddr.core.datasource.security.metadata.DefaultMetaDataChecker;
 import org.hellojavaer.ddr.core.expression.range.RangeExpression;
 import org.hellojavaer.ddr.core.expression.range.RangeItemVisitor;
 import org.hellojavaer.ddr.core.lb.random.WeightItem;
@@ -58,7 +58,7 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
     private List<ReadOnlyDataSourceBinding>                        readOnlyDataSources                        = null;
 
     //
-    private DDRMetaDataChecker                                     ddrMetaDataChecker                         = new DefaultDDRMetaDataChecker();
+    private MetaDataChecker                                        metaDataChecker                            = new DefaultMetaDataChecker();
 
     // cache
     private Map<String, WeightedRandom>                            readOnlyDataSourceQueryCache               = null;
@@ -74,6 +74,13 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
     // tag
     private AtomicBoolean                                          inited                                     = new AtomicBoolean(
                                                                                                                                   false);
+    public MetaDataChecker getMetaDataChecker() {
+        return metaDataChecker;
+    }
+
+    public void setMetaDataChecker(MetaDataChecker metaDataChecker) {
+        this.metaDataChecker = metaDataChecker;
+    }
 
     private static class WeightedDataSourceWrapper extends WeightedDataSource implements Cloneable {
 
@@ -407,8 +414,7 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
     }
 
     private void check(Map<String, DataSourceSchemasBinding> writeOnlyDataSourceQueryCache) {
-        if (writeOnlyDataSourceQueryCache == null || writeOnlyDataSourceQueryCache.isEmpty()
-            || ddrMetaDataChecker == null) {
+        if (writeOnlyDataSourceQueryCache == null || writeOnlyDataSourceQueryCache.isEmpty() || metaDataChecker == null) {
             return;
         }
         Map<String, Set<String>> groupedRouteInfo = getGroupedRouteInfo();
@@ -421,7 +427,7 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
                     conn.setReadOnly(true);
                 }
                 String scName = entry.getKey();
-                ddrMetaDataChecker.check(conn, scName, groupedRouteInfo.get(scName));
+                metaDataChecker.check(conn, scName, groupedRouteInfo.get(scName));
                 if (readOnly == false) {
                     conn.setReadOnly(false);
                 }
@@ -451,7 +457,7 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
 
     private void check(LinkedHashMap<String, List<WeightedDataSourceWrapper>> readOnlyDataSourceIndexCacheOriginalValues) {
         if (readOnlyDataSourceIndexCacheOriginalValues == null || readOnlyDataSourceIndexCacheOriginalValues.isEmpty()
-            || ddrMetaDataChecker == null) {
+            || metaDataChecker == null) {
             return;
         }
         Map<String, Set<String>> groupedRouteInfo = getGroupedRouteInfo();
@@ -465,7 +471,7 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
                         conn.setReadOnly(true);
                     }
                     String scName = entry.getKey();
-                    ddrMetaDataChecker.check(conn, scName, groupedRouteInfo.get(scName));
+                    metaDataChecker.check(conn, scName, groupedRouteInfo.get(scName));
                     if (readOnly == false) {
                         conn.setReadOnly(false);
                     }

@@ -29,7 +29,7 @@ import java.util.*;
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 25/12/2016.
  */
-public class DefaultDDRMetaDataChecker implements DDRMetaDataChecker {
+public class DefaultMetaDataChecker implements MetaDataChecker {
 
     private static final String              MYSQL_AND_ORACLE = "SELECT table_name FROM information_schema.tables WHERE table_schema = ? ";
     private static final String              SQL_SERVER       = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_CATALOG = ? ";

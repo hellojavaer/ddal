@@ -24,7 +24,7 @@ import java.util.Map;
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 30/11/2016.
  */
-public interface DDRSqlParser {
+public interface SqlParser {
 
     DDRSQLParseResult parse(String sql, Map<Object, Object> jdbcParams, ShardingRouter shardingRouter);
 
