@@ -18,7 +18,7 @@ package org.hellojavaer.ddr.core.sharding.simple;
 import org.hellojavaer.ddr.core.datasource.jdbc.DDRSQLParseResult;
 import org.hellojavaer.ddr.core.sharding.ShardingParser;
 import org.hellojavaer.ddr.core.sharding.ShardingRouter;
-import org.hellojavaer.ddr.core.sqlparse.SqlParser;
+import org.hellojavaer.ddr.core.sqlparse.DDRSqlParser;
 import org.hellojavaer.ddr.core.sqlparse.jsql.JSqlParser;
 
 import java.util.Map;
@@ -30,7 +30,7 @@ import java.util.Map;
 public class SimpleShardingParser implements ShardingParser {
 
     private ShardingRouter shardingRouter = null;
-    private SqlParser      sqlParser      = new JSqlParser();
+    private DDRSqlParser   sqlParser      = new JSqlParser();
 
     public ShardingRouter getShardingRouter() {
         return shardingRouter;
@@ -40,11 +40,11 @@ public class SimpleShardingParser implements ShardingParser {
         this.shardingRouter = shardingRouter;
     }
 
-    public SqlParser getSqlParser() {
+    public DDRSqlParser getSqlParser() {
         return sqlParser;
     }
 
-    public void setSqlParser(SqlParser sqlParser) {
+    public void setSqlParser(DDRSqlParser sqlParser) {
         this.sqlParser = sqlParser;
     }
 
