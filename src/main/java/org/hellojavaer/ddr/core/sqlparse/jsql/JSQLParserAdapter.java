@@ -521,7 +521,7 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
                                        + "' in where clause is ambiguous. source sql is '" + sql + "'");
         }
         tableWrapper.setSdName(DDRStringUtils.toLowerCase(column.getColumnName()));
-        if (ShardingRouteContext.isDisableSqlRouting()) {
+        if (ShardingRouteContext.isDisableSqlRouting() == Boolean.TRUE) {
             if (logger.isDebugEnabled()) {
                 logger.debug("[DisableSqlRouting] scName:" + tableWrapper.getScName() + ", tbName:"
                              + tableWrapper.getTbName() + ", sdName:" + tableWrapper.getSdName() + ", sdValue:" + val);

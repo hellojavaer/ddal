@@ -91,11 +91,6 @@ public class MBeanReadOnlyDataSourceMonitorServer implements ReadOnlyDataSourceM
                 }
 
                 @Override
-                public String setWeight(String scName, String values) {
-                    return getReadOnlyDataSourceMonitor().setWeight(scName, values);
-                }
-
-                @Override
                 public String restoreWeight(String scName) {
                     return getReadOnlyDataSourceMonitor().restoreWeight(scName);
                 }

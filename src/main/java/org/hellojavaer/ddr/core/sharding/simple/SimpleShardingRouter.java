@@ -15,8 +15,6 @@
  */
 package org.hellojavaer.ddr.core.sharding.simple;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hellojavaer.ddr.core.expression.range.RangeExpression;
 import org.hellojavaer.ddr.core.expression.range.RangeItemVisitor;
 import org.hellojavaer.ddr.core.sharding.*;
@@ -24,6 +22,8 @@ import org.hellojavaer.ddr.core.sharding.exception.AmbiguousDataSourceBindingExc
 import org.hellojavaer.ddr.core.sharding.exception.ConflictingDataSourceBindingException;
 import org.hellojavaer.ddr.core.sharding.exception.NoDataSourceBindingException;
 import org.hellojavaer.ddr.core.utils.DDRStringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -33,9 +33,9 @@ import java.util.*;
  */
 public class SimpleShardingRouter implements ShardingRouter {
 
-    private final Log                                               logger = LogFactory.getLog(getClass());
-    private List<SimpleShardingRouteRuleBinding>                    routeRuleBindings;
-    private Map<String, InnerSimpleShardingRouteRuleBindingWrapper> cache  = Collections.EMPTY_MAP;
+    private Logger                                                  logger            = LoggerFactory.getLogger(getClass());
+    private List<SimpleShardingRouteRuleBinding>                    routeRuleBindings = null;
+    private Map<String, InnerSimpleShardingRouteRuleBindingWrapper> cache             = Collections.EMPTY_MAP;
 
     public List<SimpleShardingRouteRuleBinding> getRouteRuleBindings() {
         return routeRuleBindings;
@@ -193,7 +193,8 @@ public class SimpleShardingRouter implements ShardingRouter {
         InnerSimpleShardingRouteRuleBindingWrapper bindingWrapper = getBinding(scName, tbName);
         SimpleShardingRouteRuleBinding binding = bindingWrapper.getRuleBinding();
         if (binding == null) {
-            throw new NoDataSourceBindingException("No route rule binding for 'scName':" + scName + " 'tbName':" + tbName);
+            throw new NoDataSourceBindingException("No route rule binding for 'scName':" + scName + " 'tbName':"
+                                                   + tbName);
         } else {// 必须使用 binding 中的 scName,因为sql中的scName可能为空
             RouteInfo info = getRouteInfo(binding.getRule(), binding.getScName(), binding.getTbName(), sdValue);
             return info;

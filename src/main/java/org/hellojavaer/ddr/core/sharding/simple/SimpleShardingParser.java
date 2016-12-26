@@ -29,8 +29,8 @@ import java.util.Map;
  */
 public class SimpleShardingParser implements ShardingParser {
 
-    private ShardingRouter shardingRouter;
-    private SqlParser      sqlParser;
+    private ShardingRouter shardingRouter = null;
+    private SqlParser      sqlParser      = new JSqlParser();
 
     public ShardingRouter getShardingRouter() {
         return shardingRouter;
@@ -50,9 +50,6 @@ public class SimpleShardingParser implements ShardingParser {
 
     @Override
     public DDRSQLParseResult parse(String sql, Map<Object, Object> jdbcParams) {
-        if (sqlParser == null) {
-            sqlParser = new JSqlParser();
-        }
         return sqlParser.parse(sql, jdbcParams, shardingRouter);
     }
 }

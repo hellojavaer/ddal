@@ -41,7 +41,12 @@ public interface ReadOnlyDataSourceMonitor {
      */
     String getWeight(String scName);// [1:{"name":"aa","desc":"bb",weight:1}]
 
-    String setWeight(String scName, String values);// [1:{"name":"aa","desc":"bb",weight:1}]
+    /**
+     *  batch updating load weight of datasource may cause cluster unstable,generally I suggest you updating weight of datasource one by one in a smoothing way.
+     *
+     *  由于同时更新多个数据源的权重可能会导致数据库集群整体负载失衡,通常的情况下我建议平滑的升降对单个数据源的负载,因此最后我决定去掉这个方法
+     */
+    //String setWeight(String scName, String values);// [1:{"name":"aa","desc":"bb",weight:1}]
 
     String restoreWeight(String scName);//
 

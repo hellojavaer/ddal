@@ -51,7 +51,7 @@ public abstract class StatementWrapper implements DDRStatement {
         if (this.schemas == null) {
             return false;
         } else {
-            return this.schemas.containsAll(schemas);
+            return !this.schemas.containsAll(schemas);
         }
     }
 

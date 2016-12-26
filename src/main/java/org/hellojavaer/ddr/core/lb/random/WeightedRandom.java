@@ -76,10 +76,9 @@ public class WeightedRandom {
 
     private class InnerWeightItem {
 
-        private int     start;
-        private int     end;
-        private Object  value;
-        private boolean disabled;
+        private int    start;
+        private int    end;
+        private Object value;
 
         public int getStart() {
             return start;

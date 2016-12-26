@@ -308,12 +308,6 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
             }
 
             @Override
-            public String setWeight(String scName, String values) {// TODO
-                return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_OPERATION_NOT_SUPPORTED,
-                                                     "'setWeight(String scName, String values)' is not supported now").toString();
-            }
-
-            @Override
             public String restoreWeight(String scName) {
                 scName = DDRStringUtils.toLowerCase(scName);
                 if (scName == null) {

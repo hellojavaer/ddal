@@ -28,7 +28,7 @@ public class WritingMethodInvokeResult implements Serializable {
     public static final int CODE_OF_SUCCESS                 = 0;
     public static final int CODE_OF_ILLEGAL_ARGUMENT        = 20; // 格式错误,参数必填项为空
     public static final int CODE_OF_DATA_IS_EMPTY           = 40; //
-    public static final int CODE_OF_OPERATION_NOT_SUPPORTED = 60;
+    //public static final int CODE_OF_OPERATION_NOT_SUPPORTED = 60;
 
     private Integer         code;
     private String          desc;
