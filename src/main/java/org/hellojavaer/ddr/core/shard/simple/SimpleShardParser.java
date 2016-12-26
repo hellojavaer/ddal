@@ -29,15 +29,15 @@ import java.util.Map;
  */
 public class SimpleShardParser implements ShardParser {
 
-    private ShardRouter shardingRouter = null;
-    private SqlParser   sqlParser      = new JSqlParser();
+    private ShardRouter shardRouter = null;
+    private SqlParser   sqlParser   = new JSqlParser();
 
-    public ShardRouter getShardingRouter() {
-        return shardingRouter;
+    public ShardRouter getShardRouter() {
+        return shardRouter;
     }
 
-    public void setShardingRouter(ShardRouter shardingRouter) {
-        this.shardingRouter = shardingRouter;
+    public void setShardRouter(ShardRouter shardRouter) {
+        this.shardRouter = shardRouter;
     }
 
     public SqlParser getSqlParser() {
@@ -50,6 +50,6 @@ public class SimpleShardParser implements ShardParser {
 
     @Override
     public SQLParseResult parse(String sql, Map<Object, Object> jdbcParams) {
-        return sqlParser.parse(sql, jdbcParams, shardingRouter);
+        return sqlParser.parse(sql, jdbcParams, shardRouter);
     }
 }

@@ -18,7 +18,6 @@ package org.hellojavaer.ddr.core.shard.simple;
 import org.hellojavaer.ddr.core.expression.range.RangeExpression;
 import org.hellojavaer.ddr.core.expression.range.RangeItemVisitor;
 import org.hellojavaer.ddr.core.shard.*;
-import org.hellojavaer.ddr.core.sharding.*;
 import org.hellojavaer.ddr.core.shard.exception.AmbiguousDataSourceBindingException;
 import org.hellojavaer.ddr.core.shard.exception.ConflictingDataSourceBindingException;
 import org.hellojavaer.ddr.core.shard.exception.NoDataSourceBindingException;
@@ -34,17 +33,17 @@ import java.util.*;
  */
 public class SimpleShardRouter implements ShardRouter {
 
-    private Logger                                                  logger            = LoggerFactory.getLogger(getClass());
-    private List<SimpleShardRouteRuleBinding>                       routeRuleBindings = null;
-    private Map<String, InnerSimpleShardingRouteRuleBindingWrapper> cache             = Collections.EMPTY_MAP;
+    private Logger                                               logger            = LoggerFactory.getLogger(getClass());
+    private List<SimpleShardRouteRuleBinding>                    routeRuleBindings = null;
+    private Map<String, InnerSimpleShardRouteRuleBindingWrapper> cache             = Collections.EMPTY_MAP;
 
     public List<SimpleShardRouteRuleBinding> getRouteRuleBindings() {
         return routeRuleBindings;
     }
 
-    protected class InnerSimpleShardingRouteRuleBindingWrapper {
+    protected class InnerSimpleShardRouteRuleBindingWrapper {
 
-        private List<String>                   conflictSchemas = new ArrayList<String>();
+        private List<String>                conflictSchemas = new ArrayList<String>();
         private SimpleShardRouteRuleBinding ruleBinding;
         private RouteConfig                 routeInfo;
 
@@ -79,7 +78,7 @@ public class SimpleShardRouter implements ShardRouter {
     }
 
     private void refreshCache(List<SimpleShardRouteRuleBinding> bindings) {
-        Map<String, InnerSimpleShardingRouteRuleBindingWrapper> cache0 = new HashMap<String, InnerSimpleShardingRouteRuleBindingWrapper>();
+        Map<String, InnerSimpleShardRouteRuleBindingWrapper> cache0 = new HashMap<String, InnerSimpleShardRouteRuleBindingWrapper>();
         if (bindings != null && !bindings.isEmpty()) {
             for (SimpleShardRouteRuleBinding binding : bindings) {
                 // can't be null
@@ -136,9 +135,9 @@ public class SimpleShardRouter implements ShardRouter {
         this.cache = cache0;
     }
 
-    private void putToCache(Map<String, InnerSimpleShardingRouteRuleBindingWrapper> cache, String key,
+    private void putToCache(Map<String, InnerSimpleShardRouteRuleBindingWrapper> cache, String key,
                             SimpleShardRouteRuleBinding ruleBinding, boolean checkConflict) {
-        InnerSimpleShardingRouteRuleBindingWrapper ruleBindingWrapper = cache.get(key);
+        InnerSimpleShardRouteRuleBindingWrapper ruleBindingWrapper = cache.get(key);
         if (checkConflict && ruleBindingWrapper != null) {
             throw new ConflictingDataSourceBindingException("Conflict route binding for scName:"
                                                             + ruleBinding.getScName() + ", tbName:"
@@ -146,7 +145,7 @@ public class SimpleShardRouter implements ShardRouter {
                                                             + ruleBinding.getSdName());
         }
         if (ruleBindingWrapper == null) {
-            ruleBindingWrapper = new InnerSimpleShardingRouteRuleBindingWrapper();
+            ruleBindingWrapper = new InnerSimpleShardRouteRuleBindingWrapper();
             ruleBindingWrapper.setRuleBinding(ruleBinding);
             ruleBindingWrapper.setRouteInfo(new RouteConfig(ruleBinding.getScName(), ruleBinding.getTbName(),
                                                             ruleBinding.getSdName()));
@@ -155,7 +154,7 @@ public class SimpleShardRouter implements ShardRouter {
         ruleBindingWrapper.getConflictSchemas().add(ruleBinding.getScName());
     }
 
-    private InnerSimpleShardingRouteRuleBindingWrapper getBinding(String scName, String tbName) {
+    private InnerSimpleShardRouteRuleBindingWrapper getBinding(String scName, String tbName) {
         if (tbName == null) {
             throw new IllegalArgumentException("'tbName' can't be empty");
         }
@@ -163,7 +162,7 @@ public class SimpleShardRouter implements ShardRouter {
         if (scName != null) {
             queryKey = new StringBuilder().append(scName).append('.').append(tbName).toString();
         }
-        InnerSimpleShardingRouteRuleBindingWrapper ruleBindingWrapper = cache.get(queryKey);
+        InnerSimpleShardRouteRuleBindingWrapper ruleBindingWrapper = cache.get(queryKey);
         if (ruleBindingWrapper == null) {
             return null;
         } else if (ruleBindingWrapper.getConflictSchemas().size() > 1) {
@@ -178,7 +177,7 @@ public class SimpleShardRouter implements ShardRouter {
     public RouteConfig getRouteConfig(ShardRouteParamContext context, String scName, String tbName) {
         scName = DDRStringUtils.toLowerCase(scName);
         tbName = DDRStringUtils.toLowerCase(tbName);
-        InnerSimpleShardingRouteRuleBindingWrapper bindingWrapper = getBinding(scName, tbName);
+        InnerSimpleShardRouteRuleBindingWrapper bindingWrapper = getBinding(scName, tbName);
         if (bindingWrapper == null) {
             throw new NoDataSourceBindingException("No route rule binding for 'scName':" + scName + " and 'tbName':"
                                                    + tbName);
@@ -191,7 +190,7 @@ public class SimpleShardRouter implements ShardRouter {
     public RouteInfo route(ShardRouteParamContext context, String scName, String tbName, Object sdValue) {
         scName = DDRStringUtils.toLowerCase(scName);
         tbName = DDRStringUtils.toLowerCase(tbName);
-        InnerSimpleShardingRouteRuleBindingWrapper bindingWrapper = getBinding(scName, tbName);
+        InnerSimpleShardRouteRuleBindingWrapper bindingWrapper = getBinding(scName, tbName);
         SimpleShardRouteRuleBinding binding = bindingWrapper.getRuleBinding();
         if (binding == null) {
             throw new NoDataSourceBindingException("No route rule binding for 'scName':" + scName + " 'tbName':"

@@ -19,7 +19,7 @@ package org.hellojavaer.ddr.core.shard.exception;
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 23/12/2016.
  */
-public class AmbiguousDataSourceBindingException extends DDRShardingException {
+public class AmbiguousDataSourceBindingException extends DDRShardException {
 
     public AmbiguousDataSourceBindingException() {
     }

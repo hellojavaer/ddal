@@ -19,7 +19,7 @@ package org.hellojavaer.ddr.core.shard.exception;
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 23/12/2016.
  */
-public class NoDataSourceBindingException extends DDRShardingException {
+public class NoDataSourceBindingException extends DDRShardException {
 
     public NoDataSourceBindingException() {
     }

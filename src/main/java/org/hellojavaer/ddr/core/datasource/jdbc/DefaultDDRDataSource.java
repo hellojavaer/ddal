@@ -33,7 +33,7 @@ import java.util.Map;
 public class DefaultDDRDataSource extends AbstractDDRDataSource {
 
     private DataSourceManager dataSourceManager;
-    private ShardParser       shardingParser;
+    private ShardParser       shardParser;
 
     static {
         UninitializedDataSourceProcessor.setDefaultValue(DataSourceProperty.loginTimeout, 0, false);
@@ -49,16 +49,16 @@ public class DefaultDDRDataSource extends AbstractDDRDataSource {
         this.dataSourceManager = dataSourceManager;
     }
 
-    public ShardParser getShardingParser() {
-        return shardingParser;
+    public ShardParser getShardParser() {
+        return shardParser;
     }
 
-    public void setShardingParser(ShardParser shardingParser) {
-        this.shardingParser = shardingParser;
+    public void setShardParser(ShardParser shardParser) {
+        this.shardParser = shardParser;
     }
 
     public SQLParseResult parseSql(String sql, Map<Object, Object> jdbcParam) {
-        return shardingParser.parse(sql, jdbcParam);
+        return shardParser.parse(sql, jdbcParam);
     }
 
     @Override

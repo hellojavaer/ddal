@@ -29,7 +29,6 @@ import net.sf.jsqlparser.util.JSQLBaseVisitor;
 import org.hellojavaer.ddr.core.datasource.exception.CrossingPreparedStatementException;
 import org.hellojavaer.ddr.core.datasource.jdbc.SQLParseResult;
 import org.hellojavaer.ddr.core.shard.*;
-import org.hellojavaer.ddr.core.sharding.*;
 import org.hellojavaer.ddr.core.sqlparse.exception.*;
 import org.hellojavaer.ddr.core.utils.DDRJSONUtils;
 import org.hellojavaer.ddr.core.utils.DDRStringUtils;
@@ -50,15 +49,15 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
 
     private String              sql;
     private Map<Object, Object> jdbcParam;
-    private ShardRouter         shardingRouter;
+    private ShardRouter         shardRouter;
     private Statement           statement;
     private Set<String>         schemas      = new HashSet<>();
     private List<TableWrapper>  routedTables = new ArrayList<TableWrapper>();
 
-    public JSQLParserAdapter(String sql, Map<Object, Object> jdbcParam, ShardRouter shardingRouter) {
+    public JSQLParserAdapter(String sql, Map<Object, Object> jdbcParam, ShardRouter shardRouter) {
         this.sql = sql;
         this.jdbcParam = jdbcParam;
-        this.shardingRouter = shardingRouter;
+        this.shardRouter = shardRouter;
         CCJSqlParser parser = new CCJSqlParser(new StringReader(sql));
         try {
             this.statement = parser.Statement();
@@ -93,9 +92,8 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
                 public void validJdbcParam(Map<Object, Object> jdbcParam) {
                     if (jdbcParam != null && !jdbcParam.isEmpty()) {
                         for (TableWrapper tableWrapper : routedTables) {
-                            RouteInfo info = shardingRouter.route(JSQLParserAdapter.this.getContext().getTableRouterContext(),
-                                                                  tableWrapper.getScName(), tableWrapper.getTbName(),
-                                                                  null);
+                            RouteInfo info = shardRouter.route(JSQLParserAdapter.this.getContext().getTableRouterContext(),
+                                                               tableWrapper.getScName(), tableWrapper.getTbName(), null);
                             if (!equalsIgnoreCase(info.getScName(), tableWrapper.getTable().getSchemaName())
                                 || !equalsIgnoreCase(info.getTbName(), tableWrapper.getTable().getName())) {
                                 throw new CrossingPreparedStatementException("Source sql is '" + sql
@@ -120,7 +118,7 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
      * 1.sql中分表没有指定sdValue
      * 2.禁用sql路由的情况
      * 
-     * 这两种情况下最后都是通过ShardingRouteContext进行二次路由
+     * 这两种情况下最后都是通过ShardRouteContext进行二次路由
      */
     private void after() {
         StackContext context = this.getContext().getStack().pop();
@@ -128,17 +126,18 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
             TableWrapper tableWrapper = entry.getValue();
             if (!entry.getValue().isConverted()) {// 回溯没有被转换的表
                 // 首先通过标准规则转换
-                RouteInfo shardingRouterRouteInfo = this.shardingRouter.route(this.getContext().getTableRouterContext(),
-                                                                              tableWrapper.getScName(),
-                                                                              tableWrapper.getTbName(), null);
-                if (shardingRouterRouteInfo != null) {
-                    route0(tableWrapper, shardingRouterRouteInfo);
-                } else {// 如果没有转换信息则通过ShardingRouteContext 转换
-                    Object routeInfo = ShardRouteContext.getRouteInfo(tableWrapper.getScName(), tableWrapper.getTbName());
+                RouteInfo shardRouterRouteInfo = this.shardRouter.route(this.getContext().getTableRouterContext(),
+                                                                        tableWrapper.getScName(),
+                                                                        tableWrapper.getTbName(), null);
+                if (shardRouterRouteInfo != null) {
+                    route0(tableWrapper, shardRouterRouteInfo);
+                } else {// 如果没有转换信息则通过ShardRouteContext 转换
+                    Object routeInfo = ShardRouteContext.getRouteInfo(tableWrapper.getScName(),
+                                                                      tableWrapper.getTbName());
                     if (routeInfo == null) {
-                        if (tableWrapper.getSdName() != null) {// 禁用sql路由后但未在ShardingRouteContext中设置路由
+                        if (tableWrapper.getSdName() != null) {// 禁用sql路由后但未在ShardRouteContext中设置路由
                             throw new RouteInfoNotFoundException(
-                                                                 "Disabled sql routing but not set route information by 'ShardingRouteContext'. detail information is "
+                                                                 "Disabled sql routing but not set route information by 'ShardRouteContext'. detail information is "
                                                                          + tableWrapper);
 
                         } else {
@@ -158,9 +157,9 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
                     } else if (routeInfo instanceof RouteInfo) {
                         route0(tableWrapper, (RouteInfo) routeInfo);
                     } else {
-                        RouteInfo routeInfo1 = this.shardingRouter.route(this.getContext().getTableRouterContext(),
-                                                                           tableWrapper.getScName(),
-                                                                           tableWrapper.getTbName(), routeInfo);
+                        RouteInfo routeInfo1 = this.shardRouter.route(this.getContext().getTableRouterContext(),
+                                                                      tableWrapper.getScName(),
+                                                                      tableWrapper.getTbName(), routeInfo);
                         route0(tableWrapper, routeInfo1);
                     }
                 }
@@ -173,7 +172,7 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
             if (!equalsIgnoreCase(routeInfo.getScName(), tableWrapper.getTable().getSchemaName())
                 || !equalsIgnoreCase(routeInfo.getTbName(), tableWrapper.getTable().getName())) {
                 throw new ConflictingRouteException(
-                                                    "Sharding column '"
+                                                    "Shard column '"
                                                             + tableWrapper.getSdName()
                                                             + "' has multiple values to route table name , but route result is conflict, conflict detail is [scName:"
                                                             + routeInfo.getScName() + ",tbName:"
@@ -193,9 +192,9 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
     @Override
     public void visit(Insert insert) {
         this.getContext().getStack().push(new StackContext());
-        RouteConfig routeInfo = shardingRouter.getRouteConfig(this.getContext().getTableRouterContext(),
-                                                              insert.getTable().getSchemaName(),
-                                                              insert.getTable().getName());
+        RouteConfig routeInfo = shardRouter.getRouteConfig(this.getContext().getTableRouterContext(),
+                                                           insert.getTable().getSchemaName(),
+                                                           insert.getTable().getName());
         if (routeInfo != null) {
             addRoutedTableIntoContext(insert.getTable(), routeInfo, false);
             List<Column> columns = insert.getColumns();
@@ -219,9 +218,9 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
     @Override
     public void visit(Delete delete) {
         this.getContext().getStack().push(new StackContext());
-        RouteConfig routeInfo = shardingRouter.getRouteConfig(this.getContext().getTableRouterContext(),
-                                                              delete.getTable().getSchemaName(),
-                                                              delete.getTable().getName());
+        RouteConfig routeInfo = shardRouter.getRouteConfig(this.getContext().getTableRouterContext(),
+                                                           delete.getTable().getSchemaName(),
+                                                           delete.getTable().getName());
         if (routeInfo != null) {
             addRoutedTableIntoContext(delete.getTable(), routeInfo, false);
         }
@@ -233,8 +232,8 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
     public void visit(Update update) {
         this.getContext().getStack().push(new StackContext());
         for (Table table : update.getTables()) {
-            RouteConfig routeInfo = shardingRouter.getRouteConfig(this.getContext().getTableRouterContext(),
-                                                                  table.getSchemaName(), table.getName());
+            RouteConfig routeInfo = shardRouter.getRouteConfig(this.getContext().getTableRouterContext(),
+                                                               table.getSchemaName(), table.getName());
             if (routeInfo != null) {
                 addRoutedTableIntoContext(table, routeInfo, true);
             }
@@ -254,11 +253,11 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
     public void visit(IsNullExpression isNullExpression) {
         if (getTableFromContext((Column) isNullExpression.getLeftExpression()) != null) {
             throw new UnsupportedSQLExpressionException(
-                                                        "Sharding expression '"
+                                                        "Expression '"
                                                                 + isNullExpression.toString()
                                                                 + "' in sql["
                                                                 + sql
-                                                                + "] is not supported, only '=', 'in' and 'between' is supported");
+                                                                + "] can't be used as route expression, only '=', 'in' and 'between' is supported");
         }
         super.visit(isNullExpression);
     }
@@ -267,11 +266,11 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
     public void visit(GreaterThan greaterThan) {
         if (getTableFromContext((Column) greaterThan.getLeftExpression()) != null) {
             throw new UnsupportedSQLExpressionException(
-                                                        "Sharding expression '"
+                                                        "Expression '"
                                                                 + greaterThan.toString()
                                                                 + "' in sql["
                                                                 + sql
-                                                                + "] is not supported, only '=', 'in' and 'between' is supported");
+                                                                + "] can't be used as route expression, only '=', 'in' and 'between' is supported");
         }
         super.visit(greaterThan);
     }
@@ -280,11 +279,11 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
     public void visit(GreaterThanEquals greaterThanEquals) {
         if (getTableFromContext((Column) greaterThanEquals.getLeftExpression()) != null) {
             throw new UnsupportedSQLExpressionException(
-                                                        "Sharding expression '"
+                                                        "Expression '"
                                                                 + greaterThanEquals.toString()
                                                                 + "' in sql["
                                                                 + sql
-                                                                + "] is not supported, only '=', 'in' and 'between' is supported");
+                                                                + "] can't be used as route expression, only '=', 'in' and 'between' is supported");
         }
         super.visit(greaterThanEquals);
     }
@@ -293,11 +292,11 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
     public void visit(MinorThan minorThan) {
         if (getTableFromContext((Column) minorThan.getLeftExpression()) != null) {
             throw new UnsupportedSQLExpressionException(
-                                                        "Sharding expression '"
+                                                        "Expression '"
                                                                 + minorThan.toString()
                                                                 + "' in sql["
                                                                 + sql
-                                                                + "] is not supported, only '=', 'in' and 'between' is supported");
+                                                                + "] can't be used as route expression, only '=', 'in' and 'between' is supported");
         }
         super.visit(minorThan);
     }
@@ -306,11 +305,11 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
     public void visit(MinorThanEquals minorThanEquals) {
         if (getTableFromContext((Column) minorThanEquals.getLeftExpression()) != null) {
             throw new UnsupportedSQLExpressionException(
-                                                        "Sharding expression '"
+                                                        "Expression '"
                                                                 + minorThanEquals.toString()
                                                                 + "' in sql["
                                                                 + sql
-                                                                + "] is not supported, only '=', 'in' and 'between' is supported");
+                                                                + "] can't be used as route expression, only '=', 'in' and 'between' is supported");
         }
         super.visit(minorThanEquals);
     }
@@ -319,11 +318,11 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
     public void visit(NotEqualsTo notEqualsTo) {
         if (getTableFromContext((Column) notEqualsTo.getLeftExpression()) != null) {
             throw new UnsupportedSQLExpressionException(
-                                                        "Sharding expression '"
+                                                        "Expression '"
                                                                 + notEqualsTo.toString()
                                                                 + "' in sql["
                                                                 + sql
-                                                                + "] is not supported, only '=', 'in' and 'between' is supported");
+                                                                + "] can't be used as route expression, only '=', 'in' and 'between' is supported");
         }
         super.visit(notEqualsTo);
     }
@@ -332,11 +331,11 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
     public void visit(LikeExpression likeExpression) {
         if (getTableFromContext((Column) likeExpression.getLeftExpression()) != null) {
             throw new UnsupportedSQLExpressionException(
-                                                        "Sharding expression '"
+                                                        "Expression '"
                                                                 + likeExpression.toString()
                                                                 + "' in sql["
                                                                 + sql
-                                                                + "] is not supported, only '=', 'in' and 'between' is supported");
+                                                                + "] can't be used as route expression, only '=', 'in' and 'between' is supported");
         }
         super.visit(likeExpression);
     }
@@ -439,8 +438,8 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
         } else if (obj instanceof TimestampValue) {
             return ((TimestampValue) obj).getValue();
         } else {
-            throw new UnsupportedColumnTypeException("Sharding column type '" + obj.getClass()
-                                                     + "' is not supported for sharding column '" + column.toString()
+            throw new UnsupportedColumnTypeException("Column type '" + obj.getClass()
+                                                     + "' is not supported for route column '" + column.toString()
                                                      + "', source sql is '" + sql + "'");
         }
     }
@@ -454,18 +453,20 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
             return;
         }
         if (inExpression.isNot()) {
-            throw new UnsupportedSQLExpressionException("Sharding expression '" + inExpression.toString()
-                                                        + "' is not supported for it contains 'not', source sql is '"
-                                                        + sql + "'");
+            throw new UnsupportedSQLExpressionException(
+                                                        "Expression '"
+                                                                + inExpression.toString()
+                                                                + "'is not supported in route expression for it contains 'not', source sql is '"
+                                                                + sql + "'");
         }
         // 普通in模式
         ExpressionList itemsList = (ExpressionList) inExpression.getRightItemsList();
         List<Expression> list = itemsList.getExpressions();
         if (list == null || list.isEmpty()) {
             throw new UnsupportedSQLExpressionException(
-                                                        "Sharding expression '"
+                                                        "Expression '"
                                                                 + inExpression.toString()
-                                                                + "' is not supported for in-expression is empty. source sql is '"
+                                                                + "' is not supported in route expression for 'in' expression is empty. source sql is '"
                                                                 + sql + "'");
         }
         for (Expression exp : list) {
@@ -482,9 +483,11 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
             return;
         }
         if (between.isNot()) {
-            throw new UnsupportedSQLExpressionException("Sharding expression '" + between.toString()
-                                                        + "' is not supported for it contains 'not'. source sql is '"
-                                                        + sql + "'");
+            throw new UnsupportedSQLExpressionException(
+                                                        "Expression '"
+                                                                + between.toString()
+                                                                + "' is not supported in route expression for it contains 'not'. source sql is '"
+                                                                + sql + "'");
         }
         Expression begin = between.getBetweenExpressionStart();
         Expression end = between.getBetweenExpressionEnd();
@@ -518,7 +521,7 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
             return;
         }
         if (tableWrapper == AMBIGUOUS_TABLE) {
-            throw new RuntimeException("Sharding column '" + column.toString()
+            throw new RuntimeException("Route column '" + column.toString()
                                        + "' in where clause is ambiguous. source sql is '" + sql + "'");
         }
         tableWrapper.setSdName(DDRStringUtils.toLowerCase(column.getColumnName()));
@@ -529,8 +532,8 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
             }
             return;
         }
-        RouteInfo routeInfo = this.shardingRouter.route(this.getContext().getTableRouterContext(),
-                                                           tableWrapper.getScName(), tableWrapper.getTbName(), val);
+        RouteInfo routeInfo = this.shardRouter.route(this.getContext().getTableRouterContext(),
+                                                     tableWrapper.getScName(), tableWrapper.getTbName(), val);
         route0(tableWrapper, routeInfo);
     }
 
@@ -548,8 +551,8 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
     public void visit(Table table) {
         ConverterContext converterContext = this.getContext();
         String tbName = table.getName();
-        RouteConfig routeInfo = shardingRouter.getRouteConfig(converterContext.getTableRouterContext(),
-                                                              table.getSchemaName(), tbName);
+        RouteConfig routeInfo = shardRouter.getRouteConfig(converterContext.getTableRouterContext(),
+                                                           table.getSchemaName(), tbName);
         if (routeInfo != null) {
             addRoutedTableIntoContext(table, routeInfo);
         }

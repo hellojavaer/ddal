@@ -26,6 +26,6 @@ import java.util.Map;
  */
 public interface SqlParser {
 
-    SQLParseResult parse(String sql, Map<Object, Object> jdbcParams, ShardRouter shardingRouter);
+    SQLParseResult parse(String sql, Map<Object, Object> jdbcParams, ShardRouter shardRouter);
 
 }
