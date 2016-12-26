@@ -18,7 +18,6 @@ package org.hellojavaer.ddr.core.datasource.manager;
 import org.hellojavaer.ddr.core.datasource.DataSourceSchemasBinding;
 
 import javax.sql.DataSource;
-import java.util.HashSet;
 
 /**
  *
@@ -39,8 +38,6 @@ public class SingleDataSourceManager implements DataSourceManager {
     @Override
     public DataSourceSchemasBinding getDataSource(DataSourceParam param) {
         DataSourceSchemasBinding binding = new DataSourceSchemasBinding();
-        binding.setSchemas(new HashSet<String>());
-        binding.getSchemas().add("*");
         binding.setDataSource(this.getDataSource());
         return binding;
     }

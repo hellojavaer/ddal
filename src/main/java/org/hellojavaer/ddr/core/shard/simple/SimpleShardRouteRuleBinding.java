@@ -23,15 +23,15 @@ import java.io.Serializable;
  */
 public class SimpleShardRouteRuleBinding implements Serializable {
 
-    public static final String       VALUE_TYPE_OF_NUMBER = "number";
-    public static final String       VALUE_TYPE_OF_STRING = "string";
+    public static final String   VALUE_TYPE_OF_NUMBER = "number";
+    public static final String   VALUE_TYPE_OF_STRING = "string";
 
     private String               scName;
     private String               tbName;
     private String               sdName;
     private SimpleShardRouteRule rule;
     private String               sdScanValues;
-    private String                   sdScanValueType      = VALUE_TYPE_OF_NUMBER;
+    private String               sdScanValueType      = VALUE_TYPE_OF_NUMBER;
 
     public String getScName() {
         return scName;
