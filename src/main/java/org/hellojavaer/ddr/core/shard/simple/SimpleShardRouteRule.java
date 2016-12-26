@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddr.core.sharding.simple;
+package org.hellojavaer.ddr.core.shard.simple;
 
 import org.hellojavaer.ddr.core.expression.el.functionkit.ELFunctionKitManager;
 import org.hellojavaer.ddr.core.expression.format.FormatExpression;

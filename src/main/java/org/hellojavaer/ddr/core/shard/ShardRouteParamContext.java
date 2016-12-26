@@ -13,18 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddr.core.sharding;
-
-import org.hellojavaer.ddr.core.datasource.jdbc.SQLParseResult;
+package org.hellojavaer.ddr.core.shard;
 
 import java.util.Map;
 
 /**
  *
- * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 23/11/2016.
+ * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 12/11/2016.
  */
-public interface ShardParser {
-
-    SQLParseResult parse(String sql, Map<Object, Object> jdbcParams);
+public interface ShardRouteParamContext extends Map<String, Object> {
 
 }

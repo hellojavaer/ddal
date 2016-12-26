@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddr.core.sharding.simple;
+package org.hellojavaer.ddr.core.shard.simple;
 
 import org.hellojavaer.ddr.core.datasource.jdbc.SQLParseResult;
-import org.hellojavaer.ddr.core.sharding.ShardParser;
-import org.hellojavaer.ddr.core.sharding.ShardRouter;
+import org.hellojavaer.ddr.core.shard.ShardParser;
+import org.hellojavaer.ddr.core.shard.ShardRouter;
 import org.hellojavaer.ddr.core.sqlparse.SqlParser;
 import org.hellojavaer.ddr.core.sqlparse.jsql.JSqlParser;
 

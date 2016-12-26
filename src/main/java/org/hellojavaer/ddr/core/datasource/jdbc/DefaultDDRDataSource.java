@@ -22,7 +22,7 @@ import org.hellojavaer.ddr.core.datasource.jdbc.property.ConnectionProperty;
 import org.hellojavaer.ddr.core.datasource.jdbc.property.DataSourceProperty;
 import org.hellojavaer.ddr.core.datasource.manager.DataSourceManager;
 import org.hellojavaer.ddr.core.datasource.manager.DataSourceParam;
-import org.hellojavaer.ddr.core.sharding.ShardParser;
+import org.hellojavaer.ddr.core.shard.ShardParser;
 
 import java.util.Map;
 

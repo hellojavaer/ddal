@@ -16,7 +16,7 @@
 package org.hellojavaer.ddr.core.sqlparse;
 
 import org.hellojavaer.ddr.core.datasource.jdbc.SQLParseResult;
-import org.hellojavaer.ddr.core.sharding.ShardRouter;
+import org.hellojavaer.ddr.core.shard.ShardRouter;
 
 import java.util.Map;
 

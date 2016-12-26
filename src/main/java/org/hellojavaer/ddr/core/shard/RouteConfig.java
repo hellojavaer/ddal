@@ -13,25 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddr.core.sharding;
+package org.hellojavaer.ddr.core.shard;
 
 import org.hellojavaer.ddr.core.utils.DDRToStringBuilder;
 
 /**
  *
- * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 15/11/2016.
+ * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 20/12/2016.
  */
-public class RouteInfo {
+public class RouteConfig {
 
     private String scName;
     private String tbName;
+    private String sdName;
 
-    public RouteInfo() {
+    public RouteConfig() {
     }
 
-    public RouteInfo(String scName, String tbName) {
+    public RouteConfig(String scName, String tbName, String sdName) {
         this.scName = scName;
         this.tbName = tbName;
+        this.sdName = sdName;
     }
 
     public String getScName() {
@@ -50,8 +52,16 @@ public class RouteInfo {
         this.tbName = tbName;
     }
 
+    public String getSdName() {
+        return sdName;
+    }
+
+    public void setSdName(String sdName) {
+        this.sdName = sdName;
+    }
+
     @Override
     public String toString() {
-        return new DDRToStringBuilder().append("scName", scName).append("tbName", tbName).toString();
+        return new DDRToStringBuilder().append("scName", scName).append("tbName", tbName).append("sdName", sdName).toString();
     }
 }

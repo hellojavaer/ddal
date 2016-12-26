@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddr.core.sharding.simple;
+package org.hellojavaer.ddr.core.shard.simple;
 
 import org.hellojavaer.ddr.core.expression.range.RangeExpression;
 import org.hellojavaer.ddr.core.expression.range.RangeItemVisitor;
+import org.hellojavaer.ddr.core.shard.*;
 import org.hellojavaer.ddr.core.sharding.*;
-import org.hellojavaer.ddr.core.sharding.exception.AmbiguousDataSourceBindingException;
-import org.hellojavaer.ddr.core.sharding.exception.ConflictingDataSourceBindingException;
-import org.hellojavaer.ddr.core.sharding.exception.NoDataSourceBindingException;
+import org.hellojavaer.ddr.core.shard.exception.AmbiguousDataSourceBindingException;
+import org.hellojavaer.ddr.core.shard.exception.ConflictingDataSourceBindingException;
+import org.hellojavaer.ddr.core.shard.exception.NoDataSourceBindingException;
 import org.hellojavaer.ddr.core.utils.DDRStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -13,31 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddr.core.sharding.exception;
+package org.hellojavaer.ddr.core.shard.exception;
 
 /**
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 23/12/2016.
  */
-public class ConflictingDataSourceBindingException extends DDRShardingException {
+public class AmbiguousDataSourceBindingException extends DDRShardingException {
 
-    public ConflictingDataSourceBindingException() {
+    public AmbiguousDataSourceBindingException() {
     }
 
-    public ConflictingDataSourceBindingException(String message) {
+    public AmbiguousDataSourceBindingException(String message) {
         super(message);
     }
 
-    public ConflictingDataSourceBindingException(String message, Throwable cause) {
+    public AmbiguousDataSourceBindingException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public ConflictingDataSourceBindingException(Throwable cause) {
+    public AmbiguousDataSourceBindingException(Throwable cause) {
         super(cause);
     }
 
-    public ConflictingDataSourceBindingException(String message, Throwable cause, boolean enableSuppression,
-                                                 boolean writableStackTrace) {
+    public AmbiguousDataSourceBindingException(String message, Throwable cause, boolean enableSuppression,
+                                               boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 }

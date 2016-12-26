@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddr.core.sharding;
+package org.hellojavaer.ddr.core.shard;
 
 /**
  *
