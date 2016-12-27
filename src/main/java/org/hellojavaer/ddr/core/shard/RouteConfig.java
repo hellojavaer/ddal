@@ -25,15 +25,15 @@ public class RouteConfig {
 
     private String scName;
     private String tbName;
-    private String sdName;
+    private String sdKey;
 
     public RouteConfig() {
     }
 
-    public RouteConfig(String scName, String tbName, String sdName) {
+    public RouteConfig(String scName, String tbName, String sdKey) {
         this.scName = scName;
         this.tbName = tbName;
-        this.sdName = sdName;
+        this.sdKey = sdKey;
     }
 
     public String getScName() {
@@ -52,16 +52,16 @@ public class RouteConfig {
         this.tbName = tbName;
     }
 
-    public String getSdName() {
-        return sdName;
+    public String getSdKey() {
+        return sdKey;
     }
 
-    public void setSdName(String sdName) {
-        this.sdName = sdName;
+    public void setSdKey(String sdKey) {
+        this.sdKey = sdKey;
     }
 
     @Override
     public String toString() {
-        return new DDRToStringBuilder().append("scName", scName).append("tbName", tbName).append("sdName", sdName).toString();
+        return new DDRToStringBuilder().append("scName", scName).append("tbName", tbName).append("sdKey", sdKey).toString();
     }
 }

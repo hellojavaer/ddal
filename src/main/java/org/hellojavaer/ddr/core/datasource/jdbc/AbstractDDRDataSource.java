@@ -39,11 +39,11 @@ import java.util.concurrent.Executor;
  */
 public abstract class AbstractDDRDataSource implements DDRDataSource {
 
-    private DataSourceSchemasBinding dataSourceSchemasBinding;
-    private InnerDataSourceProperty  prop     = new InnerDataSourceProperty();
-    private InvocationTag            tag      = new InvocationTag();
+    private DataSourceSchemasBinding dataSourceSchemasBinding = null;
+    private InnerDataSourceProperty  prop                     = new InnerDataSourceProperty();
+    private InvocationTag            tag                      = new InvocationTag();
 
-    private boolean                  useReset = false;
+    private boolean                  useReset                 = false;
 
     public void reset() {
         useReset = true;

@@ -85,9 +85,9 @@ public class SimpleShardRouter implements ShardRouter {
                 final String scName = DDRStringUtils.toLowerCase(binding.getScName());
                 final String tbName = DDRStringUtils.toLowerCase(binding.getTbName());
                 // can be null
-                final String sdName = DDRStringUtils.toLowerCase(binding.getSdName());
-                final String sdScanValues = DDRStringUtils.trim(binding.getSdScanValues());
-                final String sdScanValueType = DDRStringUtils.trim(binding.getSdScanValueType());
+                final String sdKey = DDRStringUtils.toLowerCase(binding.getSdKey());
+                final String sdValues = DDRStringUtils.trim(binding.getSdValues());
+                final String sdValueType = DDRStringUtils.trim(binding.getSdValueType());
 
                 if (scName == null) {
                     throw new IllegalArgumentException("'scName' can't be empty");
@@ -102,27 +102,27 @@ public class SimpleShardRouter implements ShardRouter {
                 final SimpleShardRouteRuleBinding b0 = new SimpleShardRouteRuleBinding();
                 b0.setScName(scName);
                 b0.setTbName(tbName);
-                b0.setSdName(sdName);
+                b0.setSdKey(sdKey);
                 b0.setRule(binding.getRule());
                 putToCache(cache0, tbName, b0, false);
 
                 final List<RouteInfo> routeInfos = new ArrayList<RouteInfo>();
-                if (sdScanValues != null) {
-                    if (sdScanValueType == null) {
+                if (sdValues != null) {
+                    if (sdValueType == null) {
                         throw new IllegalArgumentException(
-                                                           "'sdScanValueType' can't be empty when 'sdScanValues' is set value");
+                                                           "'sdValueType' can't be empty when 'sdValues' is set value");
                     }
-                    RangeExpression.parse(sdScanValues, new RangeItemVisitor() {
+                    RangeExpression.parse(sdValues, new RangeItemVisitor() {
 
                         @Override
                         public void visit(String val) {
                             Object v = val;
-                            if (SimpleShardRouteRuleBinding.VALUE_TYPE_OF_NUMBER.equals(sdScanValueType)) {
+                            if (SimpleShardRouteRuleBinding.VALUE_TYPE_OF_NUMBER.equals(sdValueType)) {
                                 v = Long.valueOf(val);
-                            } else if (SimpleShardRouteRuleBinding.VALUE_TYPE_OF_STRING.equals(sdScanValueType)) {
+                            } else if (SimpleShardRouteRuleBinding.VALUE_TYPE_OF_STRING.equals(sdValueType)) {
                                 // ok
                             } else {
-                                throw new IllegalArgumentException("Unknown 'sdScanValueType':" + sdScanValueType);
+                                throw new IllegalArgumentException("Unknown 'sdValueType':" + sdValueType);
                             }
                             RouteInfo routeInfo = getRouteInfo(b0.getRule(), scName, tbName, v);
                             routeInfos.add(routeInfo);
@@ -141,14 +141,14 @@ public class SimpleShardRouter implements ShardRouter {
         if (checkConflict && ruleBindingWrapper != null) {
             throw new ConflictingDataSourceBindingException("Conflict route binding for scName:"
                                                             + ruleBinding.getScName() + ", tbName:"
-                                                            + ruleBinding.getTbName() + ", sdName:"
-                                                            + ruleBinding.getSdName());
+                                                            + ruleBinding.getTbName() + ", sdKey:"
+                                                            + ruleBinding.getSdKey());
         }
         if (ruleBindingWrapper == null) {
             ruleBindingWrapper = new InnerSimpleShardRouteRuleBindingWrapper();
             ruleBindingWrapper.setRuleBinding(ruleBinding);
             ruleBindingWrapper.setRouteInfo(new RouteConfig(ruleBinding.getScName(), ruleBinding.getTbName(),
-                                                            ruleBinding.getSdName()));
+                                                            ruleBinding.getSdKey()));
             cache.put(key, ruleBindingWrapper);
         }
         ruleBindingWrapper.getConflictSchemas().add(ruleBinding.getScName());

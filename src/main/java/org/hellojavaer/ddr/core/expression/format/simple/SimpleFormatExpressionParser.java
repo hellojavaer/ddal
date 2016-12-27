@@ -17,7 +17,7 @@ package org.hellojavaer.ddr.core.expression.format.simple;
 
 import org.hellojavaer.ddr.core.expression.format.FormatExpression;
 import org.hellojavaer.ddr.core.expression.format.FormatExpressionContext;
-import org.hellojavaer.ddr.core.expression.format.ast.sytax.CompoundExpression;
+import org.hellojavaer.ddr.core.expression.format.ast.sytax.FeCompoundExpression;
 import org.hellojavaer.ddr.core.expression.format.FormatExpressionParser;
 import org.hellojavaer.ddr.core.expression.format.ast.sytax.FeSyntaxParser;
 
@@ -28,7 +28,7 @@ import org.hellojavaer.ddr.core.expression.format.ast.sytax.FeSyntaxParser;
 public class SimpleFormatExpressionParser implements FormatExpressionParser {
 
     public FormatExpression parse(String str) {
-        final CompoundExpression compoundExpression = FeSyntaxParser.parse(str);
+        final FeCompoundExpression compoundExpression = FeSyntaxParser.parse(str);
         FormatExpression formatExpression = new FormatExpression() {
             @Override
             public String getValue(FormatExpressionContext context) {

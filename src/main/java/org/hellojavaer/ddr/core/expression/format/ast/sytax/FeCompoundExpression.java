@@ -23,9 +23,9 @@ import java.util.List;
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 17/11/2016.
  */
-public class CompoundExpression extends FeNodeImpl {
+public class FeCompoundExpression extends FeNodeImpl {
 
-    public CompoundExpression() {
+    public FeCompoundExpression() {
     }
 
     public void setChildren(List<FeNodeImpl> children) {

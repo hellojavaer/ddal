@@ -29,8 +29,8 @@ import java.util.List;
  */
 public class FeSyntaxParser {
 
-    public static CompoundExpression parse(String str) {
-        CompoundExpression compoundExpression = new CompoundExpression();
+    public static FeCompoundExpression parse(String str) {
+        FeCompoundExpression compoundExpression = new FeCompoundExpression();
         FeTokenParser tokenParser = new FeTokenParser(str);
         List<FeNodeImpl> nodes = new ArrayList<FeNodeImpl>();
         for (FeToken token = tokenParser.next(); token != null; token = tokenParser.next()) {

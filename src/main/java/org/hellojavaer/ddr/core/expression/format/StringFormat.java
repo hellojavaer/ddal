@@ -16,7 +16,42 @@
 package org.hellojavaer.ddr.core.expression.format;
 
 /**
+ * <pre>
+ * for input 123
+ *  %4s -> 0123
+ *  %4S -> 0123
+ *  %4[a]s -> a123
+ *  %4[a]S -> a123
+ *  %4[abc]s -> abc123
+ *  %4[abc]S -> c123
  *
+ * for input 123456
+ *  %4s -> 123456
+ *  %4S -> 3456
+ *  %4[a]s -> 123456
+ *  %4[a]S -> 3456
+ *  %4[abc]s -> 123456
+ *  %4[abc]S -> 3456
+ *
+ * for input 123
+ *  %-4s -> 1230
+ *  %-4S -> 1230
+ *  %-4[a]s -> 123a
+ *  %-4[a]S -> 123a
+ *  %-4[abc]s -> 123abc
+ *  %-4[abc]S -> 123a
+ *
+ * for input 123456
+ *  %-4s -> 123456
+ *  %-4S -> 1234
+ *  %-4[a]s -> 123456
+ *  %-4[a]S -> 1234
+ *  %-4[abc]s -> 123456
+ *  %-4[abc]S -> 1234
+ *  </pre>
+ *
+ *  only '/' '[' ']' can be escaped in '[]'.
+ * 
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 16/11/2016.
  */
 public class StringFormat {

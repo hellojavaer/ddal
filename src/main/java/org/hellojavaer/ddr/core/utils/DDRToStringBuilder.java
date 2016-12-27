@@ -28,9 +28,14 @@ public class DDRToStringBuilder {
     private int           count = 0;
 
     public DDRToStringBuilder append(String name, Object val) {
-        sb.append('\"');
-        sb.append(name);
-        sb.append("\":");
+        if (name == null) {
+            sb.append("null");
+            sb.append(":");
+        } else {
+            sb.append('\"');
+            sb.append(name);
+            sb.append("\":");
+        }
         if (val == null) {
             sb.append("null");
         } else if (val instanceof String || val instanceof Character) {

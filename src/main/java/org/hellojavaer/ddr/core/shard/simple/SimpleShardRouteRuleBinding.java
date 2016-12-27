@@ -28,10 +28,10 @@ public class SimpleShardRouteRuleBinding implements Serializable {
 
     private String               scName;
     private String               tbName;
-    private String               sdName;
+    private String               sdKey;
     private SimpleShardRouteRule rule;
-    private String               sdScanValues;
-    private String               sdScanValueType      = VALUE_TYPE_OF_NUMBER;
+    private String               sdValues;
+    private String               sdValueType          = VALUE_TYPE_OF_NUMBER;
 
     public String getScName() {
         return scName;
@@ -49,12 +49,12 @@ public class SimpleShardRouteRuleBinding implements Serializable {
         this.tbName = tbName;
     }
 
-    public String getSdName() {
-        return sdName;
+    public String getSdKey() {
+        return sdKey;
     }
 
-    public void setSdName(String sdName) {
-        this.sdName = sdName;
+    public void setSdKey(String sdKey) {
+        this.sdKey = sdKey;
     }
 
     public SimpleShardRouteRule getRule() {
@@ -65,19 +65,19 @@ public class SimpleShardRouteRuleBinding implements Serializable {
         this.rule = rule;
     }
 
-    public String getSdScanValues() {
-        return sdScanValues;
+    public String getSdValues() {
+        return sdValues;
     }
 
-    public void setSdScanValues(String sdScanValues) {
-        this.sdScanValues = sdScanValues;
+    public void setSdValues(String sdValues) {
+        this.sdValues = sdValues;
     }
 
-    public String getSdScanValueType() {
-        return sdScanValueType;
+    public String getSdValueType() {
+        return sdValueType;
     }
 
-    public void setSdScanValueType(String sdScanValueType) {
-        this.sdScanValueType = sdScanValueType;
+    public void setSdValueType(String sdValueType) {
+        this.sdValueType = sdValueType;
     }
 }
