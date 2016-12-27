@@ -120,7 +120,7 @@ public class StringFormat {
 
     public void init() {
         if (pattern.charAt(0) != '%') {
-            throw new IllegalArgumentException("String pattern must be start with %. source pattern is '" + pattern
+            throw new IllegalArgumentException("String pattern must be start with '%'. source pattern is '" + pattern
                                                + "'");
         }
         int index = 1;
@@ -136,13 +136,13 @@ public class StringFormat {
         // 解析长度
         for (int i = index;; i++) {
             if (i >= pattern.length()) {
-                throw new IllegalArgumentException("Expect digit after % at index " + i + ". source pattern is '"
+                throw new IllegalArgumentException("Expect digit after '%' at index " + i + ". source pattern is '"
                                                    + pattern + "'");
             }
             ch = pattern.charAt(i);
             if (ch == 's' || ch == 'S' || ch == '[') {
                 if (index == i) {
-                    throw new IllegalArgumentException("Expect digit after % at index " + i + ". source pattern is '"
+                    throw new IllegalArgumentException("Expect digit after '%' at index " + i + ". source pattern is '"
                                                        + pattern + "'");
                 } else {
                     index = i;
@@ -174,8 +174,13 @@ public class StringFormat {
                     } else if (ch == 's') {
                         sb.append(' ');
                     } else {
-                        throw new IllegalArgumentException("Unexpected character '" + ch + "' at index " + i
-                                                           + ". source pattern is '" + pattern + "'");
+                        throw new IllegalArgumentException(
+                                                           "Character '"
+                                                                   + ch
+                                                                   + "',at index "
+                                                                   + i
+                                                                   + ", can't be escaped. Only '\\','[' and ']' can be escaped. source pattern is '"
+                                                                   + pattern + "'");
                     }
                     escape = false;
                 } else if (ch == '\\') {
@@ -212,14 +217,14 @@ public class StringFormat {
             }
         }
         if (index != pattern.length() - 1) {
-            throw new IllegalArgumentException("Expect end character 's' or 'S'. source pattern is '" + pattern + "'");
+            throw new IllegalArgumentException("Expect terminating 's' or 'S'. source pattern is '" + pattern + "'");
         }
         if (ch == 's') {
             force = false;
         } else if (ch == 'S') {
             force = true;
         } else {
-            throw new IllegalArgumentException("Expect end character 's' or 'S'. source pattern is '" + pattern + "'");
+            throw new IllegalArgumentException("Expect terminating 's' or 'S'. source pattern is '" + pattern + "'");
         }
     }
 }
