@@ -15,7 +15,7 @@
  */
 package org.hellojavaer.ddr.core.sqlparse.jsql;
 
-import org.hellojavaer.ddr.core.datasource.jdbc.SQLParseResult;
+import org.hellojavaer.ddr.core.datasource.jdbc.SQLParsedResult;
 import org.hellojavaer.ddr.core.shard.ShardRouter;
 import org.hellojavaer.ddr.core.sqlparse.SqlParser;
 
@@ -28,7 +28,7 @@ import java.util.Map;
 public class JSqlParser implements SqlParser {
 
     @Override
-    public SQLParseResult parse(String sql, Map<Object, Object> jdbcParams, ShardRouter shardRouter) {
+    public SQLParsedResult parse(String sql, Map<Object, Object> jdbcParams, ShardRouter shardRouter) {
         JSQLParserAdapter sqlParser = new JSQLParserAdapter(sql, jdbcParams, shardRouter);
         return sqlParser.parse();
     }

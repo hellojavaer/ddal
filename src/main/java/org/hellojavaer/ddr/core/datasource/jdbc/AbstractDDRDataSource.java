@@ -15,17 +15,16 @@
  */
 package org.hellojavaer.ddr.core.datasource.jdbc;
 
-import org.hellojavaer.ddr.core.datasource.DataSourceSchemasBinding;
 import org.hellojavaer.ddr.core.datasource.exception.DataSourceNotFoundException;
 import org.hellojavaer.ddr.core.datasource.exception.UninitializedStatusException;
 import org.hellojavaer.ddr.core.datasource.exception.UnsupportedConnectionInvocationException;
+import org.hellojavaer.ddr.core.datasource.exception.UnsupportedDataSourceInvocationException;
 import org.hellojavaer.ddr.core.datasource.jdbc.init.UninitializedConnectionProcessor;
 import org.hellojavaer.ddr.core.datasource.jdbc.init.UninitializedDataSourceProcessor;
 import org.hellojavaer.ddr.core.datasource.jdbc.property.ConnectionProperty;
 import org.hellojavaer.ddr.core.datasource.jdbc.property.DataSourceProperty;
 import org.hellojavaer.ddr.core.datasource.manager.DataSourceParam;
 
-import javax.sql.DataSource;
 import java.io.PrintWriter;
 import java.sql.*;
 import java.util.Map;
@@ -39,77 +38,13 @@ import java.util.concurrent.Executor;
  */
 public abstract class AbstractDDRDataSource implements DDRDataSource {
 
-    private DataSourceSchemasBinding dataSourceSchemasBinding = null;
-    private InnerDataSourceProperty  prop                     = new InnerDataSourceProperty();
-    private InvocationTag            tag                      = new InvocationTag();
-
-    private boolean                  useReset                 = false;
-
-    public void reset() {
-        useReset = true;
-    }
-
-    private class InnerDataSourceProperty {
-
-        private int         loginTimeout;
-        private PrintWriter logWriter;
-
-        public int getLoginTimeout() {
-            return loginTimeout;
+    private DataSourceWrapper getDataSource0(DataSourceParam param) throws SQLException {
+        DataSourceWrapper dataSourceWrapper = this.getDataSource(param);
+        if (dataSourceWrapper == null) {
+            throw new DataSourceNotFoundException("No datasource found for parameter:" + param.toString());
+        } else {
+            return dataSourceWrapper;
         }
-
-        public void setLoginTimeout(int loginTimeout) {
-            this.loginTimeout = loginTimeout;
-        }
-
-        public PrintWriter getLogWriter() {
-            return logWriter;
-        }
-
-        public void setLogWriter(PrintWriter logWriter) {
-            this.logWriter = logWriter;
-        }
-    }
-
-    private class InvocationTag {
-
-        private boolean loginTimeout;
-        private boolean logWriter;
-
-        public boolean isLoginTimeout() {
-            return loginTimeout;
-        }
-
-        public void setLoginTimeout(boolean loginTimeout) {
-            this.loginTimeout = loginTimeout;
-        }
-
-        public boolean isLogWriter() {
-            return logWriter;
-        }
-
-        public void setLogWriter(boolean logWriter) {
-            this.logWriter = logWriter;
-        }
-    }
-
-    private DataSource getDataSource0(DataSourceParam param) throws SQLException {
-        if (dataSourceSchemasBinding == null || useReset) {
-            dataSourceSchemasBinding = this.getDataSource(param);
-            if (dataSourceSchemasBinding == null) {
-                throw new DataSourceNotFoundException("No datasource found for parameter:" + param.toString());
-            } else {
-                // '设置'回放
-                if (tag.isLoginTimeout()) {
-                    dataSourceSchemasBinding.getDataSource().setLoginTimeout(prop.getLoginTimeout());
-                }
-                if (tag.isLogWriter()) {
-                    dataSourceSchemasBinding.getDataSource().setLogWriter(prop.getLogWriter());
-                }
-            }
-            useReset = false;
-        }
-        return dataSourceSchemasBinding.getDataSource();
     }
 
     @Override
@@ -119,62 +54,34 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
 
     @Override
     public int getLoginTimeout() throws SQLException {
-        if (dataSourceSchemasBinding != null) {
-            return dataSourceSchemasBinding.getDataSource().getLoginTimeout();
-        } else if (tag.isLoginTimeout()) {
-            return prop.getLoginTimeout();
+        if (UninitializedDataSourceProcessor.isSetDefaultValue(DataSourceProperty.loginTimeout)) {
+            int val = ((Number) UninitializedDataSourceProcessor.getDefaultValue(DataSourceProperty.loginTimeout)).intValue();
+            return val;
         } else {
-            if (UninitializedDataSourceProcessor.isSetDefaultValue(DataSourceProperty.loginTimeout)) {
-                int val = ((Number) UninitializedDataSourceProcessor.getDefaultValue(DataSourceProperty.loginTimeout)).intValue();
-                if (UninitializedDataSourceProcessor.isSyncDefaultValue(DataSourceProperty.loginTimeout)) {
-                    prop.setLoginTimeout(val);
-                    tag.setLoginTimeout(true);
-                }
-                return val;
-            } else {
-                throw new UninitializedStatusException(
-                                                       "Can't invoke 'getLoginTimeout()' before 'setLoginTimeout(int timeout)' is invoked or datasource is initialized");
-            }
+            throw new UninitializedStatusException(
+                                                   "Can't invoke 'getLoginTimeout()' when 'loginTimeout' isn't set default value");
         }
     }
 
     @Override
     public void setLoginTimeout(int timeout) throws SQLException {
-        if (dataSourceSchemasBinding != null) {
-            dataSourceSchemasBinding.getDataSource().setLoginTimeout(timeout);
-        }
-        tag.setLoginTimeout(true);
-        prop.setLoginTimeout(timeout);
+        throw new UnsupportedDataSourceInvocationException("setLoginTimeout");
     }
 
     @Override
     public PrintWriter getLogWriter() throws SQLException {
-        if (dataSourceSchemasBinding != null) {
-            return dataSourceSchemasBinding.getDataSource().getLogWriter();
-        } else if (tag.isLogWriter()) {
-            return prop.getLogWriter();
+        if (UninitializedDataSourceProcessor.isSetDefaultValue(DataSourceProperty.logWriter)) {
+            PrintWriter val = (PrintWriter) UninitializedDataSourceProcessor.getDefaultValue(DataSourceProperty.logWriter);
+            return val;
         } else {
-            if (UninitializedDataSourceProcessor.isSetDefaultValue(DataSourceProperty.logWriter)) {
-                PrintWriter val = (PrintWriter) UninitializedDataSourceProcessor.getDefaultValue(DataSourceProperty.logWriter);
-                if (UninitializedDataSourceProcessor.isSyncDefaultValue(DataSourceProperty.logWriter)) {
-                    prop.setLogWriter(val);
-                    tag.setLogWriter(true);
-                }
-                return val;
-            } else {
-                throw new UninitializedStatusException(
-                                                       "Can't invoke 'getLogWriter()' before 'setLogWriter(PrintWriter pw)' is invoked or datasource is initialized");
-            }
+            throw new UninitializedStatusException(
+                                                   "Can't invoke 'getLogWriter()' when 'logWriter' isn't set default value");
         }
     }
 
     @Override
     public void setLogWriter(PrintWriter pw) throws SQLException {
-        if (dataSourceSchemasBinding != null) {
-            dataSourceSchemasBinding.getDataSource().setLogWriter(pw);
-        }
-        tag.setLogWriter(true);
-        prop.setLogWriter(pw);
+        throw new UnsupportedDataSourceInvocationException("setLogWriter");
     }
 
     @Override
@@ -197,8 +104,9 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
 
             @Override
             public ConnectionResult getConnection(DataSourceParam param) throws SQLException {
-                Connection connection = getDataSource0(param).getConnection();
-                return new ConnectionResult(connection, dataSourceSchemasBinding.getSchemas());
+                DataSourceWrapper dataSourceWrapper = getDataSource0(param);
+                return new ConnectionResult(dataSourceWrapper.getDataSource().getConnection(),
+                                            dataSourceWrapper.getSchemas());
             }
         };
     }
@@ -209,8 +117,9 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
 
             @Override
             public ConnectionResult getConnection(DataSourceParam param) throws SQLException {
-                Connection connection = getDataSource0(param).getConnection(username, password);
-                return new ConnectionResult(connection, dataSourceSchemasBinding.getSchemas());
+                DataSourceWrapper dataSourceWrapper = getDataSource0(param);
+                return new ConnectionResult(dataSourceWrapper.getDataSource().getConnection(username, password),
+                                            dataSourceWrapper.getSchemas());
             }
         };
     }
@@ -397,11 +306,10 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
         }
 
         //
-        private ConnectionResult       connectionResult;
-        private Connection             connection;
+        private volatile ConnectionResult       connectionResult;
 
-        private ConnectionPropertyBean prop = new ConnectionPropertyBean();
-        private InvocationTag          tag  = new InvocationTag();
+        private volatile ConnectionPropertyBean prop = new ConnectionPropertyBean();
+        private volatile InvocationTag          tag  = new InvocationTag();
 
         private boolean isReadOnly0() {
             return prop.isReadOnly();
@@ -417,100 +325,97 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
 
         public abstract ConnectionResult getConnection(DataSourceParam param) throws SQLException;
 
+        private Connection getConnection1() {
+            if (connectionResult == null) {
+                return null;
+            } else {
+                return connectionResult.getConnection();
+            }
+        }
+
         private ConnectionResult getConnection0(DataSourceParam param) throws SQLException {
-            if (connectionResult != null) {
-                if (!connectionResult.getConnection().getAutoCommit()) {
-                    return connectionResult;
-                } else {
-                    connectionResult = null;
-                    connection = null;
-                    AbstractDDRDataSource.this.reset();
+            if (connectionResult == null || connectionResult.getConnection().getAutoCommit()) {
+                ConnectionResult connectionResult = getConnection(param);
+                Connection connection = connectionResult.getConnection();
+                // playback
+                if (tag.isAutoCommit()) {
+                    connection.setAutoCommit(prop.isAutoCommit());
                 }
+                if (tag.isReadOnly()) {
+                    connection.setReadOnly(prop.isReadOnly());
+                }
+                if (tag.isSchema()) {
+                    connection.setSchema(prop.getSchema());
+                }
+                if (tag.isTypeMap()) {
+                    connection.setTypeMap(prop.getTypeMap());
+                }
+                if (tag.isTransactionIsolation()) {
+                    connection.setTransactionIsolation(prop.getTransactionIsolation());
+                }
+                if (tag.isHoldability()) {
+                    connection.setHoldability(prop.getHoldability());
+                }
+                if (tag.isCatalog()) {
+                    connection.setCatalog(prop.getCatalog());
+                }
+                this.connectionResult = connectionResult;
             }
-            ConnectionResult connectionResult = getConnection(param);
-            Connection connection = connectionResult.getConnection();
-            // playback
-            if (tag.isAutoCommit()) {
-                connection.setAutoCommit(prop.isAutoCommit());
-            }
-            if (tag.isReadOnly()) {
-                connection.setReadOnly(prop.isReadOnly());
-            }
-            if (tag.isSchema()) {
-                connection.setSchema(prop.getSchema());
-            }
-            if (tag.isTypeMap()) {
-                connection.setTypeMap(prop.getTypeMap());
-            }
-            if (tag.isTransactionIsolation()) {
-                connection.setTransactionIsolation(prop.getTransactionIsolation());
-            }
-            if (tag.isHoldability()) {
-                connection.setHoldability(prop.getHoldability());
-            }
-            if (tag.isCatalog()) {
-                connection.setCatalog(prop.getCatalog());
-            }
-            // is reset
-            if (connection.getAutoCommit()) {
-                reset();
-            }
-            this.connectionResult = connectionResult;
-            this.connection = connection;
             return connectionResult;
         }
 
         @Override
         public Statement createStatement() throws SQLException {
-            return new StatementWrapper(isReadOnly0(), getSchemas0()) {
+            return new DDRStatementImpl(isReadOnly0(), getSchemas0()) {
 
                 @Override
-                public SQLParseResult parseSql(String sql, Map<Object, Object> jdbcParams) throws SQLException {
+                public SQLParsedResult parseSql(String sql, Map<Object, Object> jdbcParams) throws SQLException {
                     return AbstractDDRDataSource.this.parseSql(sql, jdbcParams);
                 }
 
                 @Override
-                public StatementBean getStatement(DataSourceParam param, String sql) throws SQLException {
+                public synchronized StatementWrapper getStatement(DataSourceParam param, String sql) throws SQLException {
                     ConnectionResult connectionResult = getConnection0(param);
                     Statement statement = connectionResult.getConnection().createStatement();
-                    return new StatementBean(ConnectionWrapper.this, statement, connectionResult.getSchemas());
+                    return new StatementWrapper(ConnectionWrapper.this, statement, connectionResult.getSchemas());
                 }
             };
         }
 
         @Override
         public PreparedStatement prepareStatement(String sql) throws SQLException {
-            return new PreparedStatementWrapper(sql, isReadOnly0(), getSchemas0()) {
+            return new DDRPreparedStatementImpl(sql, isReadOnly0(), getSchemas0()) {
 
                 @Override
-                public SQLParseResult parseSql(String sql, Map<Object, Object> jdbcParams) throws SQLException {
+                public SQLParsedResult parseSql(String sql, Map<Object, Object> jdbcParams) throws SQLException {
                     return AbstractDDRDataSource.this.parseSql(sql, jdbcParams);
                 }
 
                 @Override
-                public StatementBean getStatement(DataSourceParam param, String routedSql) throws SQLException {
+                public synchronized StatementWrapper getStatement(DataSourceParam param, String routedSql)
+                                                                                                       throws SQLException {
                     ConnectionResult connectionResult = getConnection0(param);
                     Statement statement = connectionResult.getConnection().prepareStatement(routedSql);
-                    return new StatementBean(ConnectionWrapper.this, statement, connectionResult.getSchemas());
+                    return new StatementWrapper(ConnectionWrapper.this, statement, connectionResult.getSchemas());
                 }
             };
         }
 
         @Override
         public Statement createStatement(final int resultSetType, final int resultSetConcurrency) throws SQLException {
-            return new StatementWrapper(isReadOnly0(), getSchemas0()) {
+            return new DDRStatementImpl(isReadOnly0(), getSchemas0()) {
 
                 @Override
-                public SQLParseResult parseSql(String sql, Map<Object, Object> jdbcParams) throws SQLException {
+                public SQLParsedResult parseSql(String sql, Map<Object, Object> jdbcParams) throws SQLException {
                     return AbstractDDRDataSource.this.parseSql(sql, jdbcParams);
                 }
 
                 @Override
-                public StatementBean getStatement(DataSourceParam param, String sql) throws SQLException {
+                public synchronized StatementWrapper getStatement(DataSourceParam param, String sql) throws SQLException {
                     ConnectionResult connectionResult = getConnection0(param);
                     Statement statement = connectionResult.getConnection().createStatement(resultSetType,
                                                                                            resultSetConcurrency);
-                    return new StatementBean(ConnectionWrapper.this, statement, connectionResult.getSchemas());
+                    return new StatementWrapper(ConnectionWrapper.this, statement, connectionResult.getSchemas());
                 }
             };
         }
@@ -518,19 +423,20 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
         @Override
         public PreparedStatement prepareStatement(String sql, final int resultSetType, final int resultSetConcurrency)
                                                                                                                       throws SQLException {
-            return new PreparedStatementWrapper(sql, isReadOnly0(), getSchemas0()) {
+            return new DDRPreparedStatementImpl(sql, isReadOnly0(), getSchemas0()) {
 
                 @Override
-                public SQLParseResult parseSql(String sql, Map<Object, Object> jdbcParams) throws SQLException {
+                public SQLParsedResult parseSql(String sql, Map<Object, Object> jdbcParams) throws SQLException {
                     return AbstractDDRDataSource.this.parseSql(sql, jdbcParams);
                 }
 
                 @Override
-                public StatementBean getStatement(DataSourceParam param, String routedSql) throws SQLException {
+                public synchronized StatementWrapper getStatement(DataSourceParam param, String routedSql)
+                                                                                                       throws SQLException {
                     ConnectionResult connectionResult = getConnection0(param);
                     Statement statement = connectionResult.getConnection().prepareStatement(routedSql, resultSetType,
                                                                                             resultSetConcurrency);
-                    return new StatementBean(ConnectionWrapper.this, statement, connectionResult.getSchemas());
+                    return new StatementWrapper(ConnectionWrapper.this, statement, connectionResult.getSchemas());
                 }
             };
         }
@@ -538,19 +444,19 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
         @Override
         public Statement createStatement(final int resultSetType, final int resultSetConcurrency,
                                          final int resultSetHoldability) throws SQLException {
-            return new StatementWrapper(isReadOnly0(), getSchemas0()) {
+            return new DDRStatementImpl(isReadOnly0(), getSchemas0()) {
 
                 @Override
-                public SQLParseResult parseSql(String sql, Map<Object, Object> jdbcParams) throws SQLException {
+                public SQLParsedResult parseSql(String sql, Map<Object, Object> jdbcParams) throws SQLException {
                     return AbstractDDRDataSource.this.parseSql(sql, jdbcParams);
                 }
 
                 @Override
-                public StatementBean getStatement(DataSourceParam param, String sql) throws SQLException {
+                public synchronized StatementWrapper getStatement(DataSourceParam param, String sql) throws SQLException {
                     ConnectionResult connectionResult = getConnection0(param);
                     Statement statement = connection.createStatement(resultSetType, resultSetConcurrency,
                                                                      resultSetHoldability);
-                    return new StatementBean(ConnectionWrapper.this, statement, connectionResult.getSchemas());
+                    return new StatementWrapper(ConnectionWrapper.this, statement, connectionResult.getSchemas());
                 }
             };
         }
@@ -558,80 +464,85 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
         @Override
         public PreparedStatement prepareStatement(String sql, final int resultSetType, final int resultSetConcurrency,
                                                   final int resultSetHoldability) throws SQLException {
-            return new PreparedStatementWrapper(sql, isReadOnly0(), getSchemas0()) {
+            return new DDRPreparedStatementImpl(sql, isReadOnly0(), getSchemas0()) {
 
                 @Override
-                public SQLParseResult parseSql(String sql, Map<Object, Object> jdbcParams) throws SQLException {
+                public SQLParsedResult parseSql(String sql, Map<Object, Object> jdbcParams) throws SQLException {
                     return AbstractDDRDataSource.this.parseSql(sql, jdbcParams);
                 }
 
                 @Override
-                public StatementBean getStatement(DataSourceParam param, String routedSql) throws SQLException {
+                public synchronized StatementWrapper getStatement(DataSourceParam param, String routedSql)
+                                                                                                       throws SQLException {
                     ConnectionResult connectionResult = getConnection0(param);
                     Statement statement = connection.prepareStatement(routedSql, resultSetType, resultSetConcurrency,
                                                                       resultSetHoldability);
-                    return new StatementBean(ConnectionWrapper.this, statement, connectionResult.getSchemas());
+                    return new StatementWrapper(ConnectionWrapper.this, statement, connectionResult.getSchemas());
                 }
             };
         }
 
         @Override
         public PreparedStatement prepareStatement(String sql, final int autoGeneratedKeys) throws SQLException {
-            return new PreparedStatementWrapper(sql, isReadOnly0(), getSchemas0()) {
+            return new DDRPreparedStatementImpl(sql, isReadOnly0(), getSchemas0()) {
 
                 @Override
-                public SQLParseResult parseSql(String sql, Map<Object, Object> jdbcParams) throws SQLException {
+                public SQLParsedResult parseSql(String sql, Map<Object, Object> jdbcParams) throws SQLException {
                     return AbstractDDRDataSource.this.parseSql(sql, jdbcParams);
                 }
 
                 @Override
-                public StatementBean getStatement(DataSourceParam param, String routedSql) throws SQLException {
+                public synchronized StatementWrapper getStatement(DataSourceParam param, String routedSql)
+                                                                                                       throws SQLException {
                     ConnectionResult connectionResult = getConnection0(param);
                     Statement statement = connection.prepareStatement(routedSql, autoGeneratedKeys);
-                    return new StatementBean(ConnectionWrapper.this, statement, connectionResult.getSchemas());
+                    return new StatementWrapper(ConnectionWrapper.this, statement, connectionResult.getSchemas());
                 }
             };
         }
 
         @Override
         public PreparedStatement prepareStatement(String sql, final int[] columnIndexes) throws SQLException {
-            return new PreparedStatementWrapper(sql, isReadOnly0(), getSchemas0()) {
+            return new DDRPreparedStatementImpl(sql, isReadOnly0(), getSchemas0()) {
 
                 @Override
-                public SQLParseResult parseSql(String sql, Map<Object, Object> jdbcParams) throws SQLException {
+                public SQLParsedResult parseSql(String sql, Map<Object, Object> jdbcParams) throws SQLException {
                     return AbstractDDRDataSource.this.parseSql(sql, jdbcParams);
                 }
 
                 @Override
-                public StatementBean getStatement(DataSourceParam param, String routedSql) throws SQLException {
+                public synchronized StatementWrapper getStatement(DataSourceParam param, String routedSql)
+                                                                                                       throws SQLException {
                     ConnectionResult connectionResult = getConnection0(param);
                     Statement statement = connectionResult.getConnection().prepareStatement(routedSql, columnIndexes);
-                    return new StatementBean(ConnectionWrapper.this, statement, connectionResult.getSchemas());
+                    return new StatementWrapper(ConnectionWrapper.this, statement, connectionResult.getSchemas());
                 }
             };
         }
 
         @Override
         public PreparedStatement prepareStatement(String sql, final String[] columnNames) throws SQLException {
-            return new PreparedStatementWrapper(sql, isReadOnly0(), getSchemas0()) {
+            return new DDRPreparedStatementImpl(sql, isReadOnly0(), getSchemas0()) {
 
                 @Override
-                public SQLParseResult parseSql(String sql, Map<Object, Object> jdbcParams) throws SQLException {
+                public SQLParsedResult parseSql(String sql, Map<Object, Object> jdbcParams) throws SQLException {
                     return AbstractDDRDataSource.this.parseSql(sql, jdbcParams);
                 }
 
                 @Override
-                public StatementBean getStatement(DataSourceParam param, String routedSql) throws SQLException {
+                public synchronized StatementWrapper getStatement(DataSourceParam param, String routedSql)
+                                                                                                       throws SQLException {
                     ConnectionResult connectionResult = getConnection0(param);
                     Statement statement = connectionResult.getConnection().prepareStatement(routedSql, columnNames);
-                    return new StatementBean(ConnectionWrapper.this, statement, connectionResult.getSchemas());
+                    return new StatementWrapper(ConnectionWrapper.this, statement, connectionResult.getSchemas());
                 }
             };
         }
 
         // 未初始化前可以调用的方法
         @Override
-        public void setAutoCommit(boolean autoCommit) throws SQLException {
+        public synchronized void setAutoCommit(boolean autoCommit) throws SQLException {
+            Connection connection = getConnection1();
             if (connection != null) {
                 connection.setAutoCommit(autoCommit);
             }
@@ -640,7 +551,8 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
         }
 
         @Override
-        public void setReadOnly(boolean readOnly) throws SQLException {
+        public synchronized void setReadOnly(boolean readOnly) throws SQLException {
+            Connection connection = getConnection1();
             if (connection != null) {
                 connection.setReadOnly(readOnly);
             }
@@ -649,7 +561,8 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
         }
 
         @Override
-        public void setCatalog(String catalog) throws SQLException {
+        public synchronized void setCatalog(String catalog) throws SQLException {
+            Connection connection = getConnection1();
             if (connection != null) {
                 connection.setCatalog(catalog);
             }
@@ -658,7 +571,8 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
         }
 
         @Override
-        public void setTransactionIsolation(int level) throws SQLException {
+        public synchronized void setTransactionIsolation(int level) throws SQLException {
+            Connection connection = getConnection1();
             if (connection != null) {
                 connection.setTransactionIsolation(level);
             }
@@ -667,7 +581,8 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
         }
 
         @Override
-        public SQLWarning getWarnings() throws SQLException {
+        public synchronized SQLWarning getWarnings() throws SQLException {
+            Connection connection = getConnection1();
             if (connection != null) {
                 return connection.getWarnings();
             } else {
@@ -676,7 +591,8 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
         }
 
         @Override
-        public void clearWarnings() throws SQLException {
+        public synchronized void clearWarnings() throws SQLException {
+            Connection connection = getConnection1();
             if (connection != null) {
                 connection.clearWarnings();
             } else {
@@ -686,7 +602,8 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
         }
 
         @Override
-        public void setTypeMap(Map<String, Class<?>> map) throws SQLException {
+        public synchronized void setTypeMap(Map<String, Class<?>> map) throws SQLException {
+            Connection connection = getConnection1();
             if (connection != null) {
                 connection.setTypeMap(map);
             }
@@ -695,7 +612,8 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
         }
 
         @Override
-        public void setHoldability(int holdability) throws SQLException {
+        public synchronized void setHoldability(int holdability) throws SQLException {
+            Connection connection = getConnection1();
             if (connection != null) {
                 connection.setHoldability(holdability);
             }
@@ -704,7 +622,8 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
         }
 
         @Override
-        public void setSchema(String schema) throws SQLException {
+        public synchronized void setSchema(String schema) throws SQLException {
+            Connection connection = getConnection1();
             if (connection != null) {
                 connection.setSchema(schema);
             }
@@ -714,7 +633,8 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
 
         // 初始化后才能调动的方法
         @Override
-        public void setClientInfo(String name, String value) throws SQLClientInfoException {
+        public synchronized void setClientInfo(String name, String value) throws SQLClientInfoException {
+            Connection connection = getConnection1();
             if (connection != null) {
                 connection.setClientInfo(name, value);
             } else {
@@ -724,7 +644,8 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
         }
 
         @Override
-        public void setClientInfo(Properties properties) throws SQLClientInfoException {
+        public synchronized void setClientInfo(Properties properties) throws SQLClientInfoException {
+            Connection connection = getConnection1();
             if (connection != null) {
                 connection.setClientInfo(properties);
             } else {
@@ -734,7 +655,8 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
         }
 
         @Override
-        public String getClientInfo(String name) throws SQLException {
+        public synchronized String getClientInfo(String name) throws SQLException {
+            Connection connection = getConnection1();
             if (connection != null) {
                 return connection.getClientInfo(name);
             } else {
@@ -744,7 +666,8 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
         }
 
         @Override
-        public Properties getClientInfo() throws SQLException {
+        public synchronized Properties getClientInfo() throws SQLException {
+            Connection connection = getConnection1();
             if (connection != null) {
                 return connection.getClientInfo();
             } else {
@@ -754,7 +677,8 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
         }
 
         @Override
-        public void setNetworkTimeout(Executor executor, int milliseconds) throws SQLException {
+        public synchronized void setNetworkTimeout(Executor executor, int milliseconds) throws SQLException {
+            Connection connection = getConnection1();
             if (connection != null) {
                 connection.setNetworkTimeout(executor, milliseconds);
             } else {
@@ -764,7 +688,8 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
         }
 
         @Override
-        public int getNetworkTimeout() throws SQLException {
+        public synchronized int getNetworkTimeout() throws SQLException {
+            Connection connection = getConnection1();
             if (connection != null) {
                 return connection.getNetworkTimeout();
             } else {
@@ -774,7 +699,8 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
         }
 
         @Override
-        public Savepoint setSavepoint() throws SQLException {
+        public synchronized Savepoint setSavepoint() throws SQLException {
+            Connection connection = getConnection1();
             if (connection != null) {
                 return connection.setSavepoint();
             } else {
@@ -783,7 +709,8 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
         }
 
         @Override
-        public Savepoint setSavepoint(String name) throws SQLException {
+        public synchronized Savepoint setSavepoint(String name) throws SQLException {
+            Connection connection = getConnection1();
             if (connection != null) {
                 return connection.setSavepoint(name);
             } else {
@@ -793,7 +720,8 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
         }
 
         @Override
-        public void rollback(Savepoint savepoint) throws SQLException {
+        public synchronized void rollback(Savepoint savepoint) throws SQLException {
+            Connection connection = getConnection1();
             if (connection != null) {
                 connection.rollback(savepoint);
             } else {
@@ -803,7 +731,8 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
         }
 
         @Override
-        public void releaseSavepoint(Savepoint savepoint) throws SQLException {
+        public synchronized void releaseSavepoint(Savepoint savepoint) throws SQLException {
+            Connection connection = getConnection1();
             if (connection != null) {
                 connection.releaseSavepoint(savepoint);
             } else {
@@ -813,7 +742,8 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
         }
 
         @Override
-        public Clob createClob() throws SQLException {
+        public synchronized Clob createClob() throws SQLException {
+            Connection connection = getConnection1();
             if (connection != null) {
                 return connection.createClob();
             } else {
@@ -822,7 +752,8 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
         }
 
         @Override
-        public Blob createBlob() throws SQLException {
+        public synchronized Blob createBlob() throws SQLException {
+            Connection connection = getConnection1();
             if (connection != null) {
                 return connection.createBlob();
             } else {
@@ -831,7 +762,8 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
         }
 
         @Override
-        public NClob createNClob() throws SQLException {
+        public synchronized NClob createNClob() throws SQLException {
+            Connection connection = getConnection1();
             if (connection != null) {
                 return connection.createNClob();
             } else {
@@ -840,7 +772,8 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
         }
 
         @Override
-        public SQLXML createSQLXML() throws SQLException {
+        public synchronized SQLXML createSQLXML() throws SQLException {
+            Connection connection = getConnection1();
             if (connection != null) {
                 return connection.createSQLXML();
             } else {
@@ -849,7 +782,8 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
         }
 
         @Override
-        public boolean isValid(int timeout) throws SQLException {
+        public synchronized boolean isValid(int timeout) throws SQLException {
+            Connection connection = getConnection1();
             if (connection != null) {
                 return connection.isValid(timeout);
             } else {
@@ -859,7 +793,8 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
         }
 
         @Override
-        public Array createArrayOf(String typeName, Object[] elements) throws SQLException {
+        public synchronized Array createArrayOf(String typeName, Object[] elements) throws SQLException {
+            Connection connection = getConnection1();
             if (connection != null) {
                 return connection.createArrayOf(typeName, elements);
             } else {
@@ -869,7 +804,8 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
         }
 
         @Override
-        public Struct createStruct(String typeName, Object[] attributes) throws SQLException {
+        public synchronized Struct createStruct(String typeName, Object[] attributes) throws SQLException {
+            Connection connection = getConnection1();
             if (connection != null) {
                 return connection.createStruct(typeName, attributes);
             } else {
@@ -879,17 +815,19 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
         }
 
         @Override
-        public void commit() throws SQLException {
+        public synchronized void commit() throws SQLException {
+            Connection connection = getConnection1();
             if (connection != null) {
                 connection.commit();
-                AbstractDDRDataSource.this.reset();
+                connectionResult = null;
             } else {
                 throw new UninitializedStatusException("Can't invoke 'commit()' before connection is initialized");
             }
         }
 
         @Override
-        public void rollback() throws SQLException {
+        public synchronized void rollback() throws SQLException {
+            Connection connection = getConnection1();
             if (connection != null) {
                 connection.rollback();
             } else {
@@ -899,7 +837,8 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
 
         // 弹性处理的方法
         @Override
-        public void close() throws SQLException {
+        public synchronized void close() throws SQLException {
+            Connection connection = getConnection1();
             if (connection != null) {
                 connection.close();// TODO
             } else {
@@ -908,7 +847,8 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
         }
 
         @Override
-        public boolean isClosed() throws SQLException {
+        public synchronized boolean isClosed() throws SQLException {
+            Connection connection = getConnection1();
             if (connection != null) {// TODO
                 return connection.isClosed();
             } else {
@@ -918,7 +858,8 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
 
         // 需要初始化后才能调用的方法
         @Override
-        public void abort(Executor executor) throws SQLException {
+        public synchronized void abort(Executor executor) throws SQLException {
+            Connection connection = getConnection1();
             if (connection != null) {
                 connection.abort(executor);
             } else {
@@ -928,7 +869,8 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
         }
 
         @Override
-        public String nativeSQL(String sql) throws SQLException {
+        public synchronized String nativeSQL(String sql) throws SQLException {
+            Connection connection = getConnection1();
             if (connection != null) {
                 return connection.nativeSQL(sql);
             } else {
@@ -970,7 +912,8 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
         }
 
         @Override
-        public boolean isReadOnly() throws SQLException {
+        public synchronized boolean isReadOnly() throws SQLException {
+            Connection connection = getConnection1();
             if (connection != null) {
                 return connection.isReadOnly();
             } else if (tag.isReadOnly()) {
@@ -991,7 +934,8 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
         }
 
         @Override
-        public String getCatalog() throws SQLException {
+        public synchronized String getCatalog() throws SQLException {
+            Connection connection = getConnection1();
             if (connection != null) {
                 return connection.getCatalog();
             } else if (tag.isCatalog()) {
@@ -1012,7 +956,8 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
         }
 
         @Override
-        public Map<String, Class<?>> getTypeMap() throws SQLException {
+        public synchronized Map<String, Class<?>> getTypeMap() throws SQLException {
+            Connection connection = getConnection1();
             if (connection != null) {
                 return connection.getTypeMap();
             } else if (tag.isTypeMap()) {
@@ -1033,7 +978,8 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
         }
 
         @Override
-        public int getHoldability() throws SQLException {
+        public synchronized int getHoldability() throws SQLException {
+            Connection connection = getConnection1();
             if (connection != null) {
                 return connection.getHoldability();
             } else if (tag.isHoldability()) {
@@ -1054,7 +1000,8 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
         }
 
         @Override
-        public DatabaseMetaData getMetaData() throws SQLException {
+        public synchronized DatabaseMetaData getMetaData() throws SQLException {
+            Connection connection = getConnection1();
             if (connection != null) {
                 return connection.getMetaData();
             } else {
@@ -1073,7 +1020,8 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
         }
 
         @Override
-        public String getSchema() throws SQLException {
+        public synchronized String getSchema() throws SQLException {
+            Connection connection = getConnection1();
             if (connection != null) {
                 return connection.getSchema();
             } else if (tag.isSchema()) {
@@ -1094,7 +1042,8 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
         }
 
         @Override
-        public int getTransactionIsolation() throws SQLException {
+        public synchronized int getTransactionIsolation() throws SQLException {
+            Connection connection = getConnection1();
             if (connection != null) {
                 return connection.getTransactionIsolation();
             } else if (tag.isTransactionIsolation()) {
@@ -1115,7 +1064,8 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
         }
 
         @Override
-        public boolean getAutoCommit() throws SQLException {
+        public synchronized boolean getAutoCommit() throws SQLException {
+            Connection connection = getConnection1();
             if (connection != null) {
                 return connection.getAutoCommit();
             } else if (tag.isAutoCommit()) {

@@ -15,7 +15,7 @@
  */
 package org.hellojavaer.ddr.core.shard;
 
-import org.hellojavaer.ddr.core.datasource.jdbc.SQLParseResult;
+import org.hellojavaer.ddr.core.datasource.jdbc.SQLParsedResult;
 
 import java.util.Map;
 
@@ -25,6 +25,6 @@ import java.util.Map;
  */
 public interface ShardParser {
 
-    SQLParseResult parse(String sql, Map<Object, Object> jdbcParams);
+    SQLParsedResult parse(String sql, Map<Object, Object> jdbcParams);
 
 }

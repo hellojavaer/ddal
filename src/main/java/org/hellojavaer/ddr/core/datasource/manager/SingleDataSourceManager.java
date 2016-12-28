@@ -15,7 +15,7 @@
  */
 package org.hellojavaer.ddr.core.datasource.manager;
 
-import org.hellojavaer.ddr.core.datasource.DataSourceSchemasBinding;
+import org.hellojavaer.ddr.core.datasource.jdbc.DataSourceWrapper;
 
 import javax.sql.DataSource;
 
@@ -36,9 +36,9 @@ public class SingleDataSourceManager implements DataSourceManager {
     }
 
     @Override
-    public DataSourceSchemasBinding getDataSource(DataSourceParam param) {
-        DataSourceSchemasBinding binding = new DataSourceSchemasBinding();
-        binding.setDataSource(this.getDataSource());
-        return binding;
+    public DataSourceWrapper getDataSource(DataSourceParam param) {
+        DataSourceWrapper wrapper = new DataSourceWrapper();
+        wrapper.setDataSource(this.getDataSource());
+        return wrapper;
     }
 }

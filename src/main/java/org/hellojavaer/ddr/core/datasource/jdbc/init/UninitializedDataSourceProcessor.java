@@ -45,15 +45,6 @@ public class UninitializedDataSourceProcessor {
         return map.containsKey(prop);
     }
 
-    public static boolean isSyncDefaultValue(DataSourceProperty prop) {
-        InnerBean obj = map.get(prop);
-        if (obj != null) {
-            return obj.isSyncDefaultValue();
-        } else {
-            return false;
-        }
-    }
-
     public static Object removeDefaultValue(DataSourceProperty prop) {
         return map.remove(prop);
     }

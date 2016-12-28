@@ -27,7 +27,7 @@ import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.update.Update;
 import net.sf.jsqlparser.util.JSQLBaseVisitor;
 import org.hellojavaer.ddr.core.datasource.exception.CrossingPreparedStatementException;
-import org.hellojavaer.ddr.core.datasource.jdbc.SQLParseResult;
+import org.hellojavaer.ddr.core.datasource.jdbc.SQLParsedResult;
 import org.hellojavaer.ddr.core.shard.*;
 import org.hellojavaer.ddr.core.sqlparse.exception.*;
 import org.hellojavaer.ddr.core.utils.DDRJSONUtils;
@@ -77,16 +77,16 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
         }
     }
 
-    public SQLParseResult parse() {
+    public SQLParsedResult parse() {
         try {
             ConverterContext converterContext = new ConverterContext();
             context.set(converterContext);
             statement.accept(this);
             String targetSql = statement.toString();
-            SQLParseResult parseResult = new SQLParseResult();
-            parseResult.setSql(targetSql);
-            parseResult.setSchemas(schemas);
-            parseResult.setParserState(new SQLParseResult.ParserState() {
+            SQLParsedResult parsedResult = new SQLParsedResult();
+            parsedResult.setSql(targetSql);
+            parsedResult.setSchemas(schemas);
+            parsedResult.setParserState(new SQLParsedResult.ParserState() {
 
                 @Override
                 public void validJdbcParam(Map<Object, Object> jdbcParam) {
@@ -107,7 +107,7 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
                     }
                 }
             });
-            return parseResult;
+            return parsedResult;
         } finally {
             context.remove();
         }

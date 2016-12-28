@@ -15,7 +15,6 @@
  */
 package org.hellojavaer.ddr.core.datasource.jdbc;
 
-import org.hellojavaer.ddr.core.datasource.DataSourceSchemasBinding;
 import org.hellojavaer.ddr.core.datasource.manager.DataSourceParam;
 
 import javax.sql.DataSource;
@@ -27,10 +26,8 @@ import java.util.Map;
  */
 public interface DDRDataSource extends DataSource {
 
-    SQLParseResult parseSql(String sql, Map<Object, Object> jdbcParam);
+    SQLParsedResult parseSql(String sql, Map<Object, Object> jdbcParam);
 
-    DataSourceSchemasBinding getDataSource(DataSourceParam param);
-
-    void reset();
+    DataSourceWrapper getDataSource(DataSourceParam param);
 
 }

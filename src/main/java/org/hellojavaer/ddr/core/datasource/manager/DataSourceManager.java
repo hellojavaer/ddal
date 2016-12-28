@@ -15,7 +15,7 @@
  */
 package org.hellojavaer.ddr.core.datasource.manager;
 
-import org.hellojavaer.ddr.core.datasource.DataSourceSchemasBinding;
+import org.hellojavaer.ddr.core.datasource.jdbc.DataSourceWrapper;
 
 /**
  *
@@ -23,6 +23,6 @@ import org.hellojavaer.ddr.core.datasource.DataSourceSchemasBinding;
  */
 public interface DataSourceManager {
 
-    DataSourceSchemasBinding getDataSource(DataSourceParam param);
+    DataSourceWrapper getDataSource(DataSourceParam param);
 
 }

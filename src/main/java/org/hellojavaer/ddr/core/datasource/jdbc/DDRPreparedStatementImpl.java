@@ -16,6 +16,7 @@
 package org.hellojavaer.ddr.core.datasource.jdbc;
 
 import org.hellojavaer.ddr.core.datasource.exception.CrossingDataSourceException;
+import org.hellojavaer.ddr.core.datasource.exception.DDRDataSourceException;
 import org.hellojavaer.ddr.core.datasource.exception.UninitializedStatusException;
 import org.hellojavaer.ddr.core.datasource.exception.UnsupportedPreparedStatementInvocationException;
 import org.hellojavaer.ddr.core.datasource.manager.DataSourceParam;
@@ -28,20 +29,22 @@ import java.util.*;
 
 /**
  *
+ * 并发设置参数
+ *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 20/11/2016.
  */
-public abstract class PreparedStatementWrapper extends StatementWrapper implements DDRPreparedStatement {
+public abstract class DDRPreparedStatementImpl extends DDRStatementImpl implements DDRPreparedStatement {
 
-    private Logger                        stdLogger     = LoggerFactory.getLogger("org.hellojavaer.ddr.sql");
+    private Logger                      stdLogger               = LoggerFactory.getLogger("org.hellojavaer.ddr.sql");
 
-    protected PreparedStatement           preparedStatement;
-    private String                        sql;
-    private Map<Object, Object>           jdbcParameter = new HashMap<Object, Object>();
-    private List<JdbcParamInvocation>     jdbcParamInvocationList;
+    private String                      sql                     = null;
+    protected PreparedStatement         preparedStatement       = null;
+    private Map<Object, Object>         jdbcParameter           = new HashMap<Object, Object>();
+    private List<JdbcParamInvocation>   jdbcParamInvocationList = null;
 
-    private SQLParseResult.ParserState parserState;
+    private SQLParsedResult.ParserState parserState             = null;
 
-    public PreparedStatementWrapper(String sql, boolean readOnly, Set<String> schemas) {
+    public DDRPreparedStatementImpl(String sql, boolean readOnly, Set<String> schemas) {
         super(readOnly, schemas);
         this.sql = sql;
     }
@@ -180,24 +183,25 @@ public abstract class PreparedStatementWrapper extends StatementWrapper implemen
     }
 
     private void initPreparedStatementIfAbsent() throws SQLException {
-        if (parserState != null) {
-            parserState.validJdbcParam(this.jdbcParameter);
-        } else {
+        if (preparedStatement == null) {
             // 1. parse sql
-            SQLParseResult parseResult = parseSql(sql, this.jdbcParameter);
+            SQLParsedResult parsedResult = parseSql(sql, this.jdbcParameter);
             if (stdLogger.isDebugEnabled()) {
                 stdLogger.debug(new StringBuilder("[ParseSql] from:")//
                 .append(sql).append(" =>to: ")//
-                .append(parseResult.getSql()).toString());//
+                .append(parsedResult.getSql()).toString());//
                 if (stdLogger.isTraceEnabled()) {
                     stdLogger.trace("[JdbcParameter] " + DDRJSONUtils.toJSONString(jdbcParameter));
                 }
             }
-            parserState = parseResult.getParserState();
+            parserState = parsedResult.getParserState();
+            if (parserState == null) {
+                throw new DDRDataSourceException("parserState can't be null");
+            }
             // 2. check if crossing datasource
-            if (isCrossDataSource(parseResult.getSchemas())) {
+            if (isCrossDataSource(parsedResult.getSchemas())) {
                 throw new CrossingDataSourceException("Sql schemas are "
-                                                      + DDRJSONUtils.toJSONString(parseResult.getSchemas())
+                                                      + DDRJSONUtils.toJSONString(parsedResult.getSchemas())
                                                       + ",current datasource binding schemas are "
                                                       + DDRJSONUtils.toJSONString(schemas)
                                                       + " and source original sql is '" + sql
@@ -205,16 +209,16 @@ public abstract class PreparedStatementWrapper extends StatementWrapper implemen
                                                       + DDRJSONUtils.toJSONString(jdbcParameter));
             }
             // 3. init preparedStatement if not
-            if (preparedStatement == null) {
-                DataSourceParam param = new DataSourceParam();
-                param.setReadOnly(readOnly);
-                param.setScNames(parseResult.getSchemas());
-                // 初始化statement
-                initStatementIfAbsent(param, parseResult.getSql());
-                // 动作回放
-                super.playbackInvocation(statement);
-                playbackSetJdbcParamInvocation(preparedStatement, jdbcParamInvocationList);
-            }
+            DataSourceParam param = new DataSourceParam();
+            param.setReadOnly(readOnly);
+            param.setScNames(parsedResult.getSchemas());
+            // 初始化statement
+            initStatementIfAbsent(param, parsedResult.getSql());
+            // 动作回放
+            super.playbackInvocation(statement);
+            playbackSetJdbcParamInvocation(preparedStatement, jdbcParamInvocationList);
+        } else {// 同一个preparedStatement 以第一次成功创建preparedStatement为限制;
+            parserState.validJdbcParam(this.jdbcParameter);
         }
     }
 

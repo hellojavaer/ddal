@@ -15,7 +15,6 @@
  */
 package org.hellojavaer.ddr.core.datasource.jdbc;
 
-import org.hellojavaer.ddr.core.datasource.DataSourceSchemasBinding;
 import org.hellojavaer.ddr.core.datasource.jdbc.init.UninitializedConnectionProcessor;
 import org.hellojavaer.ddr.core.datasource.jdbc.init.UninitializedDataSourceProcessor;
 import org.hellojavaer.ddr.core.datasource.jdbc.property.ConnectionProperty;
@@ -57,12 +56,12 @@ public class DefaultDDRDataSource extends AbstractDDRDataSource {
         this.shardParser = shardParser;
     }
 
-    public SQLParseResult parseSql(String sql, Map<Object, Object> jdbcParam) {
+    public SQLParsedResult parseSql(String sql, Map<Object, Object> jdbcParam) {
         return shardParser.parse(sql, jdbcParam);
     }
 
     @Override
-    public DataSourceSchemasBinding getDataSource(DataSourceParam param) {
+    public DataSourceWrapper getDataSource(DataSourceParam param) {
         return dataSourceManager.getDataSource(param);
     }
 

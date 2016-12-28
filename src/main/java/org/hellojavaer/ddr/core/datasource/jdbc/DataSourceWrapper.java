@@ -15,40 +15,34 @@
  */
 package org.hellojavaer.ddr.core.datasource.jdbc;
 
-import java.sql.Connection;
-import java.sql.Statement;
+import org.hellojavaer.ddr.core.utils.DDRToStringBuilder;
+
+import javax.sql.DataSource;
 import java.util.Set;
 
 /**
  *
- * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 13/12/2016.
+ * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 28/12/2016.
  */
-public class StatementBean {
+public class DataSourceWrapper {
 
-    private Statement   statement;
-    private Connection  connection;
+    private DataSource  dataSource;
     private Set<String> schemas;
 
-    public StatementBean(Connection connection, Statement statement, Set<String> schemas) {
-        this.connection = connection;
-        this.statement = statement;
+    public DataSourceWrapper() {
+    }
+
+    public DataSourceWrapper(DataSource dataSource, Set<String> schemas) {
+        this.dataSource = dataSource;
         this.schemas = schemas;
     }
 
-    public Connection getConnection() {
-        return connection;
+    public DataSource getDataSource() {
+        return dataSource;
     }
 
-    public void setConnection(Connection connection) {
-        this.connection = connection;
-    }
-
-    public Statement getStatement() {
-        return statement;
-    }
-
-    public void setStatement(Statement statement) {
-        this.statement = statement;
+    public void setDataSource(DataSource dataSource) {
+        this.dataSource = dataSource;
     }
 
     public Set<String> getSchemas() {
@@ -57,5 +51,10 @@ public class StatementBean {
 
     public void setSchemas(Set<String> schemas) {
         this.schemas = schemas;
+    }
+
+    @Override
+    public String toString() {
+       return new DDRToStringBuilder().append("schemas", schemas).append("dataSource", dataSource).toString();
     }
 }

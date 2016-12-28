@@ -15,15 +15,15 @@
  */
 package org.hellojavaer.ddr.core.datasource.manager.rw;
 
-import org.hellojavaer.ddr.core.datasource.DataSourceSchemasBinding;
 import org.hellojavaer.ddr.core.datasource.WeightedDataSource;
 import org.hellojavaer.ddr.core.datasource.exception.CrossingDataSourceException;
+import org.hellojavaer.ddr.core.datasource.jdbc.DataSourceWrapper;
 import org.hellojavaer.ddr.core.datasource.manager.DataSourceParam;
 import org.hellojavaer.ddr.core.datasource.manager.rw.monitor.ReadOnlyDataSourceMonitor;
 import org.hellojavaer.ddr.core.datasource.manager.rw.monitor.ReadOnlyDataSourceMonitorServer;
 import org.hellojavaer.ddr.core.datasource.manager.rw.monitor.WritingMethodInvokeResult;
-import org.hellojavaer.ddr.core.datasource.security.metadata.MetaDataChecker;
 import org.hellojavaer.ddr.core.datasource.security.metadata.DefaultMetaDataChecker;
+import org.hellojavaer.ddr.core.datasource.security.metadata.MetaDataChecker;
 import org.hellojavaer.ddr.core.expression.range.RangeExpression;
 import org.hellojavaer.ddr.core.expression.range.RangeItemVisitor;
 import org.hellojavaer.ddr.core.lb.random.WeightItem;
@@ -62,7 +62,7 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
 
     // cache
     private Map<String, WeightedRandom>                            readOnlyDataSourceQueryCache               = null;
-    private Map<String, DataSourceSchemasBinding>                  writeOnlyDataSourceQueryCache              = null;
+    private Map<String, DataSourceWrapper>                         writeOnlyDataSourceQueryCache              = null;
 
     // backup {physical schema name <-> datasources}
     private LinkedHashMap<String, List<WeightedDataSourceWrapper>> readOnlyDataSourceIndexCacheOriginalValues = null;
@@ -74,6 +74,7 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
     // tag
     private AtomicBoolean                                          inited                                     = new AtomicBoolean(
                                                                                                                                   false);
+
     public MetaDataChecker getMetaDataChecker() {
         return metaDataChecker;
     }
@@ -85,7 +86,7 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
     private static class WeightedDataSourceWrapper extends WeightedDataSource implements Cloneable {
 
         private int                      index;
-        private DataSourceSchemasBinding dataSourceSchemasBinding;
+        private DataSourceWrapper        dataSourceWrapper;
 
         public WeightedDataSourceWrapper() {
         }
@@ -98,12 +99,12 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
             this.index = index;
         }
 
-        public DataSourceSchemasBinding getDataSourceSchemasBinding() {
-            return dataSourceSchemasBinding;
+        public DataSourceWrapper getDataSourceWrapper() {
+            return dataSourceWrapper;
         }
 
-        public void setDataSourceSchemasBinding(DataSourceSchemasBinding dataSourceSchemasBinding) {
-            this.dataSourceSchemasBinding = dataSourceSchemasBinding;
+        public void setDataSourceWrapper(DataSourceWrapper dataSourceWrapper) {
+            this.dataSourceWrapper = dataSourceWrapper;
         }
 
         @Override
@@ -111,7 +112,7 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
             try {
                 WeightedDataSourceWrapper backup = (WeightedDataSourceWrapper) super.clone();
                 backup.setIndex(index);
-                backup.setDataSourceSchemasBinding(dataSourceSchemasBinding);
+                backup.setDataSourceWrapper(dataSourceWrapper);
                 return backup;
             } catch (CloneNotSupportedException e) {
                 throw new RuntimeException(e);
@@ -125,7 +126,7 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
             .append("index", index)//
             .append("weight", getWeight())//
             .append("desc", getDesc())//
-            .append("schemas", getDataSourceSchemasBinding().getSchemas())//
+            .append("schemas", dataSourceWrapper.getSchemas())//
             .append("datasource", getDataSource())//
             .toString();
         }
@@ -413,12 +414,12 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
         this.writeOnlyDataSources = writeOnlyDataSources;
     }
 
-    private void check(Map<String, DataSourceSchemasBinding> writeOnlyDataSourceQueryCache) {
+    private void check(Map<String, DataSourceWrapper> writeOnlyDataSourceQueryCache) {
         if (writeOnlyDataSourceQueryCache == null || writeOnlyDataSourceQueryCache.isEmpty() || metaDataChecker == null) {
             return;
         }
         Map<String, Set<String>> groupedRouteInfo = getGroupedRouteInfo();
-        for (Map.Entry<String, DataSourceSchemasBinding> entry : writeOnlyDataSourceQueryCache.entrySet()) {
+        for (Map.Entry<String, DataSourceWrapper> entry : writeOnlyDataSourceQueryCache.entrySet()) {
             Connection conn = null;
             try {
                 conn = entry.getValue().getDataSource().getConnection();
@@ -527,7 +528,7 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
         if (bindings == null || bindings.isEmpty()) {
             return;
         }
-        final Map<String, DataSourceSchemasBinding> dataSourceMap = new HashMap<String, DataSourceSchemasBinding>();
+        final Map<String, DataSourceWrapper> dataSourceMap = new HashMap<String, DataSourceWrapper>();
         for (final WriteOnlyDataSourceBinding binding : bindings) {
             String schemasString = DDRStringUtils.trim(binding.getScNames());
             if (schemasString == null) {
@@ -546,7 +547,7 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
         this.writeOnlyDataSourceQueryCache = dataSourceMap;
     }
 
-    private void buildWriteOnlyDataSource(Map<String, DataSourceSchemasBinding> dataSourceMap, List<String> schemas,
+    private void buildWriteOnlyDataSource(Map<String, DataSourceWrapper> dataSourceMap, List<String> schemas,
                                           DataSource dataSource) {
         Set<String> uniqSchemas = new HashSet<>();
         if (schemas != null && !schemas.isEmpty()) {
@@ -569,7 +570,7 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
                 throw new IllegalArgumentException("Schema '" + schema
                                                    + "' duplicate binding in 'writeOnlyDataSources' configuration");
             } else {
-                dataSourceMap.put(schema, new DataSourceSchemasBinding(dataSource, uniqSchemas));
+                dataSourceMap.put(schema, new DataSourceWrapper(dataSource, uniqSchemas));
             }
         }
     }
@@ -721,10 +722,9 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
                     weightedDataSourceWrapper.setIndex(i);
                     weightedDataSourceWrapper.setDesc(weightedDataSource.getDesc());
                     weightedDataSourceWrapper.setWeight(weightedDataSource.getWeight());
-                    DataSourceSchemasBinding dssb = new DataSourceSchemasBinding(
-                                                                                 weightedDataSourceWrapper.getDataSource(),
-                                                                                 uniqSchemas);
-                    weightedDataSourceWrapper.setDataSourceSchemasBinding(dssb);
+                    weightedDataSourceWrapper.setDataSourceWrapper(new DataSourceWrapper(
+                                                                                         weightedDataSourceWrapper.getDataSource(),
+                                                                                         uniqSchemas));
                     // check
                     if (weightedDataSourceWrapper.getName() != null) {
                         if (nameSet.contains(weightedDataSourceWrapper.getName())) {
@@ -753,7 +753,7 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
     }
 
     @Override
-    public DataSourceSchemasBinding getDataSource(DataSourceParam param) {
+    public DataSourceWrapper getDataSource(DataSourceParam param) {
         if (inited.compareAndSet(false, true) && readOnlyDataSourceMonitorServer != null) {
             readOnlyDataSourceMonitorServer.init(getReadOnlyDataSourceMonitor());
         }
@@ -776,12 +776,12 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
                             weightedDataSourceWrapper = (WeightedDataSourceWrapper) weightedRandom.nextValue();
                         }
                     } else {
-                        if (!weightedDataSourceWrapper.getDataSourceSchemasBinding().getSchemas().contains(scName)) {
+                        if (!weightedDataSourceWrapper.getDataSourceWrapper().getSchemas().contains(scName)) {
                             throw new CrossingDataSourceException(
                                                                   "scName:'"
                                                                           + scName
                                                                           + "' is not in 'readOnlyDataSource' binding '"
-                                                                          + weightedDataSourceWrapper.getDataSourceSchemasBinding().toString()
+                                                                          + weightedDataSourceWrapper.getDataSourceWrapper().toString()
                                                                           + "'");
                         }
                     }
@@ -795,25 +795,25 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
                     .append(weightedDataSourceWrapper)//
                     .toString());
                 }
-                return weightedDataSourceWrapper.getDataSourceSchemasBinding();
+                return weightedDataSourceWrapper.getDataSourceWrapper();
             }
         } else {
             if (this.writeOnlyDataSourceQueryCache == null) {
                 throw new IllegalStateException("No 'writeOnlyDataSource' is configured");
             } else {
-                DataSourceSchemasBinding dataSourceSchemasBinding = null;
+                DataSourceWrapper dataSourceWrapper = null;
                 for (String scName : param.getScNames()) {
-                    if (dataSourceSchemasBinding == null) {
-                        dataSourceSchemasBinding = this.writeOnlyDataSourceQueryCache.get(scName);
-                        if (dataSourceSchemasBinding == null) {
+                    if (dataSourceWrapper == null) {
+                        dataSourceWrapper = this.writeOnlyDataSourceQueryCache.get(scName);
+                        if (dataSourceWrapper == null) {
                             throw new IllegalStateException("schema '" + scName
                                                             + "' isn't configured in 'writeOnlyDataSource' list");
                         }
                     } else {
-                        if (!dataSourceSchemasBinding.getSchemas().contains(scName)) {
+                        if (!dataSourceWrapper.getSchemas().contains(scName)) {
                             throw new CrossingDataSourceException("scName:'" + scName
                                                                   + "' is not in 'writeOnlyDataSource' binding '"
-                                                                  + dataSourceSchemasBinding.toString() + "'");
+                                                                  + dataSourceWrapper.toString() + "'");
                         }
                     }
                 }
@@ -823,10 +823,10 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
                     .append("param:")//
                     .append(param)//
                     .append(" matched W:")//
-                    .append(dataSourceSchemasBinding)//
+                    .append(dataSourceWrapper)//
                     .toString());
                 }
-                return dataSourceSchemasBinding;
+                return dataSourceWrapper;
             }
         }
     }

@@ -39,7 +39,7 @@ public class RangeExpression {
             if (index >= str.length()) {
                 if (escape) {
                     throw new RangeExpressionException(str, str.length(), (char) 0,
-                                                       "Out of statement block, escape character '\\' can only be used for character '\\', ',' , '[' and ']' ");
+                                                       "in outer statement block, only character '\\', ',' , '[' and ']' can be escaped");
                 }
                 if (sb != null) {
                     itemVisitor.visit(sb.toString());
@@ -55,7 +55,7 @@ public class RangeExpression {
                     escape = false;
                 } else {
                     throw new RangeExpressionException(str, index, ch,
-                                                       "Out of statement block, escape character '\\' can only be used for character '\\', ',' , '[' and ']' ");
+                                                       "in outer statement block, only character '\\', ',' , '[' and ']' can be escaped");
                 }
             } else {//
                 if (ch == ',') {// 递归终结符
@@ -135,7 +135,7 @@ public class RangeExpression {
                     sb1.append(' ');
                 } else {
                     throw new RangeExpressionException(str, index, ch1,
-                                                       "in statement block, escape character '\\' can only be used for character '\\', ',' , '[', ']', '~' and 's' ");
+                                                       "in inner statement block, only character '\\', ',' , '[', ']', '~' and 's' can be escaped");
                 }
                 escape1 = false;
                 continue;
@@ -198,13 +198,13 @@ public class RangeExpression {
             } else if (ch1 == ',' || ch1 == ']') {// 结束符 key_word
                 if (range && xpos + 1 == i) {
                     throw new RangeExpressionException(str, i, ch1,
-                                                       "start expression and end expression not match. eg: [089,0~99,a-z,A-Z]'");
+                                                       "start expression and end expression don't match. eg: [089,0~99,a-z,A-Z]'");
                 }
                 int epos = 0;// 返回下一个开始位置
                 if (status1 != 0) {// ~
                     if (status0 != status1) {
                         throw new RangeExpressionException(str, i, ch1,
-                                                           "start expression and end expression not match. eg: [089,0~99,a-z,A-Z]'");
+                                                           "start expression and end expression don't match. eg: [089,0~99,a-z,A-Z]'");
                     } else {// 区间表达式
                         if (status1 == 1) {// 数字
                             int s = ((Integer) rangStart).intValue();
