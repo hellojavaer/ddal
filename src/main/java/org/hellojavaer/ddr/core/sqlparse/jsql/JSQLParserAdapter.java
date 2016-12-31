@@ -137,14 +137,13 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
                     if (routeInfo == null) {
                         if (tableWrapper.getSdKey() != null) {// 禁用sql路由后但未在ShardRouteContext中设置路由
                             throw new RouteInfoNotFoundException(
-                                                                 "Disabled sql routing but not set route information by 'ShardRouteContext'. detail information is "
+                                                                 "Disabled sql ["
+                                                                         + sql
+                                                                         + "] routing but not set route information by 'ShardRouteContext'. detail information is "
                                                                          + tableWrapper);
-
-                        } else {
+                        } else {// 没有配置分配值
                             StringBuilder sb = new StringBuilder();
-                            sb.append("No shard key was found in sql [");
-                            sb.append(sql);
-                            sb.append("], expect '");
+                            sb.append("No shard value was configured for shard key '");
                             if (tableWrapper.getTable().getAlias() != null) {
                                 sb.append(tableWrapper.getTable().getAlias().getName());
                             } else {
@@ -152,7 +151,10 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
                             }
                             sb.append('.');
                             sb.append(tableWrapper.getRouteInfo().getSdKey());
-                            sb.append("'. Detail information is ");
+                            sb.append("' in sql [");
+                            sb.append(sql);
+                            sb.append("].");
+                            sb.append(" Detail information is ");
                             sb.append(tableWrapper.toString());
                             throw new RouteInfoNotFoundException(sb.toString());
                         }
@@ -176,7 +178,7 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
                 throw new ConflictingRouteException(
                                                     "Shard skey '"
                                                             + tableWrapper.getSdKey()
-                                                            + "' has multiple values to route table name, but route result is conflicting, conflicting information is [scName:"
+                                                            + "' has multiple values to route its table name, but route results are conflicting, conflicting information is [scName:"
                                                             + routeInfo.getScName() + ",tbName:"
                                                             + routeInfo.getTbName() + "]<->[scName:"
                                                             + tableWrapper.getScName() + "," + tableWrapper.getTbName()
@@ -256,9 +258,9 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
         Column column = (Column) isNullExpression.getLeftExpression();
         if (getTableFromContext(column) != null) {
             throw new UnsupportedSQLExpressionException(
-                                                        "Shard key["
+                                                        "Shard key '"
                                                                 + column.toString()
-                                                                + "] doesn't support 'is null' expression, and only '=', 'in' and 'between' are supported. source sql is ["
+                                                                + "' doesn't support 'is null' expression, and only '=', 'in' and 'between' are supported. source sql is ["
                                                                 + sql + "]");
         } else {
             super.visit(isNullExpression);
@@ -270,9 +272,9 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
         Column column = (Column) greaterThan.getLeftExpression();
         if (getTableFromContext(column) != null) {
             throw new UnsupportedSQLExpressionException(
-                                                        "Shard key["
+                                                        "Shard key '"
                                                                 + column.toString()
-                                                                + "] doesn't support '>' expression, and only '=', 'in' and 'between' are supported. source sql is ["
+                                                                + "' doesn't support '>' expression, and only '=', 'in' and 'between' are supported. source sql is ["
                                                                 + sql + "]");
         } else {
             super.visit(greaterThan);
@@ -284,9 +286,9 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
         Column column = (Column) greaterThanEquals.getLeftExpression();
         if (getTableFromContext(column) != null) {
             throw new UnsupportedSQLExpressionException(
-                                                        "Shard key["
+                                                        "Shard key '"
                                                                 + column.toString()
-                                                                + "] doesn't support '>=' expression, and only '=', 'in' and 'between' are supported. source sql is ["
+                                                                + "' doesn't support '>=' expression, and only '=', 'in' and 'between' are supported. source sql is ["
                                                                 + sql + "]");
         } else {
             super.visit(greaterThanEquals);
@@ -298,9 +300,9 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
         Column column = (Column) minorThan.getLeftExpression();
         if (getTableFromContext(column) != null) {
             throw new UnsupportedSQLExpressionException(
-                                                        "Shard key["
+                                                        "Shard key '"
                                                                 + column.toString()
-                                                                + "] doesn't support '<' expression, and only '=', 'in' and 'between' are supported. source sql is ["
+                                                                + "' doesn't support '<' expression, and only '=', 'in' and 'between' are supported. source sql is ["
                                                                 + sql + "]");
         } else {
             super.visit(minorThan);
@@ -312,9 +314,9 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
         Column column = (Column) minorThanEquals.getLeftExpression();
         if (getTableFromContext(column) != null) {
             throw new UnsupportedSQLExpressionException(
-                                                        "Shard key["
+                                                        "Shard key '"
                                                                 + column.toString()
-                                                                + "] doesn't support '<=' expression, and only '=', 'in' and 'between' are supported. source sql is ["
+                                                                + "' doesn't support '<=' expression, and only '=', 'in' and 'between' are supported. source sql is ["
                                                                 + sql + "]");
         } else {
             super.visit(minorThanEquals);
@@ -326,9 +328,9 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
         Column column = (Column) notEqualsTo.getLeftExpression();
         if (getTableFromContext(column) != null) {
             throw new UnsupportedSQLExpressionException(
-                                                        "Shard key["
+                                                        "Shard key '"
                                                                 + column.toString()
-                                                                + "] doesn't support '<>' expression, and only '=', 'in' and 'between' are supported. source sql is ["
+                                                                + "' doesn't support '<>' expression, and only '=', 'in' and 'between' are supported. source sql is ["
                                                                 + sql + "]");
         } else {
             super.visit(notEqualsTo);
@@ -340,9 +342,9 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
         Column column = (Column) likeExpression.getLeftExpression();
         if (getTableFromContext(column) != null) {
             throw new UnsupportedSQLExpressionException(
-                                                        "Shard key["
+                                                        "Shard key '"
                                                                 + column.toString()
-                                                                + "] doesn't support 'like' expression, and only '=', 'in' and 'between' are supported. source sql is ["
+                                                                + "' doesn't support 'like' expression, and only '=', 'in' and 'between' are supported. source sql is ["
                                                                 + sql + "]");
         } else {
             super.visit(likeExpression);
@@ -447,8 +449,8 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
         } else if (obj instanceof TimestampValue) {
             return ((TimestampValue) obj).getValue();
         } else {
-            throw new UnsupportedColumnTypeException("Type '" + obj.getClass() + "' is not supported for shard key["
-                                                     + column.toString() + "], source sql is [" + sql + "]");
+            throw new UnsupportedColumnTypeException("Type '" + obj.getClass() + "' is not supported for shard key '"
+                                                     + column.toString() + "', source sql is [" + sql + "]");
         }
     }
 
@@ -525,8 +527,8 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
             return;
         }
         if (tableWrapper == AMBIGUOUS_TABLE) {
-            throw new RuntimeException("shard key[" + column.toString()
-                                       + "] in where clause is ambiguous. source sql is [" + sql + "]");
+            throw new RuntimeException("Shard key '" + column.toString()
+                                       + "' in where clause is ambiguous. source sql is [" + sql + "]");
         }
         tableWrapper.setSdKey(DDRStringUtils.toLowerCase(column.getColumnName()));
         if (ShardRouteContext.isDisableSqlRouting() == Boolean.TRUE) {
