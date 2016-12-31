@@ -17,6 +17,7 @@ package org.hellojavaer.ddr.core.datasource.manager.rw;
 
 import org.hellojavaer.ddr.core.datasource.WeightedDataSource;
 import org.hellojavaer.ddr.core.datasource.exception.CrossingDataSourceException;
+import org.hellojavaer.ddr.core.datasource.exception.DataSourceNotFoundException;
 import org.hellojavaer.ddr.core.datasource.jdbc.DataSourceWrapper;
 import org.hellojavaer.ddr.core.datasource.manager.DataSourceParam;
 import org.hellojavaer.ddr.core.datasource.manager.rw.monitor.ReadOnlyDataSourceMonitor;
@@ -85,8 +86,8 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
 
     private static class WeightedDataSourceWrapper extends WeightedDataSource implements Cloneable {
 
-        private int                      index;
-        private DataSourceWrapper        dataSourceWrapper;
+        private int               index;
+        private DataSourceWrapper dataSourceWrapper;
 
         public WeightedDataSourceWrapper() {
         }
@@ -763,15 +764,15 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
         boolean readOnly = param.isReadOnly();
         if (readOnly) {
             if (this.readOnlyDataSourceQueryCache == null) {
-                throw new IllegalStateException("No 'readOnlyDataSource' is configured");
+                throw new DataSourceNotFoundException("No 'readOnlyDataSource' is configured");
             } else {
                 WeightedDataSourceWrapper weightedDataSourceWrapper = null;
                 for (String scName : param.getScNames()) {
                     if (weightedDataSourceWrapper == null) {
                         WeightedRandom weightedRandom = this.readOnlyDataSourceQueryCache.get(scName);
                         if (weightedRandom == null) {
-                            throw new IllegalStateException("schema:'" + scName
-                                                            + "' isn't configured in 'readOnlyDataSource' list ");
+                            throw new DataSourceNotFoundException("schema:'" + scName
+                                                                  + "' isn't configured in 'readOnlyDataSource' list ");
                         } else {
                             weightedDataSourceWrapper = (WeightedDataSourceWrapper) weightedRandom.nextValue();
                         }
@@ -799,15 +800,15 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
             }
         } else {
             if (this.writeOnlyDataSourceQueryCache == null) {
-                throw new IllegalStateException("No 'writeOnlyDataSource' is configured");
+                throw new DataSourceNotFoundException("No 'writeOnlyDataSource' is configured");
             } else {
                 DataSourceWrapper dataSourceWrapper = null;
                 for (String scName : param.getScNames()) {
                     if (dataSourceWrapper == null) {
                         dataSourceWrapper = this.writeOnlyDataSourceQueryCache.get(scName);
                         if (dataSourceWrapper == null) {
-                            throw new IllegalStateException("schema '" + scName
-                                                            + "' isn't configured in 'writeOnlyDataSource' list");
+                            throw new DataSourceNotFoundException("schema '" + scName
+                                                                  + "' isn't configured in 'writeOnlyDataSource' list");
                         }
                     } else {
                         if (!dataSourceWrapper.getSchemas().contains(scName)) {

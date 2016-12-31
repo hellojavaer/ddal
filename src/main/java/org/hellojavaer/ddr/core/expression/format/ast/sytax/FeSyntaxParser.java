@@ -15,10 +15,11 @@
  */
 package org.hellojavaer.ddr.core.expression.format.ast.sytax;
 
+import org.hellojavaer.ddr.core.expression.format.StringFormat;
 import org.hellojavaer.ddr.core.expression.format.ast.token.FeToken;
 import org.hellojavaer.ddr.core.expression.format.ast.token.FeTokenParser;
 import org.hellojavaer.ddr.core.expression.format.ast.token.FeTokenType;
-import org.hellojavaer.ddr.core.expression.format.StringFormat;
+import org.hellojavaer.ddr.core.expression.format.exception.FormatExpressionException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,8 +53,8 @@ public class FeSyntaxParser {
                 assert0(str, token, FeTokenType.RCURLY);
                 nodes.add(new FeFormater(fromToken, formats));
             } else {
-                throw new IllegalStateException("Unexpected token " + token.toString() + " at index "
-                                                + token.getStartPos() + ". Source string is " + str);
+                throw new FormatExpressionException("Unexpected token " + token.toString() + " at index "
+                                                    + token.getStartPos() + ". Source string is " + str);
             }
         }
         compoundExpression.setChildren(nodes);
@@ -81,6 +82,6 @@ public class FeSyntaxParser {
         sb.deleteCharAt(sb.length() - 1);
         sb.append(". Source string is ");
         sb.append(str);
-        throw new IllegalArgumentException(sb.toString());
+        throw new FormatExpressionException(sb.toString());
     }
 }

@@ -34,7 +34,7 @@ public class ELFunctionKitManager {
             throw new IllegalArgumentException("function name can't be empty");
         }
         if (map.containsKey(functionName)) {
-            throw new IllegalStateException("function mame '" + functionName + "' already exist");
+            throw new IllegalArgumentException("function mame '" + functionName + "' already exist");
         } else {
             map.put(functionName, method);
         }
