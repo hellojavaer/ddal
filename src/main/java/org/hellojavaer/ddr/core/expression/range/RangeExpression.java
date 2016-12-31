@@ -39,7 +39,7 @@ public class RangeExpression {
             if (index >= str.length()) {
                 if (escape) {
                     throw new RangeExpressionException(str, str.length(), (char) 0,
-                                                       "in outer statement block, only character '\\', ',' , '[' and ']' can be escaped");
+                                                       "at outer statement block, only character '\\', ',' , '[' and ']' can be escaped");
                 }
                 if (sb != null) {
                     itemVisitor.visit(sb.toString());
@@ -55,7 +55,7 @@ public class RangeExpression {
                     escape = false;
                 } else {
                     throw new RangeExpressionException(str, index, ch,
-                                                       "in outer statement block, only character '\\', ',' , '[' and ']' can be escaped");
+                                                       "at outer statement block, only character '\\', ',' , '[' and ']' can be escaped");
                 }
             } else {//
                 if (ch == ',') {// 递归终结符
@@ -135,7 +135,7 @@ public class RangeExpression {
                     sb1.append(' ');
                 } else {
                     throw new RangeExpressionException(str, index, ch1,
-                                                       "in inner statement block, only character '\\', ',' , '[', ']', '~' and 's' can be escaped");
+                                                       "at inner statement block, only character '\\', ',' , '[', ']', '~' and 's' can be escaped");
                 }
                 escape1 = false;
                 continue;
@@ -152,7 +152,7 @@ public class RangeExpression {
                 }
                 escape1 = true;
             } else if (ch1 == '[') {// key_word
-                throw new RangeExpressionException(str, index, ch1, " '[' should be escaped");
+                throw new RangeExpressionException(str, index, ch1, "character '[' should be escaped");
             } else if (ch1 == '+' || ch1 == '-') {
                 if (status_temp == 0) {
                     status_temp = 7;

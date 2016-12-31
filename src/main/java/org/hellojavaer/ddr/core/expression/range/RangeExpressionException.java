@@ -22,8 +22,8 @@ package org.hellojavaer.ddr.core.expression.range;
 public class RangeExpressionException extends RuntimeException {
 
     public RangeExpressionException(String string, int index, char currentChar, String expectedChars) {
-        super("string '" + string + "' at index:" + index + " is '" + ((currentChar == 0) ? "\\EOF" : currentChar)
-              + "', " + expectedChars + "");
+        super("Unexpected character '" + (currentChar == 0 ? "null" : currentChar) + "' at index " + index
+              + ". Source string is " + string + ".Detail message is :" + expectedChars);
     }
 
     public RangeExpressionException(String string, int index, char currentChar, char... expectedChars) {
@@ -32,28 +32,29 @@ public class RangeExpressionException extends RuntimeException {
 
     private static String build(String string, int index, char currentChar, char... expectedChars) {
         StringBuilder sb = new StringBuilder();
-        sb.append("string '");
-        sb.append(string);
-        sb.append("' at index:");
-        sb.append(index);
-        sb.append(" is '");
+        sb.append("Unexpected character '");
         if (currentChar == 0) {
-            sb.append("\\EOF");
+            sb.append("null");
         } else {
             sb.append(currentChar);
         }
-        sb.append("', expect '");
+        sb.append("' at index ");
+        sb.append(index);
+        sb.append(", expect ");
         if (expectedChars == null) {
             sb.append("null");
         } else {
+            sb.append("'");
             int i = 0;
             for (; i < expectedChars.length - 1; i++) {
                 sb.append(expectedChars[i]);
                 sb.append(',');
             }
             sb.append(expectedChars[i]);
+            sb.append("'");
         }
-        sb.append("'");
+        sb.append(". Source string is ");
+        sb.append(string);
         return sb.toString();
     }
 }

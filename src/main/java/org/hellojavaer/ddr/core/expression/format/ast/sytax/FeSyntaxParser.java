@@ -39,27 +39,28 @@ public class FeSyntaxParser {
             } else if (token.getType() == FeTokenType.LCURLY) {
                 token = tokenParser.next();
                 FeToken fromToken = token;
-                assert0(token, FeTokenType.NUMBER, FeTokenType.STRING, FeTokenType.VAR);
+                assert0(str, token, FeTokenType.NUMBER, FeTokenType.STRING, FeTokenType.VAR);
                 List<StringFormat> formats = new ArrayList<StringFormat>();
                 token = tokenParser.next();
                 while (token != null && token.getType() != FeTokenType.RCURLY) {
-                    assert0(token, FeTokenType.COLON);
+                    assert0(str, token, FeTokenType.COLON);
                     token = tokenParser.next();
-                    assert0(token, FeTokenType.STRING);
+                    assert0(str, token, FeTokenType.STRING);
                     formats.add(new StringFormat((String) token.getData()));
                     token = tokenParser.next();
                 }
-                assert0(token, FeTokenType.RCURLY);
+                assert0(str, token, FeTokenType.RCURLY);
                 nodes.add(new FeFormater(fromToken, formats));
             } else {
-                throw new IllegalStateException("Unexpected token " + token.toString());
+                throw new IllegalStateException("Unexpected token " + token.toString() + " at index "
+                                                + token.getStartPos() + ". Source string is " + str);
             }
         }
         compoundExpression.setChildren(nodes);
         return compoundExpression;
     }
 
-    private static void assert0(FeToken curToken, FeTokenType... expTypes) {
+    private static void assert0(String str, FeToken curToken, FeTokenType... expTypes) {
         if (curToken != null) {
             for (FeTokenType type : expTypes) {
                 if (curToken.getType() == type) {
@@ -68,19 +69,18 @@ public class FeSyntaxParser {
             }
         }
         StringBuilder sb = new StringBuilder();
-        sb.append("expect type:[");
+        sb.append("Unexpected token type ");
+        sb.append(curToken.getType());
+        sb.append(" at index ");
+        sb.append(curToken.getStartPos());
+        sb.append(", expect ");
         for (FeTokenType type : expTypes) {
             sb.append(type.toString());
             sb.append(",");
         }
         sb.deleteCharAt(sb.length() - 1);
-        sb.append("] ,but current token ");
-        if (curToken == null) {
-            sb.append("null.");
-        } else {
-            sb.append("type is ");
-            sb.append(curToken.getType().toString());
-        }
+        sb.append(". Source string is ");
+        sb.append(str);
         throw new IllegalArgumentException(sb.toString());
     }
 }
