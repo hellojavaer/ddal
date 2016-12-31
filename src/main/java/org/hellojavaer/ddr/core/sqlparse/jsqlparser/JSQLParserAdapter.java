@@ -17,7 +17,6 @@ package org.hellojavaer.ddr.core.sqlparse.jsqlparser;
 
 import net.sf.jsqlparser.expression.*;
 import net.sf.jsqlparser.expression.operators.relational.*;
-import net.sf.jsqlparser.parser.CCJSqlParser;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.Statement;
@@ -25,7 +24,6 @@ import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.update.Update;
-import net.sf.jsqlparser.util.JSQLBaseVisitor;
 import org.hellojavaer.ddr.core.datasource.exception.CrossingPreparedStatementException;
 import org.hellojavaer.ddr.core.datasource.jdbc.SQLParsedResult;
 import org.hellojavaer.ddr.core.shard.*;
@@ -33,10 +31,11 @@ import org.hellojavaer.ddr.core.sqlparse.exception.*;
 import org.hellojavaer.ddr.core.utils.DDRJSONUtils;
 import org.hellojavaer.ddr.core.utils.DDRStringUtils;
 import org.hellojavaer.ddr.core.utils.DDRToStringBuilder;
+import org.hellojavaer.ddr.jsqlparser.utils.JSQLBaseVisitor;
+import org.hellojavaer.ddr.jsqlparser.utils.ZZJSqlParserUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.StringReader;
 import java.util.*;
 
 /**
@@ -58,9 +57,8 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
         this.sql = sql;
         this.jdbcParam = jdbcParam;
         this.shardRouter = shardRouter;
-        CCJSqlParser parser = new CCJSqlParser(new StringReader(sql));
         try {
-            this.statement = parser.Statement();
+            this.statement = ZZJSqlParserUtil.parse(sql);
         } catch (Exception e) {
             throw new DDRSQLParseException(e);
         }
