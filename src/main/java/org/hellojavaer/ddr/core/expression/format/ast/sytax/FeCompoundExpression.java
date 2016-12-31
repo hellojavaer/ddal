@@ -40,6 +40,8 @@ public class FeCompoundExpression extends FeNodeImpl {
                 String val = node.getValue(context);
                 if (val != null) {
                     sb.append(val);
+                } else {
+                    sb.append("null");
                 }
             }
             return sb.toString();

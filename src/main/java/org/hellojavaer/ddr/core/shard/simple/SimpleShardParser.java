@@ -19,7 +19,7 @@ import org.hellojavaer.ddr.core.datasource.jdbc.SQLParsedResult;
 import org.hellojavaer.ddr.core.shard.ShardParser;
 import org.hellojavaer.ddr.core.shard.ShardRouter;
 import org.hellojavaer.ddr.core.sqlparse.SqlParser;
-import org.hellojavaer.ddr.core.sqlparse.jsql.JSqlParser;
+import org.hellojavaer.ddr.core.sqlparse.jsqlparser.JSqlParser;
 
 import java.util.Map;
 

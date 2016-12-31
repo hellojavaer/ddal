@@ -200,12 +200,12 @@ public abstract class DDRPreparedStatementImpl extends DDRStatementImpl implemen
             }
             // 2. check if crossing datasource
             if (isCrossDataSource(parsedResult.getSchemas())) {
-                throw new CrossingDataSourceException("Sql schemas are "
+                throw new CrossingDataSourceException("Current sql is using schemas:"
                                                       + DDRJSONUtils.toJSONString(parsedResult.getSchemas())
-                                                      + ",current datasource binding schemas are "
+                                                      + ", but current datasource is bound on schemas:"
                                                       + DDRJSONUtils.toJSONString(schemas)
-                                                      + " and source original sql is '" + sql
-                                                      + "',  jdbc parameter is "
+                                                      + ". Detail information: original sql is [" + sql
+                                                      + "] and jdbc parameter is "
                                                       + DDRJSONUtils.toJSONString(jdbcParameter));
             }
             // 3. init preparedStatement if not

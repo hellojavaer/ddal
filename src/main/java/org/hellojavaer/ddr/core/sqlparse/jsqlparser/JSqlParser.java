@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddr.core.sqlparse.jsql;
+package org.hellojavaer.ddr.core.sqlparse.jsqlparser;
 
 import org.hellojavaer.ddr.core.datasource.jdbc.SQLParsedResult;
 import org.hellojavaer.ddr.core.shard.ShardRouter;

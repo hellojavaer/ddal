@@ -38,7 +38,7 @@ public class FeFormater extends FeNodeImpl {
 
     @Override
     public String getValue(FormatExpressionContext context) {
-        String from = null;
+        String from = "null";
         if (token.getType() == FeTokenType.VAR) {
             Object obj = context.getVariable((String) token.getData());
             if (obj != null) {
@@ -50,9 +50,6 @@ public class FeFormater extends FeNodeImpl {
                 from = data.toString();
             }
         }
-        if (from == null) {
-            return "";
-        }
         if (formats == null || formats.size() == 0) {
             return from;
         } else {
@@ -62,7 +59,7 @@ public class FeFormater extends FeNodeImpl {
             if (from != null) {
                 return from;
             } else {
-                return "";
+                return "null";
             }
         }
     }

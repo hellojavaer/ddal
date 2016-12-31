@@ -62,6 +62,50 @@ public class ShardRouteContext {
     }
 
     /**
+     * 
+     * @param key
+     * @param val
+     */
+    public static void setVar(String key, Object val) {
+        if (val == null) {
+            val = NULL_OBJECT;
+        }
+        getCurContext().getVarContext().put(key, val);
+    }
+
+    public static Object getVar(String key) {
+        for (SubContext context : STACK.get()) {
+            Map<String, Object> varContext = context.getVarContext();
+            Object val = varContext.get(key);
+            if (val == null) {
+                continue;
+            } else if (val == NULL_OBJECT) {
+                return null;
+            } else {
+                return val;
+            }
+        }
+        return null;
+    }
+
+    public static boolean containsVar(String key) {
+        for (SubContext context : STACK.get()) {
+            Map<String, Object> varContext = context.getVarContext();
+            Object val = varContext.get(key);
+            if (val == null) {
+                continue;
+            } else {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static Object removeVar(String key) {
+        return getCurContext().getVarContext().remove(key);
+    }
+
+    /**
      * 设置路由信息
      * 相同路由,采用覆盖原则
      * 该路由信息在以下情况会被使用
@@ -80,7 +124,7 @@ public class ShardRouteContext {
         if (value == null) {
             value = NULL_OBJECT;
         }
-        Map<String, Map<String, Object>> map = getCurContext().getRouteMap();
+        Map<String, Map<String, Object>> map = getCurContext().getRouteContext();
         /**
          * 添加两条查询索引 
          * schema_name.table_name <-> routeInfo
@@ -122,7 +166,7 @@ public class ShardRouteContext {
         if (tbName == null) {
             throw new IllegalArgumentException("'tbName' can't be null");
         }
-        Map<String, Map<String, Object>> map = getCurContext().getRouteMap();
+        Map<String, Map<String, Object>> map = getCurContext().getRouteContext();
         // level 1
         map.remove(buildQueryKey(scName, tbName));
         // level 2
@@ -139,14 +183,14 @@ public class ShardRouteContext {
             throw new IllegalArgumentException("'tbName' can't be null");
         }
         for (SubContext context : STACK.get()) {
-            Map<String, Map<String, Object>> map = context.getRouteMap();
+            Map<String, Map<String, Object>> map = context.getRouteContext();
             String key = buildQueryKey(scName, tbName);
             Map<String, Object> routeInfoMap = map.get(key);
             if (routeInfoMap == null || routeInfoMap.isEmpty()) {
                 continue;
             } else if (routeInfoMap.size() > 1) {
-                throw new AmbiguousDataSourceBindingException("Datasource binding for scName:" + scName + ", tbName:" + tbName
-                                                              + " is ambiguous");
+                throw new AmbiguousDataSourceBindingException("Datasource binding for scName:" + scName + ", tbName:"
+                                                              + tbName + " is ambiguous");
             } else {
                 Object object = routeInfoMap.values().iterator().next();
                 if (object == NULL_OBJECT) {
@@ -157,6 +201,25 @@ public class ShardRouteContext {
             }
         }
         return null;
+    }
+
+    public static boolean containsRouteInfo(String scName, String tbName) {
+        scName = DDRStringUtils.toLowerCase(scName);
+        tbName = DDRStringUtils.toLowerCase(tbName);
+        if (tbName == null) {
+            throw new IllegalArgumentException("'tbName' can't be null");
+        }
+        for (SubContext context : STACK.get()) {
+            Map<String, Map<String, Object>> map = context.getRouteContext();
+            String key = buildQueryKey(scName, tbName);
+            Map<String, Object> routeInfoMap = map.get(key);
+            if (routeInfoMap == null || routeInfoMap.isEmpty()) {
+                continue;
+            } else {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static String buildQueryKey(String scName, String tbName) {
@@ -210,7 +273,8 @@ public class ShardRouteContext {
     private static class SubContext {
 
         private Boolean                          disableSqlRouting;
-        private Map<String, Map<String, Object>> routeMap = new HashMap<String, Map<String, Object>>();
+        private Map<String, Object>              varContext   = new HashMap<>();
+        private Map<String, Map<String, Object>> routeContext = new HashMap<String, Map<String, Object>>();
 
         public Boolean getDisableSqlRouting() {
             return disableSqlRouting;
@@ -220,12 +284,20 @@ public class ShardRouteContext {
             this.disableSqlRouting = disableSqlRouting;
         }
 
-        public Map<String, Map<String, Object>> getRouteMap() {
-            return routeMap;
+        public Map<String, Map<String, Object>> getRouteContext() {
+            return routeContext;
         }
 
-        public void setRouteMap(Map<String, Map<String, Object>> routeMap) {
-            this.routeMap = routeMap;
+        public void setRouteContext(Map<String, Map<String, Object>> routeContext) {
+            this.routeContext = routeContext;
+        }
+
+        public Map<String, Object> getVarContext() {
+            return varContext;
+        }
+
+        public void setVarContext(Map<String, Object> varContext) {
+            this.varContext = varContext;
         }
     }
 

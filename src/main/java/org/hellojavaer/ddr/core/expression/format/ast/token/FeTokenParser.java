@@ -75,7 +75,7 @@ public class FeTokenParser {
                 if (index >= str.length()) {
                     if (escape) {
                         throw new FormatExpressionException("illegal escape character '\\' at index " + (index - 1)
-                                                            + ". Source string is " + str);
+                                                            + ". Source string is '" + str + "'");
                     }
                     break;
                 }
@@ -85,7 +85,7 @@ public class FeTokenParser {
                         sb.append(ch);
                     } else {
                         throw new FormatExpressionException("Character '" + ch + "' can't be escaped at index " + index
-                                                            + ". Source string is " + str);
+                                                            + ". Source string is '" + str + "'");
                     }
                     escape = false;
                 } else {
@@ -99,7 +99,7 @@ public class FeTokenParser {
                         break;
                     } else if (ch == '}') {
                         throw new FormatExpressionException("Unexpected character '}' at index " + index
-                                                            + ". Source string is " + str);
+                                                            + ". Source string is '" + str + "'");
                     } else {
                         if (sb != null) {
                             sb.append(ch);
@@ -118,8 +118,8 @@ public class FeTokenParser {
             for (; str.charAt(index) == ' '; index++) {// eat space
                 if (index >= str.length()) {
                     throw new FormatExpressionException(
-                                                        "Not closed expression, expect character '}' at the end of string "
-                                                                + str + '\'');
+                                                        "Not closed expression, expect character '}' at the end of string '"
+                                                                + str + "'");
                 }
             }
             s = index;// s:开始标记
@@ -148,7 +148,7 @@ public class FeTokenParser {
                         } else {
                             throw new FormatExpressionException("Character character '" + c0
                                                                 + "' can't be escaped at index " + index
-                                                                + ". Source string is " + str);
+                                                                + ". Source string is '" + str + "'");
                         }
                         escape = false;
                     } else {
@@ -185,8 +185,8 @@ public class FeTokenParser {
                 index++;
                 return t;
             } else {
-                throw new FormatExpressionException("Unexpected character '" + ch + "' at index" + index
-                                                    + ". Source string is " + str);
+                throw new FormatExpressionException("Unexpected character '" + ch + "' at index " + index
+                                                    + ". Source string is '" + str + "'");
             }
         }
     }
