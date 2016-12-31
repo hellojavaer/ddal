@@ -139,9 +139,9 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.github.jsqlparser</groupId>
-            <artifactId>jsqlparser</artifactId>
-            <version>0.9.7-SNAPSHOT</version>
+            <groupId>org.hellojavaer.ddr</groupId>
+            <artifactId>ddr-jsqlparser</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -158,6 +158,11 @@
             <artifactId>junit</artifactId>
             <version>4.12</version>
             <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+            <version>1.2.21</version>
         </dependency>
     </dependencies>
 </project>
