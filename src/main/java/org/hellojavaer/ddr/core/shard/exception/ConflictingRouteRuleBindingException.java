@@ -19,25 +19,25 @@ package org.hellojavaer.ddr.core.shard.exception;
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 23/12/2016.
  */
-public class ConflictingDataSourceBindingException extends DDRShardException {
+public class ConflictingRouteRuleBindingException extends DDRShardException {
 
-    public ConflictingDataSourceBindingException() {
+    public ConflictingRouteRuleBindingException() {
     }
 
-    public ConflictingDataSourceBindingException(String message) {
+    public ConflictingRouteRuleBindingException(String message) {
         super(message);
     }
 
-    public ConflictingDataSourceBindingException(String message, Throwable cause) {
+    public ConflictingRouteRuleBindingException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public ConflictingDataSourceBindingException(Throwable cause) {
+    public ConflictingRouteRuleBindingException(Throwable cause) {
         super(cause);
     }
 
-    public ConflictingDataSourceBindingException(String message, Throwable cause, boolean enableSuppression,
-                                                 boolean writableStackTrace) {
+    public ConflictingRouteRuleBindingException(String message, Throwable cause, boolean enableSuppression,
+                                                boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 }

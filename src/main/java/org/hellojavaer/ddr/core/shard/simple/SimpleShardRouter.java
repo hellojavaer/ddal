@@ -18,9 +18,9 @@ package org.hellojavaer.ddr.core.shard.simple;
 import org.hellojavaer.ddr.core.expression.range.RangeExpression;
 import org.hellojavaer.ddr.core.expression.range.RangeItemVisitor;
 import org.hellojavaer.ddr.core.shard.*;
-import org.hellojavaer.ddr.core.shard.exception.AmbiguousDataSourceBindingException;
-import org.hellojavaer.ddr.core.shard.exception.ConflictingDataSourceBindingException;
-import org.hellojavaer.ddr.core.shard.exception.NoDataSourceBindingException;
+import org.hellojavaer.ddr.core.shard.exception.AmbiguousRouteRuleBindingException;
+import org.hellojavaer.ddr.core.shard.exception.ConflictingRouteRuleBindingException;
+import org.hellojavaer.ddr.core.shard.exception.NoRouteRuleBindingException;
 import org.hellojavaer.ddr.core.utils.DDRStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -139,10 +139,10 @@ public class SimpleShardRouter implements ShardRouter {
                             SimpleShardRouteRuleBinding ruleBinding, boolean checkConflict) {
         InnerSimpleShardRouteRuleBindingWrapper ruleBindingWrapper = cache.get(key);
         if (checkConflict && ruleBindingWrapper != null) {
-            throw new ConflictingDataSourceBindingException("Conflict route binding for scName:"
-                                                            + ruleBinding.getScName() + ", tbName:"
-                                                            + ruleBinding.getTbName() + ", sdKey:"
-                                                            + ruleBinding.getSdKey());
+            throw new ConflictingRouteRuleBindingException("Conflicting route rule binding for scName:"
+                                                           + ruleBinding.getScName() + ", tbName:"
+                                                           + ruleBinding.getTbName() + ", sdKey:"
+                                                           + ruleBinding.getSdKey());
         }
         if (ruleBindingWrapper == null) {
             ruleBindingWrapper = new InnerSimpleShardRouteRuleBindingWrapper();
@@ -166,8 +166,8 @@ public class SimpleShardRouter implements ShardRouter {
         if (ruleBindingWrapper == null) {
             return null;
         } else if (ruleBindingWrapper.getConflictSchemas().size() > 1) {
-            throw new AmbiguousDataSourceBindingException("[getBinding] Binding for 'scName':" + scName + ", 'tbName':"
-                                                          + tbName + " is ambiguous");
+            throw new AmbiguousRouteRuleBindingException("route rule binding for 'scName':" + scName + ", 'tbName':"
+                                                         + tbName + " is ambiguous");
         } else {
             return ruleBindingWrapper;
         }
@@ -179,8 +179,8 @@ public class SimpleShardRouter implements ShardRouter {
         tbName = DDRStringUtils.toLowerCase(tbName);
         InnerSimpleShardRouteRuleBindingWrapper bindingWrapper = getBinding(scName, tbName);
         if (bindingWrapper == null) {
-            throw new NoDataSourceBindingException("No route rule binding for 'scName':" + scName + " and 'tbName':"
-                                                   + tbName);
+            throw new NoRouteRuleBindingException("No route rule binding for 'scName':" + scName + " and 'tbName':"
+                                                  + tbName);
         } else {
             return bindingWrapper.getRouteInfo();
         }
@@ -193,8 +193,8 @@ public class SimpleShardRouter implements ShardRouter {
         InnerSimpleShardRouteRuleBindingWrapper bindingWrapper = getBinding(scName, tbName);
         SimpleShardRouteRuleBinding binding = bindingWrapper.getRuleBinding();
         if (binding == null) {
-            throw new NoDataSourceBindingException("No route rule binding for 'scName':" + scName + " 'tbName':"
-                                                   + tbName);
+            throw new NoRouteRuleBindingException("No route rule binding for 'scName':" + scName + " 'tbName':"
+                                                  + tbName);
         } else {// 必须使用 binding 中的 scName,因为sql中的scName可能为空
             RouteInfo info = getRouteInfo(binding.getRule(), binding.getScName(), binding.getTbName(), sdValue);
             return info;

@@ -19,25 +19,25 @@ package org.hellojavaer.ddr.core.shard.exception;
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 23/12/2016.
  */
-public class NoDataSourceBindingException extends DDRShardException {
+public class AmbiguousRouteRuleBindingException extends DDRShardException {
 
-    public NoDataSourceBindingException() {
+    public AmbiguousRouteRuleBindingException() {
     }
 
-    public NoDataSourceBindingException(String message) {
+    public AmbiguousRouteRuleBindingException(String message) {
         super(message);
     }
 
-    public NoDataSourceBindingException(String message, Throwable cause) {
+    public AmbiguousRouteRuleBindingException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public NoDataSourceBindingException(Throwable cause) {
+    public AmbiguousRouteRuleBindingException(Throwable cause) {
         super(cause);
     }
 
-    public NoDataSourceBindingException(String message, Throwable cause, boolean enableSuppression,
-                                        boolean writableStackTrace) {
+    public AmbiguousRouteRuleBindingException(String message, Throwable cause, boolean enableSuppression,
+                                              boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 }
