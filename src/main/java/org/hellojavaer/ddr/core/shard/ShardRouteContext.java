@@ -15,7 +15,7 @@
  */
 package org.hellojavaer.ddr.core.shard;
 
-import org.hellojavaer.ddr.core.datasource.exception.AmbiguousDataSourceException;
+import org.hellojavaer.ddr.core.datasource.exception.AmbiguousDataSourceBindingException;
 import org.hellojavaer.ddr.core.utils.DDRStringUtils;
 
 import java.util.*;
@@ -145,8 +145,8 @@ public class ShardRouteContext {
             if (routeInfoMap == null || routeInfoMap.isEmpty()) {
                 continue;
             } else if (routeInfoMap.size() > 1) {
-                throw new AmbiguousDataSourceException("Datasource binding for scName:" + scName + ", tbName:" + tbName
-                                                       + " is ambiguous");
+                throw new AmbiguousDataSourceBindingException("Datasource binding for scName:" + scName + ", tbName:" + tbName
+                                                              + " is ambiguous");
             } else {
                 Object object = routeInfoMap.values().iterator().next();
                 if (object == NULL_OBJECT) {
