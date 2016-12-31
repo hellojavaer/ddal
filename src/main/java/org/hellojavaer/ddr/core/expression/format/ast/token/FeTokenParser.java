@@ -17,13 +17,12 @@ package org.hellojavaer.ddr.core.expression.format.ast.token;
 
 /**
  *
- *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 17/11/2016.
  */
 public class FeTokenParser {
 
     private String             str;
-    private int                index;
+    private int                index         = 0;           // 指向下次调用的开始位置
     private int                stat          = 0;
 
     private static final int[] TAGS          = new int[256];
@@ -50,34 +49,73 @@ public class FeTokenParser {
         this.str = str;
     }
 
+    /**
+     * 
+     * @return
+     */
     public FeToken next() {
         if (index >= str.length()) {
-            return null;
+            return new FeToken(FeTokenType.NULL, null, str.length(), str.length());
         }
-        eatSpace();
-        int s = index;
-        char ch = str.charAt(index);
+        int s = index;// s:开始标记
         if (stat == 0) {// 纯文本
+            char ch = str.charAt(index);
+            // 1.判断特殊字符
             if (ch == '{') {
-                stat = 1;
-                FeToken t = new FeToken(FeTokenType.LCURLY, null, s, index);
+                stat = 1;// 改变状态
                 index++;
-                return t;
-            } else {
-                for (; index < str.length(); index++) {
-                    ch = str.charAt(index);
-                    if (ch == '{') {
+                return new FeToken(FeTokenType.LCURLY, null, s, s + 1);
+            }
+            // 2.普通字符
+            boolean escape = false;
+            StringBuilder sb = null;
+            for (;; index++) {// 终结符:NULL
+                if (index >= str.length()) {
+                    break;
+                }
+                ch = str.charAt(index);
+                if (escape) {
+                    if (ch == '\\' || ch == '{' || ch == '}') {
+                        sb.append(ch);
+                    } else {
+                        throw new IllegalArgumentException("Character '" + ch + "' can't be escaped at index " + index
+                                                           + ". source string is " + str);
+                    }
+                    escape = false;
+                } else {
+                    if (ch == '\\') {
+                        escape = true;
+                        if (sb == null) {
+                            sb = new StringBuilder();
+                            sb.append(str.substring(s, index));
+                        }
+                    } else if (ch == '{') {// 终结符:NULL
                         break;
                     } else if (ch == '}') {
-                        throw new IllegalStateException("Unexpected '}' at index " + index);
+                        throw new IllegalArgumentException("Unexpected character '}' at index " + index
+                                                           + ". source string is " + str);
                     } else {
-                        continue;
+                        if (sb != null) {
+                            sb.append(ch);
+                        }
                     }
                 }
-                return new FeToken(FeTokenType.PLAIN_TEXT, str.substring(s, index), s, index - 1);
             }
+            String data = null;
+            if (sb != null) {
+                data = sb.toString();
+            } else {
+                data = str.substring(s, index);
+            }
+            return new FeToken(FeTokenType.PLAIN_TEXT, data, s, index);
         } else {// 语句块
-            ch = str.charAt(index);
+            for (; str.charAt(index) == ' '; index++) {// eat space
+                if (index >= str.length()) {
+                    throw new IllegalArgumentException("Not closed string expression, source string is " + str);
+                }
+            }
+            s = index;// s:开始标记
+            char ch = str.charAt(index);
             if ((TAGS[ch] & 2) != 0) {// 变量
                 for (index++; index < str.length() && (TAGS[str.charAt(index)] & 4) != 0; index++) {
                 }
@@ -89,8 +127,7 @@ public class FeTokenParser {
             } else if (ch == '\'' || ch == '\"') {// 字符
                 StringBuilder sb = null;
                 boolean escape = false;
-                int startIndex = ++index;
-                for (;; index++) {
+                for (index++;; index++) {
                     if (index >= str.length()) {
                         throw new IllegalArgumentException("Not closed string expression, source string is " + str);
                     }
@@ -99,17 +136,17 @@ public class FeTokenParser {
                         if (c0 == '\\' || c0 == '\'' || c0 == '\"') {
                             sb.append(c0);
                         } else {
-                            throw new IllegalArgumentException("Can't escape character '" + c0
-                                                               + "' for string :" + str +" at index:"+index);
+                            throw new IllegalArgumentException("Can't escape character '" + c0 + "' for string '" + str
+                                                               + "' at index " + index);
                         }
                         escape = false;
                     } else {
                         if (c0 == '\\') {
                             escape = true;
                             sb = new StringBuilder();
-                            sb.append(str.substring(startIndex, index));
+                            sb.append(str.substring(s + 1, index));
                             continue;
-                        } else if (c0 == ch) {
+                        } else if (c0 == ch) {// 终结符:
                             break;
                         } else {
                             if (sb != null) {
@@ -118,32 +155,28 @@ public class FeTokenParser {
                         }
                     }
                 }
-                String temp = null;
+                String data = null;
                 if (sb != null) {
-                    temp = sb.toString();
+                    data = sb.toString();
                 } else {
-                    temp = str.substring(startIndex, index);
+                    data = str.substring(s + 1, index);
                 }
+                FeToken t = new FeToken(FeTokenType.STRING, data, s, index + 1);
                 index++;
-                return new FeToken(FeTokenType.STRING, temp, s, index - 2);
+                return t;
             } else if (ch == ':') {
-                FeToken t = new FeToken(FeTokenType.COLON, null, s, index - 1);
+                FeToken t = new FeToken(FeTokenType.COLON, null, s, s + 1);
                 index++;
                 return t;
             } else if (ch == '}') {// stat -> 0
                 stat = 0;
-                FeToken t = new FeToken(FeTokenType.RCURLY, null, s, index - 1);
+                FeToken t = new FeToken(FeTokenType.RCURLY, null, s, s + 1);
                 index++;
                 return t;
             } else {
-                throw new IllegalArgumentException("Unexpected token '" + ch + "' at index " + index + " for string '"
-                                                   + str + "'");
+                throw new IllegalArgumentException("Unexpected character '" + ch + "' at index" + index
+                                                   + ". source string is '" + str + "'");
             }
-        }
-    }
-
-    private void eatSpace() {
-        for (; index < str.length() && str.charAt(index) == ' '; index++) {
         }
     }
 

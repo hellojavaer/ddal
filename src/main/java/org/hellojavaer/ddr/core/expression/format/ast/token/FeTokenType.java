@@ -33,7 +33,9 @@ public enum FeTokenType {
 
     LCURLY("{"),
 
-    RCURLY("}");
+    RCURLY("}"),
+
+    NULL;
 
     private String desc;
 

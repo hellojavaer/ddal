@@ -33,7 +33,7 @@ public class FeSyntaxParser {
         FeCompoundExpression compoundExpression = new FeCompoundExpression();
         FeTokenParser tokenParser = new FeTokenParser(str);
         List<FeNodeImpl> nodes = new ArrayList<FeNodeImpl>();
-        for (FeToken token = tokenParser.next(); token != null; token = tokenParser.next()) {
+        for (FeToken token = tokenParser.next(); token.getType() != FeTokenType.NULL; token = tokenParser.next()) {
             if (token.getType() == FeTokenType.PLAIN_TEXT) {
                 nodes.add(new FePlainText((String) token.getData()));
             } else if (token.getType() == FeTokenType.LCURLY) {
