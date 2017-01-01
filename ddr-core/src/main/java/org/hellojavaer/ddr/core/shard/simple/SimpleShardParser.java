@@ -31,8 +31,6 @@ public class SimpleShardParser implements ShardParser {
     private ShardRouter shardRouter = null;
     private SqlParser   sqlParser   = null;
 
-    private boolean     inited      = false;
-
     public ShardRouter getShardRouter() {
         return shardRouter;
     }
@@ -51,21 +49,6 @@ public class SimpleShardParser implements ShardParser {
 
     @Override
     public SQLParsedResult parse(String sql, Map<Object, Object> jdbcParams) {
-        if (sqlParser == null && inited == false) {
-            synchronized (this) {
-                if (sql == null && inited == false) {
-                    inited = true;
-                    try {
-                        Class clazz = Class.forName("org.hellojavaer.ddr.jsqlparser.JSqlParser");
-                        if (clazz != null) {
-                            sqlParser = (SqlParser) clazz.newInstance();
-                        }
-                    } catch (Exception e) {
-                        // ignore
-                    }
-                }
-            }
-        }
         return sqlParser.parse(sql, jdbcParams, shardRouter);
     }
 }
