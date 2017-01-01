@@ -19,8 +19,21 @@ http://repo1.maven.org/maven2/org/hellojavaer/ddr/
 
 ```xml
 <dependency>
-    <groupId>org.hellojavaer</groupId>
-    <artifactId>ddr</artifactId>
+    <groupId>org.hellojavaer.ddr</groupId>
+    <artifactId>ddr-core</artifactId>
     <version>x.x.x</version>
 </dependency>
+<dependency>
+    <groupId>org.hellojavaer.ddr</groupId>
+    <artifactId>ddr-jsqlparser</artifactId>
+    <version>x.x.x</version>
+</dependency>
+
+<!-- If you want to use annotation to route in spring context,you should add this following dependency -->
+<dependency>
+    <groupId>org.hellojavaer.ddr</groupId>
+    <artifactId>ddr-spring</artifactId>
+    <version>x.x.x</version>
+</dependency>
+
 ```
