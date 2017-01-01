@@ -19,7 +19,6 @@ import org.hellojavaer.ddr.core.datasource.jdbc.SQLParsedResult;
 import org.hellojavaer.ddr.core.shard.ShardParser;
 import org.hellojavaer.ddr.core.shard.ShardRouter;
 import org.hellojavaer.ddr.core.sqlparse.SqlParser;
-import org.hellojavaer.ddr.core.sqlparse.jsqlparser.JSqlParser;
 
 import java.util.Map;
 
@@ -30,7 +29,9 @@ import java.util.Map;
 public class SimpleShardParser implements ShardParser {
 
     private ShardRouter shardRouter = null;
-    private SqlParser   sqlParser   = new JSqlParser();
+    private SqlParser   sqlParser   = null;
+
+    private boolean     inited      = false;
 
     public ShardRouter getShardRouter() {
         return shardRouter;
@@ -50,6 +51,21 @@ public class SimpleShardParser implements ShardParser {
 
     @Override
     public SQLParsedResult parse(String sql, Map<Object, Object> jdbcParams) {
+        if (sqlParser == null && inited == false) {
+            synchronized (this) {
+                if (sql == null && inited == false) {
+                    inited = true;
+                    try {
+                        Class clazz = Class.forName("org.hellojavaer.ddr.jsqlparser.JSqlParser");
+                        if (clazz != null) {
+                            sqlParser = (SqlParser) clazz.newInstance();
+                        }
+                    } catch (Exception e) {
+                        // ignore
+                    }
+                }
+            }
+        }
         return sqlParser.parse(sql, jdbcParams, shardRouter);
     }
 }
