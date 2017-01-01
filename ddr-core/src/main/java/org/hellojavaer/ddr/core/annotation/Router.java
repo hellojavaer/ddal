@@ -13,28 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddr.core.expression.format.ast.sytax;
+package org.hellojavaer.ddr.core.annotation;
 
-import org.hellojavaer.ddr.core.expression.format.FormatExpressionContext;
+import java.lang.annotation.*;
 
 /**
  *
- * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 17/11/2016.
+ * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 01/01/2017.
  */
-public class FeNumber extends FeNodeImpl {
+@Target({ ElementType.PARAMETER, ElementType.METHOD })
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+public @interface Router {
 
-    private Object data;
+    String sdKey() default "";
 
-    public FeNumber(Object data) {
-        this.data = data;
-    }
+    String value() default "";
 
-    @Override
-    public String getValue(FormatExpressionContext context) {
-        if (data == null) {
-            return "";
-        } else {
-            return data.toString();
-        }
-    }
 }
