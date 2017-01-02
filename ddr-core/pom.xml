@@ -8,6 +8,9 @@
     <artifactId>ddr-core</artifactId>
     <version>1.0.0-SNAPSHOT</version>
 
+    <name>ddr-core</name>
+    <url>https://github.com/hellojavaer/ddr</url>
+
     <properties>
         <junit.version>4.11</junit.version>
         <gpg.skip>true</gpg.skip>
