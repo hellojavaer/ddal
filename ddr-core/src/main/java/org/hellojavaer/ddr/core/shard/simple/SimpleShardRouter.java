@@ -109,8 +109,7 @@ public class SimpleShardRouter implements ShardRouter {
                 final List<RouteInfo> routeInfos = new ArrayList<RouteInfo>();
                 if (sdValues != null) {
                     if (sdValueType == null) {
-                        throw new IllegalArgumentException(
-                                                           "'sdValueType' can't be empty when 'sdValues' is set value");
+                        throw new IllegalArgumentException("'sdValueType' can't be empty when 'sdValues' is set value");
                     }
                     RangeExpression.parse(sdValues, new RangeItemVisitor() {
 
@@ -202,28 +201,22 @@ public class SimpleShardRouter implements ShardRouter {
     }
 
     private RouteInfo getRouteInfo(SimpleShardRouteRule rule, String scName, String tbName, Object sdValue) {
-        if (sdValue == null || rule == null) {
-            if (rule == null && rule == null) {
-                RouteInfo info = new RouteInfo();
-                info.setScName(scName);
-                info.setTbName(tbName);
-                return info;
-            } else {
-                return null;
-            }
+        if (rule == null) {// 如果没有rule,参数sdKey 和 sdValue都无效
+            RouteInfo info = new RouteInfo();
+            info.setScName(scName);
+            info.setTbName(tbName);
+            return info;
         } else {
             RouteInfo info = new RouteInfo();
-            Object $0 = rule.parseScRoute(scName, sdValue);
-            String sc = rule.parseScFormat(scName, $0);
-            Object $0_ = rule.parseTbRoute(tbName, sdValue);
-            String tb = rule.parseTbFormat(tbName, $0_);
-            if (tb == null) {
-                throw new IllegalArgumentException("'tbName' can't be null");
-            }
+            // throws exception
+            Object scRoute = rule.parseScRoute(scName, sdValue);
+            String sc = rule.parseScFormat(scName, scRoute);
+            // throws exception
+            Object tbRoute = rule.parseTbRoute(tbName, sdValue);
+            String tb = rule.parseTbFormat(tbName, tbRoute);
             info.setScName(sc);
             info.setTbName(tb);
             return info;
         }
     }
-
 }

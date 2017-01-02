@@ -13,21 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddr.core.annotation;
-
-import java.lang.annotation.*;
+package org.hellojavaer.ddr.core.shard.enums;
 
 /**
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 01/01/2017.
  */
-@Target({ ElementType.PARAMETER, ElementType.METHOD })
-@Retention(RetentionPolicy.RUNTIME)
-@Documented
-public @interface Router {
+public enum  ContextPropagation {
 
-    String sdKey() default "";
-
-    String value() default "";
+    NEW_CONTEXT, SUB_CONTEXT;
 
 }

@@ -13,31 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddr.core.sqlparse.exception;
+package org.hellojavaer.ddr.core.shard.exception;
 
 /**
  *
- * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 23/12/2016.
+ * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 02/01/2017.
  */
-public class RouteInfoNotFoundException extends DDRSQLParseException {
+public class ValueNotFoundException extends DDRShardException {
 
-    public RouteInfoNotFoundException() {
+    public ValueNotFoundException() {
     }
 
-    public RouteInfoNotFoundException(String message) {
+    public ValueNotFoundException(String message) {
         super(message);
     }
 
-    public RouteInfoNotFoundException(String message, Throwable cause) {
+    public ValueNotFoundException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public RouteInfoNotFoundException(Throwable cause) {
+    public ValueNotFoundException(Throwable cause) {
         super(cause);
     }
 
-    public RouteInfoNotFoundException(String message, Throwable cause, boolean enableSuppression,
-                                      boolean writableStackTrace) {
+    public ValueNotFoundException(String message, Throwable cause, boolean enableSuppression,
+                                  boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 }

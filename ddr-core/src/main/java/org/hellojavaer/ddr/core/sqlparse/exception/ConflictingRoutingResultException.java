@@ -19,25 +19,25 @@ package org.hellojavaer.ddr.core.sqlparse.exception;
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 23/12/2016.
  */
-public class ConflictingRouteException extends DDRSQLParseException {
+public class ConflictingRoutingResultException extends DDRSQLParseException {
 
-    public ConflictingRouteException() {
+    public ConflictingRoutingResultException() {
     }
 
-    public ConflictingRouteException(String message) {
+    public ConflictingRoutingResultException(String message) {
         super(message);
     }
 
-    public ConflictingRouteException(String message, Throwable cause) {
+    public ConflictingRoutingResultException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public ConflictingRouteException(Throwable cause) {
+    public ConflictingRoutingResultException(Throwable cause) {
         super(cause);
     }
 
-    public ConflictingRouteException(String message, Throwable cause, boolean enableSuppression,
-                                     boolean writableStackTrace) {
+    public ConflictingRoutingResultException(String message, Throwable cause, boolean enableSuppression,
+                                             boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 }

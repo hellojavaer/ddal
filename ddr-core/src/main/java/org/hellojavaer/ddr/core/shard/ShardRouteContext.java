@@ -66,14 +66,14 @@ public class ShardRouteContext {
      * @param key
      * @param val
      */
-    public static void setVar(String key, Object val) {
+    public static void setParameter(String key, Object val) {
         if (val == null) {
             val = NULL_OBJECT;
         }
         getCurContext().getVarContext().put(key, val);
     }
 
-    public static Object getVar(String key) {
+    public static Object getParameter(String key) {
         for (SubContext context : STACK.get()) {
             Map<String, Object> varContext = context.getVarContext();
             Object val = varContext.get(key);
@@ -88,7 +88,7 @@ public class ShardRouteContext {
         return null;
     }
 
-    public static boolean containsVar(String key) {
+    public static boolean containsParameter(String key) {
         for (SubContext context : STACK.get()) {
             Map<String, Object> varContext = context.getVarContext();
             Object val = varContext.get(key);
@@ -101,7 +101,7 @@ public class ShardRouteContext {
         return false;
     }
 
-    public static Object removeVar(String key) {
+    public static Object removeParameter(String key) {
         return getCurContext().getVarContext().remove(key);
     }
 

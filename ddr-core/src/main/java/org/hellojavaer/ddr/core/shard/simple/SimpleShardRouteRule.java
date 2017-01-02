@@ -21,6 +21,7 @@ import org.hellojavaer.ddr.core.expression.format.FormatExpressionContext;
 import org.hellojavaer.ddr.core.expression.format.simple.SimpleFormatExpressionContext;
 import org.hellojavaer.ddr.core.expression.format.simple.SimpleFormatExpressionParser;
 import org.hellojavaer.ddr.core.shard.ShardRouteContext;
+import org.hellojavaer.ddr.core.shard.exception.ValueNotFoundException;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
@@ -30,7 +31,9 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 
 import java.io.Serializable;
 import java.lang.reflect.Method;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  *
@@ -113,77 +116,127 @@ public class SimpleShardRouteRule implements Serializable {
     }
 
     public Object parseScRoute(String scName, Object sdValue) {
-        if (scName == null) {
+        if (scRouteExpression == null) {
             return null;
         } else {
-            if (scRouteExpression == null) {
-                return "";
-            } else {
-                EvaluationContext context = buildEvaluationContext();
-                context.setVariable("scName", scName);
-                context.setVariable("sdValue", sdValue);
-                String $0 = scRouteExpression.getValue(context, String.class);
-                return $0;
-            }
+            EvaluationContext context = buildEvaluationContext(scRoute);
+            context.setVariable("scName", scName);
+            context.setVariable("sdValue", sdValue);
+            String $0 = scRouteExpression.getValue(context, String.class);
+            return $0;
         }
     }
 
-    public String parseScFormat(String scName, Object $0) {
-        if ($0 == null) {
-            return null;
-        } else {
-            if (scFormatExpression == null) {
-                return $0.toString();
+    public String parseScFormat(String scName, Object scRoute) {
+        if (scFormatExpression == null) {
+            if (scRoute == null) {
+                return null;
             } else {
-                FormatExpressionContext context = new SimpleFormatExpressionContext();
-                context.setVariable("scRoute", $0);
-                context.setVariable("scName", scName);
-                return scFormatExpression.getValue(context);
+                return scRoute.toString();
             }
+        } else {
+            FormatExpressionContext context = new SimpleFormatExpressionContext();
+            context.setVariable("scRoute", scRoute);
+            context.setVariable("scName", scName);
+            return scFormatExpression.getValue(context);
         }
     }
 
     public Object parseTbRoute(String tbName, Object sdValue) {
-        if (tbName == null) {
+        if (tbRouteExpression == null) {
             return null;
         } else {
-            if (tbRouteExpression == null) {
-                return tbName;
-            } else {
-                EvaluationContext context = buildEvaluationContext();
-                context.setVariable("tbName", tbName);
-                context.setVariable("sdValue", sdValue);
-                String $0 = tbRouteExpression.getValue(context, String.class);
-                return $0;
-            }
+            EvaluationContext context = buildEvaluationContext(tbRoute);
+            context.setVariable("tbName", tbName);
+            context.setVariable("sdValue", sdValue);
+            String $0 = tbRouteExpression.getValue(context, String.class);
+            return $0;
         }
     }
 
-    public String parseTbFormat(String tbName, Object $0) {
-        if ($0 == null) {
-            return null;
-        } else {
-            if (tbFormatExpression == null) {
-                return $0.toString();
+    public String parseTbFormat(String tbName, Object tbRoute) {
+        if (tbFormatExpression == null) {
+            if (tbRoute == null) {
+                return null;
             } else {
-                FormatExpressionContext context = new SimpleFormatExpressionContext();
-                context.setVariable("tbRoute", $0);
-                context.setVariable("tbName", tbName);
-                return tbFormatExpression.getValue(context);
+                return tbRoute.toString();
             }
+        } else {
+            FormatExpressionContext context = new SimpleFormatExpressionContext();
+            context.setVariable("tbRoute", tbRoute);
+            context.setVariable("tbName", tbName);
+            return tbFormatExpression.getValue(context);
         }
     }
 
-    private static EvaluationContext buildEvaluationContext() {
+    private static final Set<String> RESERVED_WORDS = new HashSet<String>();
+    static {
+        RESERVED_WORDS.add("db");
+        RESERVED_WORDS.add("dbName");
+        RESERVED_WORDS.add("dbValue");
+        RESERVED_WORDS.add("dbRoute");
+        RESERVED_WORDS.add("dbFormat");
+
+        RESERVED_WORDS.add("sc");
+        RESERVED_WORDS.add("scName");
+        RESERVED_WORDS.add("scValue");
+        RESERVED_WORDS.add("scRoute");
+        RESERVED_WORDS.add("scFormat");
+
+        RESERVED_WORDS.add("tb");
+        RESERVED_WORDS.add("tbName");
+        RESERVED_WORDS.add("tbValue");
+        RESERVED_WORDS.add("tbRoute");
+        RESERVED_WORDS.add("tbFormat");
+
+        RESERVED_WORDS.add("sd");
+        RESERVED_WORDS.add("sdName");
+        RESERVED_WORDS.add("sdKey");
+        RESERVED_WORDS.add("sdValue");
+        RESERVED_WORDS.add("sbRoute");
+        RESERVED_WORDS.add("sbFormat");
+
+        RESERVED_WORDS.add("col");
+        RESERVED_WORDS.add("colName");
+        RESERVED_WORDS.add("colValue");
+        RESERVED_WORDS.add("colRoute");
+        RESERVED_WORDS.add("colFormat");
+    }
+
+    private static boolean isReservedWords(String str) {
+        if (str == null) {
+            return false;
+        } else {
+            return RESERVED_WORDS.contains(str);
+        }
+    }
+
+    private static EvaluationContext buildEvaluationContext(final String expression) {
         StandardEvaluationContext context = new StandardEvaluationContext() {
 
             @Override
             public Object lookupVariable(String name) {
-                Object obj = super.lookupVariable(name);
-                if (obj == null) {
-                    obj = ShardRouteContext.getVar(name);
+                Object val = null;
+                if (isReservedWords(name)) {
+                    val = super.lookupVariable(name);
+                    if (val == null) {
+                        throw new ValueNotFoundException(
+                                                         "Target value was not found for key '"
+                                                                 + name
+                                                                 + "' in system context when parsing route expression. Expression is '"
+                                                                 + expression + "'");
+                    }
+                } else {
+                    val = ShardRouteContext.getParameter(name);
+                    if (val == null) {
+                        throw new ValueNotFoundException(
+                                                         "Target value was not found for key '"
+                                                                 + name
+                                                                 + "' in user parameter context when parsing routing expression. Expression is '"
+                                                                 + expression + "'");
+                    }
                 }
-                return obj;
+                return val;
             }
         };
         for (Map.Entry<String, Method> entry : ELFunctionKitManager.getRegisteredFunctions()) {
