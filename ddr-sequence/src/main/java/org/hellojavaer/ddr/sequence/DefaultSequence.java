@@ -56,7 +56,7 @@ public class DefaultSequence implements Sequence {
     }
 
     @Override
-    public long next() {
+    public long nextValue() {
         init();
         try {
             return idCache.peek(timeout);

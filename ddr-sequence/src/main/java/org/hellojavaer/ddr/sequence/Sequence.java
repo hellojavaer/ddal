@@ -21,6 +21,6 @@ package org.hellojavaer.ddr.sequence;
  */
 public interface Sequence {
 
-    long next();
+    long nextValue();
 
 }
