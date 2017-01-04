@@ -15,7 +15,7 @@
 
     <modules>
         <module>ddr-core</module>
-        <module>ddr-spring</module>
+        <module>ddr-spring-context</module>
     </modules>
 
 
