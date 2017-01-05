@@ -32,7 +32,7 @@ http://repo1.maven.org/maven2/org/hellojavaer/ddal/
 <!-- If you want to use annotation to route in spring context,you should add this following dependency -->
 <dependency>
     <groupId>org.hellojavaer.ddal</groupId>
-    <artifactId>ddal-spring</artifactId>
+    <artifactId>ddal-spring-context</artifactId>
     <version>x.x.x</version>
 </dependency>
 
