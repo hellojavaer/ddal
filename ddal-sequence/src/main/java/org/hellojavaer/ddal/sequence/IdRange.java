@@ -51,4 +51,9 @@ public class IdRange implements Serializable {
     public void setEnd(long end) {
         this.end = end;
     }
+
+    @Override
+    public String toString() {
+        return new StringBuilder().append("{start:").append(start).append(",end:").append(end).append('}').toString();
+    }
 }
