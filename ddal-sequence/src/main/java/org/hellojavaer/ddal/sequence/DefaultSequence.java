@@ -24,10 +24,10 @@ package org.hellojavaer.ddal.sequence;
  */
 public class DefaultSequence implements Sequence {
 
-    private String           group;
-    private String           tbName;
-    private int              step;       // 单节点步长
-    private int              cacheNSteps; // 缓存队列大小
+    private String           groupName;
+    private String           logicTableName;
+    private int              step;          // 单节点步长
+    private int              cacheNSteps;   // 缓存队列大小
     private int              timeout;
     private IdGetter         idGetter;
 
@@ -51,7 +51,7 @@ public class DefaultSequence implements Sequence {
 
             @Override
             public IdRange get() throws Exception {
-                return getIdGetter().get(getGroup(), getTbName(), getStep());
+                return getIdGetter().get(getGroupName(), getLogicTableName(), getStep());
             }
         };
     }
@@ -66,20 +66,20 @@ public class DefaultSequence implements Sequence {
         }
     }
 
-    public String getGroup() {
-        return group;
+    public String getGroupName() {
+        return groupName;
     }
 
-    public void setGroup(String group) {
-        this.group = group;
+    public void setGroupName(String groupName) {
+        this.groupName = groupName;
     }
 
-    public String getTbName() {
-        return tbName;
+    public String getLogicTableName() {
+        return logicTableName;
     }
 
-    public void setTbName(String tbName) {
-        this.tbName = tbName;
+    public void setLogicTableName(String logicTableName) {
+        this.logicTableName = logicTableName;
     }
 
     public int getStep() {

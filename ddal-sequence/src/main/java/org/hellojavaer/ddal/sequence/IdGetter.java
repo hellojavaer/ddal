@@ -21,6 +21,6 @@ package org.hellojavaer.ddal.sequence;
  */
 public interface IdGetter {
 
-    IdRange get(String group, String tabName, int step) throws Exception;
+    IdRange get(String groupName, String logicTableName, int step) throws Exception;
 
 }

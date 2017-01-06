@@ -36,7 +36,7 @@ public class DatabaseIdGetter implements IdGetter {
 
     private Logger          logger                = LoggerFactory.getLogger(this.getClass());
 
-    /*** SELECT id, current_value, end_value, version FROM sc_name.sequence WHERE group_name = ? AND table_name = ? AND deleted = 0 ODER BY select_oder ASC LIMIT 1 ***/
+    /*** SELECT id, current_value, end_value, version FROM sc_name.sequence WHERE group_name = ? AND logic_table_name = ? AND deleted = 0 ODER BY select_oder ASC LIMIT 1 ***/
     private String          selectSqlTemplate     = "SELECT %s, %s, %s, %s FROM %s.%s WHERE %s = ? AND %s = ? AND %s = 0 ORDER BY %s ASC LIMIT 1 ";
 
     /*** UPDATE sc_name.sequence SET current_value = ?, deleted = ?, version = version + 1 WHERE id = ? AND version = ? LIMIT 1 ***/
@@ -50,7 +50,7 @@ public class DatabaseIdGetter implements IdGetter {
 
     private String          colNameOfPrimaryKey   = "id";
     private String          colNameOfGroupName    = "group_name";
-    private String          colNameOfTableName    = "table_name";
+    private String          colNameOfTableName    = "logic_table_name";
     private String          colNameOfSelectOrder  = "select_order";
     private String          colNameOfEndValue     = "end_value";
     private String          colNameOfCurrentValue = "current_value";
@@ -113,7 +113,7 @@ public class DatabaseIdGetter implements IdGetter {
                     Assert.isTrue(skipNSteps != null && skipNSteps >= 0, "'skipNSteps'[" + skipNSteps
                                                                          + "] must greater than or equal to 0");
 
-                    /*** SELECT id, current_value, end_value, version FROM sc_name.sequence WHERE group_name = ? AND table_name = ? AND deleted = 0 ORDER BY select_oder ASC LIMIT 1 ***/
+                    /*** SELECT id, current_value, end_value, version FROM sc_name.sequence WHERE group_name = ? AND logic_table_name = ? AND deleted = 0 ORDER BY select_oder ASC LIMIT 1 ***/
                     // "SELECT %s, %s, %s, %s FROM %s.%s WHERE %s = ? AND %s = ? AND %s = 0 ODER BY %s ASC LIMIT 1 ";
                     targetSelectSql = String.format(getSelectSqlTemplate(), colNameOfPrimaryKey, colNameOfCurrentValue,
                                                     colNameOfEndValue,
@@ -135,7 +135,7 @@ public class DatabaseIdGetter implements IdGetter {
     }
 
     @Override
-    public IdRange get(String groupName, String tableName, int step) throws Exception {
+    public IdRange get(String groupName, String logicTableName, int step) throws Exception {
         init();
         int rows = 0;
         IdRange idRange = null;
@@ -151,7 +151,7 @@ public class DatabaseIdGetter implements IdGetter {
         try {
             selectStatement = connection.prepareStatement(targetSelectSql);
             selectStatement.setString(1, groupName);
-            selectStatement.setString(2, tableName);
+            selectStatement.setString(2, logicTableName);
             ResultSet selectResult = selectStatement.executeQuery();
             long id = 0;
             long currentValue = 0;
@@ -178,7 +178,7 @@ public class DatabaseIdGetter implements IdGetter {
                         logger.warn(String.format("'nStepEndId'[%s] is more than 'endValue'[%s] limit, and 'nStepEndId' is reset to 'endValue'. " //
                                                           + "More detail information is groupName:%s,tabName:%s,step:%s,currentValue:%s,version:%s,id:%s}",//
                                                   nStepEndId, endValue,//
-                                                  groupName, tableName, step, currentValue, version, id));
+                                                  groupName, logicTableName, step, currentValue, version, id));
                         nStepEndId = endValue;
                     }
                 }
