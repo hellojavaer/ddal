@@ -29,12 +29,27 @@ import java.util.ConcurrentModificationException;
 
 /**
  *
- *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 04/01/2017.
  */
 public class DatabaseIdGetter implements IdGetter {
 
     private Logger          logger                = LoggerFactory.getLogger(this.getClass());
+
+    /**
+     CREATE TABLE sequence (
+         id bigint(20) NOT NULL,
+         group_name varchar(32) NOT NULL,
+         logic_table_name varchar(64) NOT NULL,
+         select_order bigint(11) NOT NULL,
+         begin_value bigint(11) DEFAULT NULL,
+         end_value bigint(11) DEFAULT NULL,
+         current_value bigint(11) NOT NULL,
+         version bigint(20) NOT NULL DEFAULT '0',
+         deleted tinyint(11) NOT NULL DEFAULT '0',
+         PRIMARY KEY (id),
+         KEY idx_logic_table_name_group_name_select_order_deleted (logic_table_name,group_name,select_order,deleted) USING BTREE
+     ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+     */
 
     /*** SELECT id, current_value, end_value, version FROM sc_name.sequence WHERE group_name = ? AND logic_table_name = ? AND deleted = 0 ODER BY select_oder ASC LIMIT 1 ***/
     private String          selectSqlTemplate     = "SELECT %s, %s, %s, %s FROM %s.%s WHERE %s = ? AND %s = ? AND %s = 0 ORDER BY %s ASC LIMIT 1 ";
