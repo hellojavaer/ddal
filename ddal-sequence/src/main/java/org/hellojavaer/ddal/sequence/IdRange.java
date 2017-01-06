@@ -25,35 +25,35 @@ public class IdRange implements Serializable {
 
     private static final long serialVersionUID = 0L;
 
-    private long              start;
-    private long              end;
+    private long              beginValue;
+    private long              endValue;
 
     public IdRange() {
     }
 
-    public IdRange(long start, long end) {
-        this.start = start;
-        this.end = end;
+    public IdRange(long beginValue, long endValue) {
+        this.beginValue = beginValue;
+        this.endValue = endValue;
     }
 
-    public long getStart() {
-        return start;
+    public long getBeginValue() {
+        return beginValue;
     }
 
-    public void setStart(long start) {
-        this.start = start;
+    public void setBeginValue(long beginValue) {
+        this.beginValue = beginValue;
     }
 
-    public long getEnd() {
-        return end;
+    public long getEndValue() {
+        return endValue;
     }
 
-    public void setEnd(long end) {
-        this.end = end;
+    public void setEndValue(long endValue) {
+        this.endValue = endValue;
     }
 
     @Override
     public String toString() {
-        return new StringBuilder().append("{start:").append(start).append(",end:").append(end).append('}').toString();
+        return new StringBuilder().append("{beginValue:").append(beginValue).append(",endValue:").append(endValue).append('}').toString();
     }
 }

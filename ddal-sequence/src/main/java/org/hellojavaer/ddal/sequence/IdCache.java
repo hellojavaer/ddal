@@ -151,7 +151,7 @@ public abstract class IdCache {
                     }
                     try {
                         IdRange range = get();
-                        list.offer(new InnerRange(range.getStart(), range.getEnd()));
+                        list.offer(new InnerRange(range.getBeginValue(), range.getEndValue()));
                         list.notifyAll();
                         count = 0;
                     } catch (Throwable e) {
