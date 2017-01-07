@@ -164,13 +164,13 @@ public abstract class IdCache {
                         synchronized (writeLock) {
                             if (list.remainingCapacity() <= 0) {
                                 writeLock.wait();
-                            } else {
-                                IdRange range = get();
-                                list.put(new InnerRange(range.getBeginValue(), range.getEndValue()));
                             }
-                            emptyLock.notifyAll();
+                            IdRange range = get();
+                            list.put(new InnerRange(range.getBeginValue(), range.getEndValue()));
+                            synchronized (emptyLock) {
+                                emptyLock.notifyAll();
+                            }
                         }
-                        //
                         count = 0;
                     } catch (Throwable e) {
                         logger.error("[GetIdRange]", e);
