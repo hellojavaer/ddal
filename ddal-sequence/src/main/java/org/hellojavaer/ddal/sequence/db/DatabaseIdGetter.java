@@ -217,10 +217,14 @@ public class DatabaseIdGetter implements IdGetter {
             long oneStepEndValue = currentValue + step;
             long nStepsEndValue = currentValue + step * (skipNSteps + 1);
             boolean moreThanLimit = false;
-            if (endValue != null && nStepsEndValue >= endValue) {
-                if (nStepsEndValue > endValue) {
-                    nStepsEndValue = endValue;
-                    moreThanLimit = true;
+            if (endValue != null) {
+                if (currentValue >= endValue) {
+                    nStepsEndValue = currentValue;
+                } else if (nStepsEndValue >= endValue) {
+                    if (nStepsEndValue > endValue) {
+                        nStepsEndValue = endValue;
+                        moreThanLimit = true;
+                    }
                 }
                 disabled = 1;
             }
@@ -233,23 +237,27 @@ public class DatabaseIdGetter implements IdGetter {
                 connection.commit();
             }
             if (rows > 0) {
-                idRange = new IdRange(currentValue + 1, oneStepEndValue);
-                if (disabled != 0) {
-                    if (moreThanLimit) {
-                        if (logger.isWarnEnabled()) {
-                            logger.warn(
-                                    "[More_Than_Limit]Id range for groupName:{},logicTableName:{} is used up. More detail information is step:{},skipNSteps:{},"
-                                    + "endValue:{},version:{},id:{} and actually allocated range is '{} ~ {}'",
-                                    groupName, logicTableName, step, skipNSteps,//
-                                    endValue, version, id, currentValue, oneStepEndValue);
-                        }
-                    } else {
-                        if (logger.isInfoEnabled()) {
-                            logger.info(
-                                    "Id range for groupName:{},logicTableName:{} is used up. More detail information is step:{},skipNSteps:{},"
-                                    + "endValue:{},version:{},id:{} and actually allocated range is '{} ~ {}'",
-                                    groupName, logicTableName, step, skipNSteps,//
-                                    endValue, version, id, currentValue, oneStepEndValue);
+                if (endValue != null && currentValue >= endValue) {
+                    return null;
+                } else {
+                    idRange = new IdRange(currentValue + 1, oneStepEndValue);
+                    if (disabled != 0) {
+                        if (moreThanLimit) {
+                            if (logger.isWarnEnabled()) {
+                                logger.warn(
+                                        "[More_Than_Limit]Id range for groupName:{},logicTableName:{} is used up. More detail information is step:{},skipNSteps:{},"
+                                        + "endValue:{},version:{},id:{} and actually allocated range is '{} ~ {}'",
+                                        groupName, logicTableName, step, skipNSteps,//
+                                        endValue, version, id, currentValue, oneStepEndValue);
+                            }
+                        } else {
+                            if (logger.isInfoEnabled()) {
+                                logger.info(
+                                        "Id range for groupName:{},logicTableName:{} is used up. More detail information is step:{},skipNSteps:{},"
+                                        + "endValue:{},version:{},id:{} and actually allocated range is '{} ~ {}'",
+                                        groupName, logicTableName, step, skipNSteps,//
+                                        endValue, version, id, currentValue, oneStepEndValue);
+                            }
                         }
                     }
                 }
