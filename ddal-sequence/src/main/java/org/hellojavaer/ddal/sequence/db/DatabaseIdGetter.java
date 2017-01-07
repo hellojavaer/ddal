@@ -28,53 +28,84 @@ import java.sql.ResultSet;
 import java.util.ConcurrentModificationException;
 
 /**
+ *  <p>Id Range</p>
+ *
+ *  Design model:
+ *
+ * _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+ *
+ *  |                     --------------
+ *                        | 700 ~ NULL |
+ * Master                 |            |
+ *                        |            |
+ *  |                     --------------
+ * _ _ _ _ _ _ _ _ _ _ _ _ _/ _ _ _  _\ _ _ _ _ _ _ _ _ _ _ _ _
+ *                         /           \
+ *  |            -------------        -------------
+ *               | 120 ~ 200 |        | 201 ~ 300 |
+ * Follower      | 301 ~ 400 |        | 501 ~ 600 |
+ *               | 401 ~ 500 |        | 601 ~ 700 |
+ *  |            -------------        -------------
+ * _ _ _ _ _ _ _ _/_ _ _ _ _ \_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+ *               /            \
+ *  |      ------------      -------------
+ *         |  1  ~ 20 |      | 21  ~ 40  |
+ *         |  41 ~ 60 |      | 81  ~ 100 |
+ * Client  |  61 ~ 80 |      | 101 ~ 120 |
+ *         ------------      -------------
+ *           /    |   \        /    |   \
+ *  |      [id] [id]  [id]   [id]  [id] [id]
+ * _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+ *
+ *  Between master and client,there can be multiple followers. Id Range is firstly allocated by master.
+ *  The lower layer request id range to the higher layer and then allocate id range to its lower.
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 04/01/2017.
  */
 public class DatabaseIdGetter implements IdGetter {
 
-    private Logger          logger                = LoggerFactory.getLogger(this.getClass());
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     /**
      CREATE TABLE sequence (
-         id bigint(20) NOT NULL,
-         group_name varchar(32) NOT NULL,
-         logic_table_name varchar(64) NOT NULL,
-         select_order bigint(11) NOT NULL,
-         begin_value bigint(11) DEFAULT NULL,
-         end_value bigint(11) DEFAULT NULL,
-         current_value bigint(11) NOT NULL,
-         version bigint(20) NOT NULL DEFAULT '0',
-         deleted tinyint(11) NOT NULL DEFAULT '0',
-         PRIMARY KEY (id),
-         KEY idx_logic_table_name_group_name_select_order_deleted (logic_table_name,group_name,select_order,deleted) USING BTREE
+     id bigint(20) NOT NULL,
+     group_name varchar(32) NOT NULL,
+     logic_table_name varchar(64) NOT NULL,
+     select_order bigint(11) NOT NULL,
+     begin_value bigint(11) DEFAULT NULL,
+     end_value bigint(11) DEFAULT NULL,
+     current_value bigint(11) NOT NULL,
+     version bigint(20) NOT NULL DEFAULT '0',
+     disabled tinyint(11) NOT NULL DEFAULT '0',
+     PRIMARY KEY (id),
+     KEY idx_logic_table_name_group_name_select_order_disabled (logic_table_name,group_name,select_order,disabled) USING BTREE
      ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
      */
 
-    /*** SELECT id, current_value, end_value, version FROM sc_name.sequence WHERE group_name = ? AND logic_table_name = ? AND deleted = 0 ODER BY select_oder ASC LIMIT 1 ***/
-    private String          selectSqlTemplate     = "SELECT %s, %s, %s, %s FROM %s.%s WHERE %s = ? AND %s = ? AND %s = 0 ORDER BY %s ASC LIMIT 1 ";
+    /*** SELECT id, current_value, end_value, version FROM sc_name.sequence WHERE group_name = ? AND logic_table_name = ? AND disabled = 0 ODER BY select_oder ASC LIMIT 1 ***/
+    private String selectSqlTemplate = "SELECT %s, %s, %s, %s FROM %s.%s WHERE %s = ? AND %s = ? AND %s = 0 ORDER BY %s ASC LIMIT 1 ";
 
-    /*** UPDATE sc_name.sequence SET current_value = ?, deleted = ?, version = version + 1 WHERE id = ? AND version = ? LIMIT 1 ***/
-    private String          updateSqlTemplate     = "UPDATE %s.%s SET %s = ?, %s = ?, %s = %s + 1 WHERE %s = ? AND %s = ? LIMIT 1";
+    /*** UPDATE sc_name.sequence SET current_value = ?, disabled = ?, version = version + 1 WHERE id = ? AND version = ? LIMIT 1 ***/
+    private String updateSqlTemplate = "UPDATE %s.%s SET %s = ?, %s = ?, %s = %s + 1 WHERE %s = ? AND %s = ? LIMIT 1";
 
-    private DataSource      dataSource;
-    private Connection      connection;
-    private String          scName;
-    private String          tbName                = "sequence";
-    private Integer         skipNSteps            = 0;
+    private DataSource dataSource;
+    private Connection connection;
+    private String     scName;
+    private String  tbName     = "sequence";
+    private Integer skipNSteps = 0;
 
-    private String          colNameOfPrimaryKey   = "id";
-    private String          colNameOfGroupName    = "group_name";
-    private String          colNameOfTableName    = "logic_table_name";
-    private String          colNameOfSelectOrder  = "select_order";
-    private String          colNameOfEndValue     = "end_value";
-    private String          colNameOfCurrentValue = "current_value";
-    private String          colNameOfDeleted      = "deleted";
-    private String          colNameOfVersion      = "version";
+    private String colNameOfPrimaryKey   = "id";
+    private String colNameOfGroupName    = "group_name";
+    private String colNameOfTableName    = "logic_table_name";
+    private String colNameOfSelectOrder  = "select_order";
+    private String colNameOfEndValue     = "end_value";
+    private String colNameOfCurrentValue = "current_value";
+    private String colNameOfDeleted      = "disabled";
+    private String colNameOfVersion      = "version";
 
     private volatile String targetSelectSql;
     private volatile String targetUpdateSql;
-    private boolean         initialized           = false;
+    private boolean initialized = false;
 
     public DatabaseIdGetter() {
     }
@@ -117,6 +148,7 @@ public class DatabaseIdGetter implements IdGetter {
                                   "'dataSource' and 'connection', only one of them should be configured");
                     Assert.notNull(scName, "'scName' can't be null");
                     Assert.notNull(tbName, "'tbName' can't be null");
+                    Assert.isTrue(skipNSteps >= 0, "'skipNSteps' must greater than or equal to 0");
                     Assert.notNull(colNameOfPrimaryKey, "'colNameOfPrimaryKey' can't be null");
                     Assert.notNull(colNameOfGroupName, "'colNameOfGroupName' can't be null");
                     Assert.notNull(colNameOfTableName, "'colNameOfTableName' can't be null");
@@ -125,20 +157,18 @@ public class DatabaseIdGetter implements IdGetter {
                     Assert.notNull(colNameOfSelectOrder, "'colNameOfSelectOrder' can't be null");
                     Assert.notNull(colNameOfDeleted, "'colNameOfDeleted' can't be null");
                     Assert.notNull(colNameOfVersion, "'colNameOfVersion' can't be null");
-                    Assert.isTrue(skipNSteps != null && skipNSteps >= 0, "'skipNSteps'[" + skipNSteps
-                                                                         + "] must greater than or equal to 0");
+                    Assert.isTrue(skipNSteps != null && skipNSteps >= 0,
+                                  "'skipNSteps'[" + skipNSteps + "] must greater than or equal to 0");
 
-                    /*** SELECT id, current_value, end_value, version FROM sc_name.sequence WHERE group_name = ? AND logic_table_name = ? AND deleted = 0 ORDER BY select_oder ASC LIMIT 1 ***/
+                    /*** SELECT id, current_value, end_value, version FROM sc_name.sequence WHERE group_name = ? AND logic_table_name = ? AND disabled = 0 ORDER BY select_oder ASC LIMIT 1 ***/
                     // "SELECT %s, %s, %s, %s FROM %s.%s WHERE %s = ? AND %s = ? AND %s = 0 ODER BY %s ASC LIMIT 1 ";
                     targetSelectSql = String.format(getSelectSqlTemplate(), colNameOfPrimaryKey, colNameOfCurrentValue,
-                                                    colNameOfEndValue,
-                                                    colNameOfVersion,//
-                                                    scName,
-                                                    tbName,//
+                                                    colNameOfEndValue, colNameOfVersion,//
+                                                    scName, tbName,//
                                                     colNameOfGroupName, colNameOfTableName, colNameOfDeleted,
                                                     colNameOfSelectOrder);
 
-                    /*** UPDATE sc_name.sequence SET current_value = ?, deleted = ?, version = version + 1 WHERE id = ? AND version = ? LIMIT 1 ***/
+                    /*** UPDATE sc_name.sequence SET current_value = ?, disabled = ?, version = version + 1 WHERE id = ? AND version = ? LIMIT 1 ***/
                     // "UPDATE %s.%s SET %s = ?, %s = ?, %s = %s + 1 WHERE %s = ? AND %s = ? LIMIT 1";
                     targetUpdateSql = String.format(getUpdateSqlTemplate(), scName, tbName, colNameOfCurrentValue,
                                                     colNameOfDeleted, colNameOfVersion, colNameOfVersion,
@@ -149,8 +179,7 @@ public class DatabaseIdGetter implements IdGetter {
         }
     }
 
-    @Override
-    public IdRange get(String groupName, String logicTableName, int step) throws Exception {
+    @Override public IdRange get(String groupName, String logicTableName, int step) throws Exception {
         init();
         int rows = 0;
         IdRange idRange = null;
@@ -171,7 +200,7 @@ public class DatabaseIdGetter implements IdGetter {
             long id = 0;
             long currentValue = 0;
             Long endValue = null;
-            int deleted = 0;
+            int disabled = 0;
             long version = 0;
             if (selectResult.next()) {
                 id = ((Number) selectResult.getObject(1)).longValue();
@@ -185,22 +214,18 @@ public class DatabaseIdGetter implements IdGetter {
                 return null;
             }
             updateStatement = connection.prepareStatement(targetUpdateSql);
-            long oneStepEndId = currentValue + step;
-            long nStepEndId = currentValue + step * (skipNSteps + 1);
-            if (endValue != null && nStepEndId >= endValue) {
-                if (nStepEndId > endValue) {
-                    if (logger.isWarnEnabled()) {
-                        logger.warn(String.format("'nStepEndId'[%s] is more than 'endValue'[%s] limit, and 'nStepEndId' is reset to 'endValue'. " //
-                                                          + "More detail information is groupName:%s,tabName:%s,step:%s,currentValue:%s,version:%s,id:%s}",//
-                                                  nStepEndId, endValue,//
-                                                  groupName, logicTableName, step, currentValue, version, id));
-                        nStepEndId = endValue;
-                    }
+            long oneStepEndValue = currentValue + step;
+            long nStepsEndValue = currentValue + step * (skipNSteps + 1);
+            boolean moreThanLimit = false;
+            if (endValue != null && nStepsEndValue >= endValue) {
+                if (nStepsEndValue > endValue) {
+                    nStepsEndValue = endValue;
+                    moreThanLimit = true;
                 }
-                deleted = 1;
+                disabled = 1;
             }
-            updateStatement.setLong(1, nStepEndId);
-            updateStatement.setLong(2, deleted);
+            updateStatement.setLong(1, nStepsEndValue);
+            updateStatement.setLong(2, disabled);
             updateStatement.setLong(3, id);
             updateStatement.setLong(4, version);
             rows = updateStatement.executeUpdate();
@@ -208,7 +233,26 @@ public class DatabaseIdGetter implements IdGetter {
                 connection.commit();
             }
             if (rows > 0) {
-                idRange = new IdRange(currentValue + 1, oneStepEndId);
+                idRange = new IdRange(currentValue + 1, oneStepEndValue);
+                if (disabled != 0) {
+                    if (moreThanLimit) {
+                        if (logger.isWarnEnabled()) {
+                            logger.warn(
+                                    "[More_Than_Limit]Id range for groupName:{},logicTableName:{} is used up. More detail information is step:{},skipNSteps:{},"
+                                    + "endValue:{},version:{},id:{} and actually allocated range is '{} ~ {}'",
+                                    groupName, logicTableName, step, skipNSteps,//
+                                    endValue, version, id, currentValue, oneStepEndValue);
+                        }
+                    } else {
+                        if (logger.isInfoEnabled()) {
+                            logger.info(
+                                    "Id range for groupName:{},logicTableName:{} is used up. More detail information is step:{},skipNSteps:{},"
+                                    + "endValue:{},version:{},id:{} and actually allocated range is '{} ~ {}'",
+                                    groupName, logicTableName, step, skipNSteps,//
+                                    endValue, version, id, currentValue, oneStepEndValue);
+                        }
+                    }
+                }
             }
         } finally {
             if (selectStatement != null) {
