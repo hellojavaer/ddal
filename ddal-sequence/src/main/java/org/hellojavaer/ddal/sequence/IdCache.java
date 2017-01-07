@@ -19,10 +19,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  *
@@ -30,11 +33,12 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public abstract class IdCache {
 
-    private Logger                          logger    = LoggerFactory.getLogger(this.getClass());
+    private Logger                          logger         = LoggerFactory.getLogger(this.getClass());
     private LinkedBlockingQueue<InnerRange> list;
 
-    private Object                          emptyLock = new Object();
-    private Object                          writeLock = new Object();
+    private ReentrantLock                   writeLock      = new ReentrantLock();
+    private Condition                       emptyCondition = writeLock.newCondition();
+    private Condition                       fullCondition  = writeLock.newCondition();
 
     public IdCache(int capacity) {
         list = new LinkedBlockingQueue<>(capacity);
@@ -98,11 +102,11 @@ public abstract class IdCache {
             long i = range.getCount().getAndIncrement();
             if (i + 1 > range.getEndValue()) {
                 cache.set(null);
+                remove(range);
             }
             if (i <= range.getEndValue()) {
                 return i;
             } else {
-                remove(range);
                 return peek0(timeout);
             }
         }
@@ -111,15 +115,25 @@ public abstract class IdCache {
     private long peek0(int timeout) throws InterruptedException, TimeoutException {
         InnerRange range = list.peek();
         if (range == null) {
-            synchronized (emptyLock) {
-                range = list.peek();
-                if (range == null) {
-                    emptyLock.wait(timeout);
+            writeLock.lock();
+            try {
+                int remainTime = timeout;
+                while (true) {
+                    long start = System.currentTimeMillis();
+                    range = list.peek();
+                    if (range == null) {
+                        if (remainTime <= 0) {
+                            throw new TimeoutException(Long.toString(timeout));
+                        } else {
+                            emptyCondition.await(timeout, TimeUnit.MILLISECONDS);
+                            remainTime -= System.currentTimeMillis() - start;
+                        }
+                    } else {
+                        break;
+                    }
                 }
-                range = list.peek();
-                if (range == null) {
-                    throw new TimeoutException(Integer.toString(timeout));
-                }
+            } finally {
+                writeLock.unlock();
             }
         }
         long i = range.getCount().getAndIncrement();
@@ -136,11 +150,14 @@ public abstract class IdCache {
     }
 
     private void remove(InnerRange item) {
-        synchronized (writeLock) {
+        writeLock.lock();
+        try {
             if (item.getDeleted().compareAndSet(false, true)) {
                 list.remove(item);
-                writeLock.notifyAll();
+                fullCondition.signal();// one is enough
             }
+        } finally {
+            writeLock.unlock();
         }
     }
 
@@ -160,17 +177,15 @@ public abstract class IdCache {
                         logger.error("[" + Thread.currentThread().getName() + " interrupted]");
                         break;
                     }
+                    //
+                    writeLock.lock();
                     try {
-                        synchronized (writeLock) {
-                            if (list.remainingCapacity() <= 0) {
-                                writeLock.wait();
-                            }
-                            IdRange range = get();
-                            list.put(new InnerRange(range.getBeginValue(), range.getEndValue()));
-                            synchronized (emptyLock) {
-                                emptyLock.notifyAll();
-                            }
+                        if (list.remainingCapacity() <= 0) {
+                            fullCondition.await();
                         }
+                        IdRange range = get();
+                        list.put(new InnerRange(range.getBeginValue(), range.getEndValue()));
+                        emptyCondition.signalAll();
                         count = 0;
                     } catch (Throwable e) {
                         logger.error("[GetIdRange]", e);
@@ -184,6 +199,8 @@ public abstract class IdCache {
                         if (count < endCount) {
                             count++;
                         }
+                    } finally {
+                        writeLock.unlock();
                     }
                 }
             }
