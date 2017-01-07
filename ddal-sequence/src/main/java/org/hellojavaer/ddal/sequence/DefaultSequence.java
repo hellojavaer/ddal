@@ -15,6 +15,8 @@
  */
 package org.hellojavaer.ddal.sequence;
 
+import org.hellojavaer.ddal.sequence.utils.Assert;
+
 /**
  * 步长
  * 阈值
@@ -26,18 +28,40 @@ public class DefaultSequence implements Sequence {
 
     private String           groupName;
     private String           logicTableName;
-    private int              step;          // 单节点步长
-    private int              cacheNSteps;   // 缓存队列大小
-    private int              timeout;
+    private Integer          step;               // 单节点步长
+    private Integer          cacheNSteps;        // 缓存队列大小
+    private Integer          timeout;
     private IdGetter         idGetter;
 
     private volatile IdCache idCache;
+    private boolean          initialized = false;
+
+    public DefaultSequence() {
+    }
+
+    public DefaultSequence(String groupName, String logicTableName, Integer step, Integer cacheNSteps, Integer timeout,
+                           IdGetter idGetter) {
+        this.groupName = groupName;
+        this.logicTableName = logicTableName;
+        this.step = step;
+        this.cacheNSteps = cacheNSteps;
+        this.timeout = timeout;
+        this.idGetter = idGetter;
+    }
 
     public void init() {
-        if (idCache == null) {
+        if (initialized == false) {
             synchronized (this) {
-                if (idCache == null) {
+                if (initialized == false) {
+                    // init
+                    Assert.notNull(groupName, "'groupName' can't be null'");
+                    Assert.notNull(logicTableName, "'logicTableName' can't be null'");
+                    Assert.notNull(step, "'step' must be greater than 0");
+                    Assert.notNull(cacheNSteps, "'cacheNSteps' must be greater than or equal to 0");
+                    Assert.notNull(timeout, "'timeout' must be greater than 0");
+                    Assert.notNull(idGetter, "'idGetter' can't be null'");
                     idCache = getIdCache();
+                    initialized = true;
                 }
             }
         }
@@ -61,6 +85,8 @@ public class DefaultSequence implements Sequence {
         init();
         try {
             return idCache.peek(timeout);
+        } catch (RuntimeException e0) {
+            throw e0;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -82,28 +108,28 @@ public class DefaultSequence implements Sequence {
         this.logicTableName = logicTableName;
     }
 
-    public int getStep() {
+    public Integer getStep() {
         return step;
     }
 
-    public void setStep(int step) {
+    public void setStep(Integer step) {
         this.step = step;
     }
 
-    public int getTimeout() {
-        return timeout;
-    }
-
-    public void setTimeout(int timeout) {
-        this.timeout = timeout;
-    }
-
-    public int getCacheNSteps() {
+    public Integer getCacheNSteps() {
         return cacheNSteps;
     }
 
-    public void setCacheNSteps(int cacheNSteps) {
+    public void setCacheNSteps(Integer cacheNSteps) {
         this.cacheNSteps = cacheNSteps;
+    }
+
+    public Integer getTimeout() {
+        return timeout;
+    }
+
+    public void setTimeout(Integer timeout) {
+        this.timeout = timeout;
     }
 
     public IdGetter getIdGetter() {
@@ -113,5 +139,4 @@ public class DefaultSequence implements Sequence {
     public void setIdGetter(IdGetter idGetter) {
         this.idGetter = idGetter;
     }
-
 }
