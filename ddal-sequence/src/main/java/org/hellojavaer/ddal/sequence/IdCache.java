@@ -146,7 +146,7 @@ public abstract class IdCache {
         synchronized (writeLock) {
             if (item.getDeleted().compareAndSet(false, true)) {
                 list.remove(item);
-                writeLock.notify();// one is enough
+                writeLock.notifyAll();
             }
         }
     }

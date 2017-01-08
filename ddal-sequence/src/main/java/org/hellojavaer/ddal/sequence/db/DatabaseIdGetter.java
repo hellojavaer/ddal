@@ -64,7 +64,7 @@ import java.util.ConcurrentModificationException;
  */
 public class DatabaseIdGetter implements IdGetter {
 
-    private Logger logger = LoggerFactory.getLogger(this.getClass());
+    private Logger          logger                = LoggerFactory.getLogger(this.getClass());
 
     /**
      CREATE TABLE sequence (
@@ -83,29 +83,29 @@ public class DatabaseIdGetter implements IdGetter {
      */
 
     /*** SELECT id, current_value, end_value, version FROM sc_name.sequence WHERE group_name = ? AND logic_table_name = ? AND disabled = 0 ODER BY select_oder ASC LIMIT 1 ***/
-    private String selectSqlTemplate = "SELECT %s, %s, %s, %s FROM %s.%s WHERE %s = ? AND %s = ? AND %s = 0 ORDER BY %s ASC LIMIT 1 ";
+    private String          selectSqlTemplate     = "SELECT %s, %s, %s, %s FROM %s.%s WHERE %s = ? AND %s = ? AND %s = 0 ORDER BY %s ASC LIMIT 1 ";
 
     /*** UPDATE sc_name.sequence SET current_value = ?, disabled = ?, version = version + 1 WHERE id = ? AND version = ? LIMIT 1 ***/
-    private String updateSqlTemplate = "UPDATE %s.%s SET %s = ?, %s = ?, %s = %s + 1 WHERE %s = ? AND %s = ? LIMIT 1";
+    private String          updateSqlTemplate     = "UPDATE %s.%s SET %s = ?, %s = ?, %s = %s + 1 WHERE %s = ? AND %s = ? LIMIT 1";
 
-    private DataSource dataSource;
-    private Connection connection;
-    private String     scName;
-    private String  tbName     = "sequence";
-    private Integer skipNSteps = 0;
+    private DataSource      dataSource;
+    private Connection      connection;
+    private String          scName;
+    private String          tbName                = "sequence";
+    private Integer         skipNSteps            = 0;
 
-    private String colNameOfPrimaryKey   = "id";
-    private String colNameOfGroupName    = "group_name";
-    private String colNameOfTableName    = "logic_table_name";
-    private String colNameOfSelectOrder  = "select_order";
-    private String colNameOfEndValue     = "end_value";
-    private String colNameOfCurrentValue = "current_value";
-    private String colNameOfDeleted      = "disabled";
-    private String colNameOfVersion      = "version";
+    private String          colNameOfPrimaryKey   = "id";
+    private String          colNameOfGroupName    = "group_name";
+    private String          colNameOfTableName    = "logic_table_name";
+    private String          colNameOfSelectOrder  = "select_order";
+    private String          colNameOfEndValue     = "end_value";
+    private String          colNameOfCurrentValue = "current_value";
+    private String          colNameOfDeleted      = "disabled";
+    private String          colNameOfVersion      = "version";
 
     private volatile String targetSelectSql;
     private volatile String targetUpdateSql;
-    private boolean initialized = false;
+    private boolean         initialized           = false;
 
     public DatabaseIdGetter() {
     }
@@ -157,14 +157,16 @@ public class DatabaseIdGetter implements IdGetter {
                     Assert.notNull(colNameOfSelectOrder, "'colNameOfSelectOrder' can't be null");
                     Assert.notNull(colNameOfDeleted, "'colNameOfDeleted' can't be null");
                     Assert.notNull(colNameOfVersion, "'colNameOfVersion' can't be null");
-                    Assert.isTrue(skipNSteps != null && skipNSteps >= 0,
-                                  "'skipNSteps'[" + skipNSteps + "] must greater than or equal to 0");
+                    Assert.isTrue(skipNSteps != null && skipNSteps >= 0, "'skipNSteps'[" + skipNSteps
+                                                                         + "] must greater than or equal to 0");
 
                     /*** SELECT id, current_value, end_value, version FROM sc_name.sequence WHERE group_name = ? AND logic_table_name = ? AND disabled = 0 ORDER BY select_oder ASC LIMIT 1 ***/
                     // "SELECT %s, %s, %s, %s FROM %s.%s WHERE %s = ? AND %s = ? AND %s = 0 ODER BY %s ASC LIMIT 1 ";
                     targetSelectSql = String.format(getSelectSqlTemplate(), colNameOfPrimaryKey, colNameOfCurrentValue,
-                                                    colNameOfEndValue, colNameOfVersion,//
-                                                    scName, tbName,//
+                                                    colNameOfEndValue,
+                                                    colNameOfVersion,//
+                                                    scName,
+                                                    tbName,//
                                                     colNameOfGroupName, colNameOfTableName, colNameOfDeleted,
                                                     colNameOfSelectOrder);
 
@@ -179,7 +181,8 @@ public class DatabaseIdGetter implements IdGetter {
         }
     }
 
-    @Override public IdRange get(String groupName, String logicTableName, int step) throws Exception {
+    @Override
+    public IdRange get(String groupName, String logicTableName, int step) throws Exception {
         init();
         int rows = 0;
         IdRange idRange = null;
@@ -241,22 +244,23 @@ public class DatabaseIdGetter implements IdGetter {
                     return null;
                 } else {
                     idRange = new IdRange(currentValue + 1, oneStepEndValue);
+                    if (logger.isInfoEnabled()) {
+                        logger.info("[Get_Range] " + idRange);
+                    }
                     if (disabled != 0) {
                         if (moreThanLimit) {
                             if (logger.isWarnEnabled()) {
-                                logger.warn(
-                                        "[More_Than_Limit]Id range for groupName:{},logicTableName:{} is used up. More detail information is step:{},skipNSteps:{},"
-                                        + "endValue:{},version:{},id:{} and actually allocated range is '{} ~ {}'",
-                                        groupName, logicTableName, step, skipNSteps,//
-                                        endValue, version, id, currentValue, oneStepEndValue);
+                                logger.warn("[More_Than_Limit]Id range for groupName:{},logicTableName:{} is used up. More detail information is step:{},skipNSteps:{},"
+                                                    + "endValue:{},version:{},id:{} and actually allocated range is '{} ~ {}'",
+                                            groupName, logicTableName, step, skipNSteps,//
+                                            endValue, version, id, currentValue, oneStepEndValue);
                             }
                         } else {
                             if (logger.isInfoEnabled()) {
-                                logger.info(
-                                        "Id range for groupName:{},logicTableName:{} is used up. More detail information is step:{},skipNSteps:{},"
-                                        + "endValue:{},version:{},id:{} and actually allocated range is '{} ~ {}'",
-                                        groupName, logicTableName, step, skipNSteps,//
-                                        endValue, version, id, currentValue, oneStepEndValue);
+                                logger.info("Id range for groupName:{},logicTableName:{} is used up. More detail information is step:{},skipNSteps:{},"
+                                                    + "endValue:{},version:{},id:{} and actually allocated range is '{} ~ {}'",
+                                            groupName, logicTableName, step, skipNSteps,//
+                                            endValue, version, id, currentValue, oneStepEndValue);
                             }
                         }
                     }
