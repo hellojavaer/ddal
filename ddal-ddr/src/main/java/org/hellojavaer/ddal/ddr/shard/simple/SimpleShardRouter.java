@@ -19,7 +19,7 @@ import org.hellojavaer.ddal.ddr.expression.range.RangeExpression;
 import org.hellojavaer.ddal.ddr.expression.range.RangeItemVisitor;
 import org.hellojavaer.ddal.ddr.shard.*;
 import org.hellojavaer.ddal.ddr.shard.exception.AmbiguousRouteRuleBindingException;
-import org.hellojavaer.ddal.ddr.shard.exception.ConflictingRouteRuleBindingException;
+import org.hellojavaer.ddal.ddr.shard.exception.DuplicateRouteRuleBindingException;
 import org.hellojavaer.ddal.ddr.shard.exception.NoRouteRuleBindingException;
 import org.hellojavaer.ddal.ddr.utils.DDRStringUtils;
 import org.slf4j.Logger;
@@ -138,10 +138,9 @@ public class SimpleShardRouter implements ShardRouter {
                             SimpleShardRouteRuleBinding ruleBinding, boolean checkConflict) {
         InnerSimpleShardRouteRuleBindingWrapper ruleBindingWrapper = cache.get(key);
         if (checkConflict && ruleBindingWrapper != null) {
-            throw new ConflictingRouteRuleBindingException("Conflicting route rule binding for scName:"
-                                                           + ruleBinding.getScName() + ", tbName:"
-                                                           + ruleBinding.getTbName() + ", sdKey:"
-                                                           + ruleBinding.getSdKey());
+            throw new DuplicateRouteRuleBindingException("Duplicate route rule binding for scName:"
+                                                         + ruleBinding.getScName() + ", tbName:"
+                                                         + ruleBinding.getTbName());
         }
         if (ruleBindingWrapper == null) {
             ruleBindingWrapper = new InnerSimpleShardRouteRuleBindingWrapper();

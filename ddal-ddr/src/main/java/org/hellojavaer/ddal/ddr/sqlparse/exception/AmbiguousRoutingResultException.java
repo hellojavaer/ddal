@@ -19,25 +19,25 @@ package org.hellojavaer.ddal.ddr.sqlparse.exception;
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 23/12/2016.
  */
-public class ConflictingRoutingResultException extends DDRSQLParseException {
+public class AmbiguousRoutingResultException extends DDRSQLParseException {
 
-    public ConflictingRoutingResultException() {
+    public AmbiguousRoutingResultException() {
     }
 
-    public ConflictingRoutingResultException(String message) {
+    public AmbiguousRoutingResultException(String message) {
         super(message);
     }
 
-    public ConflictingRoutingResultException(String message, Throwable cause) {
+    public AmbiguousRoutingResultException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public ConflictingRoutingResultException(Throwable cause) {
+    public AmbiguousRoutingResultException(Throwable cause) {
         super(cause);
     }
 
-    public ConflictingRoutingResultException(String message, Throwable cause, boolean enableSuppression,
-                                             boolean writableStackTrace) {
+    public AmbiguousRoutingResultException(String message, Throwable cause, boolean enableSuppression,
+                                           boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 }

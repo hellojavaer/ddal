@@ -19,25 +19,25 @@ package org.hellojavaer.ddal.ddr.shard.exception;
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 23/12/2016.
  */
-public class ConflictingRouteRuleBindingException extends DDRShardException {
+public class DuplicateRouteRuleBindingException extends DDRShardException {
 
-    public ConflictingRouteRuleBindingException() {
+    public DuplicateRouteRuleBindingException() {
     }
 
-    public ConflictingRouteRuleBindingException(String message) {
+    public DuplicateRouteRuleBindingException(String message) {
         super(message);
     }
 
-    public ConflictingRouteRuleBindingException(String message, Throwable cause) {
+    public DuplicateRouteRuleBindingException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public ConflictingRouteRuleBindingException(Throwable cause) {
+    public DuplicateRouteRuleBindingException(Throwable cause) {
         super(cause);
     }
 
-    public ConflictingRouteRuleBindingException(String message, Throwable cause, boolean enableSuppression,
-                                                boolean writableStackTrace) {
+    public DuplicateRouteRuleBindingException(String message, Throwable cause, boolean enableSuppression,
+                                              boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 }
