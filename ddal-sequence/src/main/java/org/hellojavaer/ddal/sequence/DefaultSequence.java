@@ -16,6 +16,8 @@
 package org.hellojavaer.ddal.sequence;
 
 import org.hellojavaer.ddal.sequence.utils.Assert;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 步长
@@ -26,10 +28,11 @@ import org.hellojavaer.ddal.sequence.utils.Assert;
  */
 public class DefaultSequence implements Sequence {
 
+    private Logger           logger      = LoggerFactory.getLogger(this.getClass());
     private String           groupName;
     private String           logicTableName;
-    private Integer          step;               // 单节点步长
-    private Integer          cacheNSteps;        // 缓存队列大小
+    private Integer          step;                                                  // 单节点步长
+    private Integer          cacheNSteps;                                           // 缓存队列大小
     private Integer          timeout;
     private IdGetter         idGetter;
 
@@ -75,7 +78,13 @@ public class DefaultSequence implements Sequence {
 
             @Override
             public IdRange get() throws Exception {
-                return getIdGetter().get(getGroupName(), getLogicTableName(), getStep());
+                IdRange idRange = getIdGetter().get(getGroupName(), getLogicTableName(), getStep());
+                if (idRange == null) {
+                    throw new NullPointerException("No id range is configured for groupName:'" + getGroupName()
+                                                   + "', logicTableName:'" + getLogicTableName() + "'");
+                } else {
+                    return idRange;
+                }
             }
         };
     }

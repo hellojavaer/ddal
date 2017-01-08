@@ -184,7 +184,7 @@ public abstract class IdCache {
                         logger.error("[GetIdRange]", e);
                         if (count >= baseLine) {
                             try {
-                                Thread.sleep(count - baseLine);
+                                Thread.sleep(sleepTimes[(int) (count - baseLine)]);
                             } catch (InterruptedException e1) {
                                 logger.error("[GetIdRangeSleep]", e1);
                             }
