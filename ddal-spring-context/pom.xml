@@ -138,6 +138,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.hellojavaer.ddal</groupId>
+            <artifactId>ddal-ddr</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-aop</artifactId>
             <version>4.2.5.RELEASE</version>
@@ -152,10 +157,13 @@
             <artifactId>aspectjweaver</artifactId>
             <version>1.8.9</version>
         </dependency>
+        <!-- optional -->
         <dependency>
-            <groupId>org.hellojavaer.ddal</groupId>
-            <artifactId>ddal-ddr</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+            <optional>true</optional>
         </dependency>
     </dependencies>
 
