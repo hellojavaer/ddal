@@ -129,11 +129,7 @@ public class SimpleShardRouteRule implements Serializable {
 
     public String parseScFormat(String scName, Object scRoute) {
         if (scFormatExpression == null) {
-            if (scRoute == null) {
-                return null;
-            } else {
-                return scRoute.toString();
-            }
+            return scName;
         } else {
             FormatExpressionContext context = new SimpleFormatExpressionContext();
             context.setVariable("scRoute", scRoute);
@@ -156,11 +152,7 @@ public class SimpleShardRouteRule implements Serializable {
 
     public String parseTbFormat(String tbName, Object tbRoute) {
         if (tbFormatExpression == null) {
-            if (tbRoute == null) {
-                return null;
-            } else {
-                return tbRoute.toString();
-            }
+            return tbName;
         } else {
             FormatExpressionContext context = new SimpleFormatExpressionContext();
             context.setVariable("tbRoute", tbRoute);
