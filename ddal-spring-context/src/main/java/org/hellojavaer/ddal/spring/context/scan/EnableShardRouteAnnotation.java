@@ -46,8 +46,10 @@ import java.util.Map;
 @Component
 public class EnableShardRouteAnnotation {
 
-    private ParameterNameDiscoverer parameterNameDiscoverer = new DefaultParameterNameDiscoverer();
-    private Map<Method, InnerBean>  expressionCache         = new HashMap<Method, InnerBean>();
+    private ParameterNameDiscoverer parameterNameDiscoverer           = new DefaultParameterNameDiscoverer();
+    private static boolean          notSupportParameterNameDiscoverer = false;
+
+    private Map<Method, InnerBean>  expressionCache                   = new HashMap<Method, InnerBean>();
 
     @Around("@annotation(shardRoute)")
     public Object around(ProceedingJoinPoint joinPoint, ShardRoute shardRoute) throws Throwable {
@@ -81,7 +83,7 @@ public class EnableShardRouteAnnotation {
                             if (sdValue != null) {
                                 expression0 = parser.parseExpression(sdValue, PARSER_CONTEXT);
                             }
-                            String[] paramNames = parameterNameDiscoverer.getParameterNames(method);
+                            String[] paramNames = getParameterNames(method);
                             val = calculate(expression0, paramNames, args);
                             InnerBean innerBean1 = new InnerBean(paramNames, expression0);
                             innerBean1.getExpression();//
@@ -109,6 +111,23 @@ public class EnableShardRouteAnnotation {
                 ShardRouteContext.popSubContext();
             } else {
                 ShardRouteContext.clear();
+            }
+        }
+    }
+
+    /**
+     * DefaultParameterNameDiscoverer is supported spring 4.0
+     * @return
+     */
+    private String[] getParameterNames(Method method) {
+        if (notSupportParameterNameDiscoverer) {
+            return null;
+        } else {
+            try {
+                return parameterNameDiscoverer.getParameterNames(method);
+            } catch (NoClassDefFoundError e) {
+                notSupportParameterNameDiscoverer = true;
+                return null;
             }
         }
     }
