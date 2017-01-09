@@ -312,8 +312,9 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
         //
         private volatile ConnectionResult       connectionResult;
 
-        private volatile ConnectionPropertyBean prop = new ConnectionPropertyBean();
-        private volatile InvocationTag          tag  = new InvocationTag();
+        private volatile ConnectionPropertyBean prop          = new ConnectionPropertyBean();
+        private volatile InvocationTag          tag           = new InvocationTag();
+        private volatile boolean                terminalState = false;
 
         private boolean isReadOnly0() {
             return prop.isReadOnly();
@@ -338,7 +339,8 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
         }
 
         private ConnectionResult getConnection0(DataSourceParam param) throws SQLException {
-            if (this.connectionResult == null || this.connectionResult.getConnection().getAutoCommit()) {
+            if (this.connectionResult == null || this.connectionResult.getConnection().getAutoCommit()
+                || this.terminalState) {
                 if (this.connectionResult != null && this.connectionResult.getConnection() != null) {
                     try {
                         this.connectionResult.getConnection().close();
@@ -373,6 +375,7 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
                     connection.setCatalog(prop.getCatalog());
                 }
                 this.connectionResult = connectionResult;
+                this.terminalState = false;
             }
             return connectionResult;
         }
@@ -834,16 +837,9 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
         public synchronized void commit() throws SQLException {
             if (connectionResult != null) {
                 connectionResult.getConnection().commit();
-                try {
-                    connectionResult.getConnection().close();
-                } catch (Exception e) {
-                    if (logger.isWarnEnabled()) {
-                        logger.warn("closeConnection", e);
-                    }
-                }
-                connectionResult = null;
+                this.terminalState = true;
             } else {
-                throw new UninitializedStatusException("Can't invoke 'commit()' before connection is initialized");
+                // ignore
             }
         }
 
@@ -852,6 +848,7 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
             Connection connection = getConnection1();
             if (connection != null) {
                 connection.rollback();
+                this.terminalState = true;
             } else {
                 // ignore
             }
@@ -862,7 +859,7 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
         public synchronized void close() throws SQLException {
             if (connectionResult != null) {
                 connectionResult.getConnection().close();
-                connectionResult = null;
+                this.terminalState = true;
             } else {
                 // ignore
             }

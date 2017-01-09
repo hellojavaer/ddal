@@ -117,7 +117,7 @@ public class SimpleShardRouteRule implements Serializable {
 
     public Object parseScRoute(String scName, Object sdValue) {
         if (scRouteExpression == null) {
-            return null;
+            return sdValue;
         } else {
             EvaluationContext context = buildEvaluationContext(scRoute);
             context.setVariable("scName", scName);
@@ -140,7 +140,7 @@ public class SimpleShardRouteRule implements Serializable {
 
     public Object parseTbRoute(String tbName, Object sdValue) {
         if (tbRouteExpression == null) {
-            return null;
+            return sdValue;
         } else {
             EvaluationContext context = buildEvaluationContext(tbRoute);
             context.setVariable("tbName", tbName);
