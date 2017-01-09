@@ -618,7 +618,7 @@ public abstract class DDRStatementImpl implements DDRStatement {
         if (statement != null) {
             statement.cancel();
         } else {// TODO
-            //
+           // ignore;
         }
     }
 
