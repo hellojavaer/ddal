@@ -619,7 +619,7 @@ public abstract class DDRPreparedStatementImpl extends DDRStatementImpl implemen
 
     @Override
     public void setNull(int x0, int x1, java.lang.String x2) throws SQLException {
-        jdbcParameter.put(x0, x1);
+        jdbcParameter.put(x0, null);
         if (preparedStatement != null) {
             preparedStatement.setNull(x0, x1, x2);
         } else {
@@ -629,7 +629,7 @@ public abstract class DDRPreparedStatementImpl extends DDRStatementImpl implemen
 
     @Override
     public void setNull(int x0, int x1) throws SQLException {
-        jdbcParameter.put(x0, x1);
+        jdbcParameter.put(x0, null);
         if (preparedStatement != null) {
             preparedStatement.setNull(x0, x1);
         } else {

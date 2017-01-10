@@ -15,13 +15,13 @@
  */
 package org.hellojavaer.ddal.ddr.shard.simple;
 
+import org.hellojavaer.ddal.ddr.expression.el.function.ELFunctionManager;
 import org.hellojavaer.ddal.ddr.expression.format.FormatExpression;
 import org.hellojavaer.ddal.ddr.expression.format.FormatExpressionContext;
 import org.hellojavaer.ddal.ddr.expression.format.simple.SimpleFormatExpressionContext;
 import org.hellojavaer.ddal.ddr.expression.format.simple.SimpleFormatExpressionParser;
 import org.hellojavaer.ddal.ddr.shard.ShardRouteContext;
 import org.hellojavaer.ddal.ddr.shard.exception.ValueNotFoundException;
-import org.hellojavaer.ddal.ddr.expression.el.functionkit.ELFunctionKitManager;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
@@ -30,9 +30,7 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 
 import java.io.Serializable;
-import java.lang.reflect.Method;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -219,21 +217,21 @@ public class SimpleShardRouteRule implements Serializable {
                                                                  + expression + "'");
                     }
                 } else {
-                    val = ShardRouteContext.getParameter(name);
+                    val = ELFunctionManager.getRegisteredFunction(name);
                     if (val == null) {
-                        throw new ValueNotFoundException(
-                                                         "Target value was not found for key '"
-                                                                 + name
-                                                                 + "' in user parameter context when parsing routing expression. Expression is '"
-                                                                 + expression + "'");
+                        val = ShardRouteContext.getParameter(name);
+                        if (val == null) {
+                            throw new ValueNotFoundException(
+                                                             "Target value was not found for key '"
+                                                                     + name
+                                                                     + "' in user parameter context when parsing routing expression. Expression is '"
+                                                                     + expression + "'");
+                        }
                     }
                 }
                 return val;
             }
         };
-        for (Map.Entry<String, Method> entry : ELFunctionKitManager.getRegisteredFunctions()) {
-            context.registerFunction(entry.getKey(), entry.getValue());
-        }
         return context;
     }
 

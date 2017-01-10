@@ -338,11 +338,13 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
         }
 
         private void closeConnection0(Connection connection) {
-            try {
-                connection.close();
-            } catch (Exception e) {
-                if (logger.isWarnEnabled()) {
-                    logger.warn("[closeConnection]", e);
+            if (connection != null) {
+                try {
+                    connection.close();
+                } catch (Exception e) {
+                    if (logger.isWarnEnabled()) {
+                        logger.warn("[closeConnection]", e);
+                    }
                 }
             }
         }
@@ -860,7 +862,6 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
         public synchronized void close() throws SQLException {
             if (connectionResult != null) {
                 connectionResult.getConnection().close();
-                closeConnection0(connectionResult.getConnection());
                 connectionResult = null;
             } else {
                 // ignore

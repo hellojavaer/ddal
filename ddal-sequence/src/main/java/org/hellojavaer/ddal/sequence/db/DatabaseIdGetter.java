@@ -113,23 +113,27 @@ public class DatabaseIdGetter implements IdGetter {
     public DatabaseIdGetter(DataSource dataSource, String scName) {
         this.dataSource = dataSource;
         this.scName = scName;
+        init();
     }
 
     public DatabaseIdGetter(DataSource dataSource, String scName, String tbName) {
         this.dataSource = dataSource;
         this.scName = scName;
         this.tbName = tbName;
+        init();
     }
 
     public DatabaseIdGetter(Connection connection, String scName) {
         this.connection = connection;
         this.scName = scName;
+        init();
     }
 
     public DatabaseIdGetter(Connection connection, String scName, String tbName) {
         this.connection = connection;
         this.scName = scName;
         this.tbName = tbName;
+        init();
     }
 
     protected String getSelectSqlTemplate() {

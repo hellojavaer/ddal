@@ -50,6 +50,7 @@ public class DefaultSequence implements Sequence {
         this.cacheNSteps = cacheNSteps;
         this.timeout = timeout;
         this.idGetter = idGetter;
+        init();
     }
 
     public void init() {

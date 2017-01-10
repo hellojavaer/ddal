@@ -13,31 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddal.ddr.expression.el.functionkit;
+package org.hellojavaer.ddal.ddr.expression.el.function;
+
+import org.hellojavaer.ddal.ddr.utils.DDRStringUtils;
 
 import java.lang.reflect.Method;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 14/12/2016.
  */
-public class ELFunctionKitManager {
+public class ELFunctionManager {
 
-    private static Map<String, Method> map = new HashMap<String, Method>();
+    private static Map<String, Method> map = new ConcurrentHashMap<String, Method>(128);
+
+    static {
+        Method[] methods = MathFunction.class.getDeclaredMethods();
+        for (Method method : methods) {
+            ELFunctionManager.registerFunction(method.getName(), method);
+        }
+    }
 
     public static void registerFunction(String functionName, Method method) {
-        functionName = functionName.trim();
-        if (functionName.length() == 0) {
+        functionName = DDRStringUtils.trim(functionName);
+        if (functionName == null) {
             throw new IllegalArgumentException("function name can't be empty");
         }
-        if (map.containsKey(functionName)) {
-            throw new IllegalArgumentException("function mame '" + functionName + "' already exist");
-        } else {
-            map.put(functionName, method);
-        }
+        map.put(functionName, method);
     }
 
     public static Method unregisterFunction(String functionName) {
@@ -48,8 +53,15 @@ public class ELFunctionKitManager {
         return map.remove(functionName);
     }
 
+    public static Method getRegisteredFunction(String name) {
+        return map.get(name);
+    }
+
     public static Set<Map.Entry<String, Method>> getRegisteredFunctions() {
         return map.entrySet();
     }
 
+    public static void reset() {
+        map.clear();
+    }
 }
