@@ -16,7 +16,7 @@
 package org.hellojavaer.ddal.ddr.shard.simple;
 
 import org.hellojavaer.ddal.ddr.datasource.jdbc.SQLParsedResult;
-import org.hellojavaer.ddal.ddr.sqlparse.SqlParser;
+import org.hellojavaer.ddal.ddr.sqlparse.SQLParser;
 import org.hellojavaer.ddal.ddr.shard.ShardParser;
 import org.hellojavaer.ddal.ddr.shard.ShardRouter;
 
@@ -29,7 +29,7 @@ import java.util.Map;
 public class SimpleShardParser implements ShardParser {
 
     private ShardRouter shardRouter = null;
-    private SqlParser   sqlParser   = null;
+    private SQLParser   sqlParser   = null;
 
     public ShardRouter getShardRouter() {
         return shardRouter;
@@ -39,11 +39,11 @@ public class SimpleShardParser implements ShardParser {
         this.shardRouter = shardRouter;
     }
 
-    public SqlParser getSqlParser() {
+    public SQLParser getSqlParser() {
         return sqlParser;
     }
 
-    public void setSqlParser(SqlParser sqlParser) {
+    public void setSqlParser(SQLParser sqlParser) {
         this.sqlParser = sqlParser;
     }
 
