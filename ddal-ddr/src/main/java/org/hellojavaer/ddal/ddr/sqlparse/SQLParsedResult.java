@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddal.ddr.datasource.jdbc;
+package org.hellojavaer.ddal.ddr.sqlparse;
 
 import org.hellojavaer.ddal.ddr.datasource.exception.CrossingPreparedStatementException;
 

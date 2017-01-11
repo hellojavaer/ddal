@@ -15,7 +15,7 @@
  */
 package org.hellojavaer.ddal.ddr.shard;
 
-import org.hellojavaer.ddal.ddr.datasource.jdbc.SQLParsedResult;
+import org.hellojavaer.ddal.ddr.sqlparse.SQLParsedResult;
 
 import java.util.Map;
 

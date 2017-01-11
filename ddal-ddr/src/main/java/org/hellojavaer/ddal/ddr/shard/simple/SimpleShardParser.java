@@ -15,7 +15,7 @@
  */
 package org.hellojavaer.ddal.ddr.shard.simple;
 
-import org.hellojavaer.ddal.ddr.datasource.jdbc.SQLParsedResult;
+import org.hellojavaer.ddal.ddr.sqlparse.SQLParsedResult;
 import org.hellojavaer.ddal.ddr.shard.ShardParser;
 import org.hellojavaer.ddal.ddr.shard.ShardRouter;
 import org.hellojavaer.ddal.ddr.sqlparse.SQLParsedState;

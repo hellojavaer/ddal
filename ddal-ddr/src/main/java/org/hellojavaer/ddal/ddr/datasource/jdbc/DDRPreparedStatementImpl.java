@@ -20,6 +20,7 @@ import org.hellojavaer.ddal.ddr.datasource.exception.CrossingDataSourceException
 import org.hellojavaer.ddal.ddr.datasource.exception.DDRDataSourceException;
 import org.hellojavaer.ddal.ddr.datasource.exception.UninitializedStatusException;
 import org.hellojavaer.ddal.ddr.datasource.exception.UnsupportedPreparedStatementInvocationException;
+import org.hellojavaer.ddal.ddr.sqlparse.SQLParsedResult;
 import org.hellojavaer.ddal.ddr.utils.DDRJSONUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +43,7 @@ public abstract class DDRPreparedStatementImpl extends DDRStatementImpl implemen
     private Map<Object, Object>         jdbcParameter           = new HashMap<Object, Object>();
     private List<JdbcParamInvocation>   jdbcParamInvocationList = null;
 
-    private SQLParsedResult.ParserState parserState             = null;
+    private SQLParsedResult.ParserState parserState = null;
 
     public DDRPreparedStatementImpl(String sql, boolean readOnly, Set<String> schemas) {
         super(readOnly, schemas);

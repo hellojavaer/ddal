@@ -20,6 +20,7 @@ import org.hellojavaer.ddal.ddr.datasource.exception.UninitializedStatusExceptio
 import org.hellojavaer.ddal.ddr.datasource.jdbc.init.UninitializedStatementProcessor;
 import org.hellojavaer.ddal.ddr.datasource.manager.DataSourceParam;
 import org.hellojavaer.ddal.ddr.datasource.jdbc.property.StatementProperty;
+import org.hellojavaer.ddal.ddr.sqlparse.SQLParsedResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

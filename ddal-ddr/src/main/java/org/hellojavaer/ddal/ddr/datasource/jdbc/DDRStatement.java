@@ -16,6 +16,7 @@
 package org.hellojavaer.ddal.ddr.datasource.jdbc;
 
 import org.hellojavaer.ddal.ddr.datasource.manager.DataSourceParam;
+import org.hellojavaer.ddal.ddr.sqlparse.SQLParsedResult;
 
 import java.sql.SQLException;
 import java.sql.Statement;
