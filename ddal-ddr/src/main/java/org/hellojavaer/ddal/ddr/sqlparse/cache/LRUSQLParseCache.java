@@ -27,10 +27,9 @@ import org.hellojavaer.ddal.ddr.sqlparse.SQLParser;
  */
 public class LRUSQLParseCache implements SQLParseCache {
 
-    /** TODO key */
-    private volatile ConcurrentLinkedHashMap<String, SQLParsedState> cache;
-    private Integer                                                  capacity;
-    private SQLParser                                                sqlParser;
+    private volatile ConcurrentLinkedHashMap<InnerQueryKey, SQLParsedState> cache;
+    private Integer                                                         capacity;
+    private SQLParser                                                       sqlParser;
 
     public LRUSQLParseCache() {
     }
@@ -47,10 +46,11 @@ public class LRUSQLParseCache implements SQLParseCache {
     @Override
     public SQLParsedState parse(String sql, ShardRouter shardRouter) {
         init();
-        SQLParsedState result = cache.get(sql);
+        InnerQueryKey queryKey = new InnerQueryKey(sql, shardRouter);
+        SQLParsedState result = cache.get(queryKey);
         if (result == null) {
             result = sqlParser.parse(sql, shardRouter);
-            cache.put(sql, result);
+            cache.put(queryKey, result);
         }
         return result;
     }
@@ -59,7 +59,7 @@ public class LRUSQLParseCache implements SQLParseCache {
         if (cache == null) {
             synchronized (this) {
                 if (cache == null) {
-                    cache = new ConcurrentLinkedHashMap.Builder<String, SQLParsedState>().maximumWeightedCapacity(capacity).weigher(Weighers.singleton()).build();
+                    cache = new ConcurrentLinkedHashMap.Builder<InnerQueryKey, SQLParsedState>().maximumWeightedCapacity(capacity).weigher(Weighers.singleton()).build();
                 }
             }
         }
@@ -79,5 +79,57 @@ public class LRUSQLParseCache implements SQLParseCache {
 
     public void setSqlParser(SQLParser sqlParser) {
         this.sqlParser = sqlParser;
+    }
+
+    private class InnerQueryKey {
+
+        private String      sql;
+        private ShardRouter shardRouter;
+
+        public InnerQueryKey(String sql, ShardRouter shardRouter) {
+            this.sql = sql;
+            this.shardRouter = shardRouter;
+        }
+
+        @Override
+        public int hashCode() {
+            return sql.hashCode() + shardRouter.hashCode();
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == null) {
+                return false;
+            }
+            if (obj instanceof InnerQueryKey) {
+                InnerQueryKey tar = (InnerQueryKey) obj;
+                if ((sql == null && tar.getSql() == null || sql != null && sql.equals(tar.getSql())) && //
+                    (shardRouter == null && tar.getShardRouter() == null || shardRouter != null
+                                                                            && shardRouter.equals(tar.getShardRouter())) //
+                ) {
+                    return true;
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        }
+
+        public String getSql() {
+            return sql;
+        }
+
+        public void setSql(String sql) {
+            this.sql = sql;
+        }
+
+        public ShardRouter getShardRouter() {
+            return shardRouter;
+        }
+
+        public void setShardRouter(ShardRouter shardRouter) {
+            this.shardRouter = shardRouter;
+        }
     }
 }
