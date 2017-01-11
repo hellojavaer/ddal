@@ -16,9 +16,10 @@
 package org.hellojavaer.ddal.ddr.shard.simple;
 
 import org.hellojavaer.ddal.ddr.datasource.jdbc.SQLParsedResult;
-import org.hellojavaer.ddal.ddr.sqlparse.SQLParser;
 import org.hellojavaer.ddal.ddr.shard.ShardParser;
 import org.hellojavaer.ddal.ddr.shard.ShardRouter;
+import org.hellojavaer.ddal.ddr.sqlparse.SQLParsedState;
+import org.hellojavaer.ddal.ddr.sqlparse.SQLParser;
 
 import java.util.Map;
 
@@ -49,6 +50,7 @@ public class SimpleShardParser implements ShardParser {
 
     @Override
     public SQLParsedResult parse(String sql, Map<Object, Object> jdbcParams) {
-        return sqlParser.parse(sql, jdbcParams, shardRouter);
+        SQLParsedState sqlParsedState = sqlParser.parse(sql, shardRouter);
+        return sqlParsedState.parse(jdbcParams);
     }
 }

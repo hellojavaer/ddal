@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2017-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddal.ddr.sqlparse;
+package org.hellojavaer.ddal.ddr.sqlparse.cache;
 
-import org.hellojavaer.ddal.ddr.shard.ShardRouter;
+import org.hellojavaer.ddal.ddr.sqlparse.SQLParser;
 
 /**
  *
- * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 30/11/2016.
+ * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 11/01/2017.
  */
-public interface SQLParser {
-
-    SQLParsedState parse(String sql, ShardRouter shardRouter);
+public interface SQLParseCache extends SQLParser {
 
 }
