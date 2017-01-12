@@ -16,7 +16,6 @@
 package org.hellojavaer.ddal.ddr.shard.annotation;
 
 import org.hellojavaer.ddal.ddr.shard.enums.ContextPropagation;
-import org.hellojavaer.ddal.ddr.shard.enums.DisableSqlRouting;
 
 import java.lang.annotation.*;
 
@@ -34,7 +33,5 @@ public @interface ShardRoute {
     String sdKey() default "";
 
     String sdValue() default "";
-
-    DisableSqlRouting disableSqlRouting() default DisableSqlRouting.INHERITED;
 
 }

@@ -22,7 +22,6 @@ import org.aspectj.lang.reflect.MethodSignature;
 import org.hellojavaer.ddal.ddr.shard.ShardRouteContext;
 import org.hellojavaer.ddal.ddr.shard.annotation.ShardRoute;
 import org.hellojavaer.ddal.ddr.shard.enums.ContextPropagation;
-import org.hellojavaer.ddal.ddr.shard.enums.DisableSqlRouting;
 import org.hellojavaer.ddal.ddr.utils.DDRStringUtils;
 import org.springframework.core.DefaultParameterNameDiscoverer;
 import org.springframework.core.ParameterNameDiscoverer;
@@ -59,11 +58,6 @@ public class EnableShardRouteAnnotation {
                 ShardRouteContext.pushSubContext();
             } else {
                 ShardRouteContext.clear();
-            }
-            if (shardRoute.disableSqlRouting() == DisableSqlRouting.TRUE) {
-                ShardRouteContext.setDisableSqlRouting(Boolean.TRUE);
-            } else if (shardRoute.disableSqlRouting() == DisableSqlRouting.FALSE) {
-                ShardRouteContext.setDisableSqlRouting(Boolean.FALSE);
             }
             if (shardRoute.sdKey() != null && shardRoute.sdKey().length() > 0 //
                 && shardRoute.sdValue() != null && shardRoute.sdValue().length() > 0) {// 禁止对系统变量路由

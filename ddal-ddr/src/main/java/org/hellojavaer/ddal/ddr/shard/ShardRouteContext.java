@@ -47,20 +47,6 @@ public class ShardRouteContext {
         }
     }
 
-    public static void setDisableSqlRouting(Boolean disableSqlRoute) {
-        getCurContext().setDisableSqlRouting(disableSqlRoute);
-    }
-
-    public static Boolean isDisableSqlRouting() {
-        for (SubContext context : STACK.get()) {
-            Boolean disableSqlRoute = context.getDisableSqlRouting();
-            if (disableSqlRoute != null) {
-                return disableSqlRoute;
-            }
-        }
-        return null;
-    }
-
     /**
      * 
      * @param key
@@ -272,17 +258,8 @@ public class ShardRouteContext {
 
     private static class SubContext {
 
-        private Boolean                          disableSqlRouting;
         private Map<String, Object>              varContext   = new HashMap<>();
         private Map<String, Map<String, Object>> routeContext = new HashMap<String, Map<String, Object>>();
-
-        public Boolean getDisableSqlRouting() {
-            return disableSqlRouting;
-        }
-
-        public void setDisableSqlRouting(Boolean disableSqlRouting) {
-            this.disableSqlRouting = disableSqlRouting;
-        }
 
         public Map<String, Map<String, Object>> getRouteContext() {
             return routeContext;
