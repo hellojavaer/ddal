@@ -20,7 +20,6 @@ import org.hellojavaer.ddal.ddr.expression.format.FormatExpression;
 import org.hellojavaer.ddal.ddr.expression.format.FormatExpressionContext;
 import org.hellojavaer.ddal.ddr.expression.format.simple.SimpleFormatExpressionContext;
 import org.hellojavaer.ddal.ddr.expression.format.simple.SimpleFormatExpressionParser;
-import org.hellojavaer.ddal.ddr.shard.ShardRouteContext;
 import org.hellojavaer.ddal.ddr.shard.exception.ValueNotFoundException;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
@@ -183,8 +182,8 @@ public class SimpleShardRouteRule implements Serializable {
         RESERVED_WORDS.add("sdName");
         RESERVED_WORDS.add("sdKey");
         RESERVED_WORDS.add("sdValue");
-        RESERVED_WORDS.add("sbRoute");
-        RESERVED_WORDS.add("sbFormat");
+        RESERVED_WORDS.add("sdRoute");
+        RESERVED_WORDS.add("sdFormat");
 
         RESERVED_WORDS.add("col");
         RESERVED_WORDS.add("colName");
@@ -201,6 +200,12 @@ public class SimpleShardRouteRule implements Serializable {
         }
     }
 
+    /**
+     * load order
+     * 1.reserved words
+     * 2.function
+     * 3.user-define var
+     */
     private static EvaluationContext buildEvaluationContext(final String expression) {
         StandardEvaluationContext context = new StandardEvaluationContext() {
 
@@ -218,16 +223,7 @@ public class SimpleShardRouteRule implements Serializable {
                     }
                 } else {
                     val = ELFunctionManager.getRegisteredFunction(name);
-                    if (val == null) {
-                        val = ShardRouteContext.getParameter(name);
-                        if (val == null) {
-                            throw new ValueNotFoundException(
-                                                             "Target value was not found for key '"
-                                                                     + name
-                                                                     + "' in user parameter context when parsing routing expression. Expression is '"
-                                                                     + expression + "'");
-                        }
-                    }
+                    // TODO: user-define var
                 }
                 return val;
             }

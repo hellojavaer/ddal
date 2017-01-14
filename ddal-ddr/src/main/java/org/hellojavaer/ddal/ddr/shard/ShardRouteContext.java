@@ -47,37 +47,40 @@ public class ShardRouteContext {
         }
     }
 
-    /**
-     * 
-     * @param key
-     * @param val
-     */
-    public static void setParameter(String key, Object val) {
-        if (val == null) {
-            val = NULL_OBJECT;
+    public static void setDefaultRouteInfo(String scName, Object value) {
+        scName = DDRStringUtils.toLowerCase(scName);
+        if (scName == null) {
+            throw new IllegalArgumentException("'scName' can't be empty");
         }
-        getCurContext().getVarContext().put(key, val);
+        if (value == null) {
+            value = NULL_OBJECT;
+        }
+        getCurContext().getDefaultRouteContext().put(scName, value);
     }
 
-    public static Object getParameter(String key) {
+    public static Object getDefaultRouteInfo(String scName) {
+        scName = DDRStringUtils.toLowerCase(scName);
         for (SubContext context : STACK.get()) {
-            Map<String, Object> varContext = context.getVarContext();
-            Object val = varContext.get(key);
+            Map<String, Object> defaultRouteContext = context.getDefaultRouteContext();
+            Object val = defaultRouteContext.get(scName);
             if (val == null) {
                 continue;
-            } else if (val == NULL_OBJECT) {
-                return null;
             } else {
-                return val;
+                if (val == NULL_OBJECT) {
+                    return null;
+                } else {
+                    return val;
+                }
             }
         }
         return null;
     }
 
-    public static boolean containsParameter(String key) {
+    public static boolean containsDefaultRouteInfo(String scName) {
+        scName = DDRStringUtils.toLowerCase(scName);
         for (SubContext context : STACK.get()) {
-            Map<String, Object> varContext = context.getVarContext();
-            Object val = varContext.get(key);
+            Map<String, Object> defaultRouteContext = context.getDefaultRouteContext();
+            Object val = defaultRouteContext.get(scName);
             if (val == null) {
                 continue;
             } else {
@@ -87,8 +90,9 @@ public class ShardRouteContext {
         return false;
     }
 
-    public static Object removeParameter(String key) {
-        return getCurContext().getVarContext().remove(key);
+    public static Object removeDefaultRouteInfo(String scName) {
+        scName = DDRStringUtils.toLowerCase(scName);
+        return getCurContext().getDefaultRouteContext().remove(scName);
     }
 
     /**
@@ -102,10 +106,10 @@ public class ShardRouteContext {
         scName = DDRStringUtils.toLowerCase(scName);
         tbName = DDRStringUtils.toLowerCase(tbName);
         if (scName == null) {
-            throw new IllegalArgumentException("'scName' can't be null");
+            throw new IllegalArgumentException("'scName' can't be empty");
         }
         if (tbName == null) {
-            throw new IllegalArgumentException("'tbName' can't be null");
+            throw new IllegalArgumentException("'tbName' can't be empty");
         }
         if (value == null) {
             value = NULL_OBJECT;
@@ -147,10 +151,10 @@ public class ShardRouteContext {
         scName = DDRStringUtils.toLowerCase(scName);
         tbName = DDRStringUtils.toLowerCase(tbName);
         if (scName == null) {
-            throw new IllegalArgumentException("'scName' can't be null");
+            throw new IllegalArgumentException("'scName' can't be empty");
         }
         if (tbName == null) {
-            throw new IllegalArgumentException("'tbName' can't be null");
+            throw new IllegalArgumentException("'tbName' can't be empty");
         }
         Map<String, Map<String, Object>> map = getCurContext().getRouteContext();
         // level 1
@@ -166,7 +170,7 @@ public class ShardRouteContext {
         scName = DDRStringUtils.toLowerCase(scName);
         tbName = DDRStringUtils.toLowerCase(tbName);
         if (tbName == null) {
-            throw new IllegalArgumentException("'tbName' can't be null");
+            throw new IllegalArgumentException("'tbName' can't be empty");
         }
         for (SubContext context : STACK.get()) {
             Map<String, Map<String, Object>> map = context.getRouteContext();
@@ -186,14 +190,15 @@ public class ShardRouteContext {
                 }
             }
         }
-        return null;
+        // if null try to get default
+        return getDefaultRouteInfo(scName);
     }
 
     public static boolean containsRouteInfo(String scName, String tbName) {
         scName = DDRStringUtils.toLowerCase(scName);
         tbName = DDRStringUtils.toLowerCase(tbName);
         if (tbName == null) {
-            throw new IllegalArgumentException("'tbName' can't be null");
+            throw new IllegalArgumentException("'tbName' can't be empty");
         }
         for (SubContext context : STACK.get()) {
             Map<String, Map<String, Object>> map = context.getRouteContext();
@@ -205,7 +210,8 @@ public class ShardRouteContext {
                 return true;
             }
         }
-        return false;
+        // if false try to get default
+        return containsDefaultRouteInfo(scName);
     }
 
     private static String buildQueryKey(String scName, String tbName) {
@@ -258,8 +264,8 @@ public class ShardRouteContext {
 
     private static class SubContext {
 
-        private Map<String, Object>              varContext   = new HashMap<>();
-        private Map<String, Map<String, Object>> routeContext = new HashMap<String, Map<String, Object>>();
+        private Map<String, Object>              defaultRouteContext = new HashMap<>();
+        private Map<String, Map<String, Object>> routeContext        = new HashMap<String, Map<String, Object>>();
 
         public Map<String, Map<String, Object>> getRouteContext() {
             return routeContext;
@@ -269,12 +275,12 @@ public class ShardRouteContext {
             this.routeContext = routeContext;
         }
 
-        public Map<String, Object> getVarContext() {
-            return varContext;
+        public Map<String, Object> getDefaultRouteContext() {
+            return defaultRouteContext;
         }
 
-        public void setVarContext(Map<String, Object> varContext) {
-            this.varContext = varContext;
+        public void setDefaultRouteContext(Map<String, Object> defaultRouteContext) {
+            this.defaultRouteContext = defaultRouteContext;
         }
     }
 

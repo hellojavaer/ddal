@@ -28,9 +28,9 @@ import java.lang.annotation.*;
 @Documented
 public @interface ShardRoute {
 
-    ContextPropagation value() default ContextPropagation.NEW_CONTEXT;
+    ContextPropagation value() default ContextPropagation.RESET_CONTEXT;
 
-    String sdKey() default "";
+    String scName() default "";
 
     String sdValue() default "";
 

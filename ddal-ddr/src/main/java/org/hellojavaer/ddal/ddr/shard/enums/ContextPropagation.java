@@ -19,8 +19,8 @@ package org.hellojavaer.ddal.ddr.shard.enums;
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 01/01/2017.
  */
-public enum  ContextPropagation {
+public enum ContextPropagation {
 
-    NEW_CONTEXT, SUB_CONTEXT;
+    RESET_CONTEXT, SUB_CONTEXT;
 
 }

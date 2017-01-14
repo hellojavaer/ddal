@@ -59,7 +59,7 @@ public class EnableShardRouteAnnotation {
             } else {
                 ShardRouteContext.clear();
             }
-            if (shardRoute.sdKey() != null && shardRoute.sdKey().length() > 0 //
+            if (shardRoute.scName() != null && shardRoute.scName().length() > 0 //
                 && shardRoute.sdValue() != null && shardRoute.sdValue().length() > 0) {// 禁止对系统变量路由
                 MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
                 Method method = methodSignature.getMethod();
@@ -89,14 +89,14 @@ public class EnableShardRouteAnnotation {
                 } else {
                     val = calculate(innerBean.getExpression(), innerBean.getParameterNames(), args);
                 }
-                ShardRouteContext.setParameter(shardRoute.sdKey(), val);
+                ShardRouteContext.setDefaultRouteInfo(shardRoute.scName(), val);
             } else {
-                if ((shardRoute.sdKey() == null || shardRoute.sdKey().length() == 0)
+                if ((shardRoute.scName() == null || shardRoute.scName().length() == 0)
                     && (shardRoute.sdValue() == null || shardRoute.sdValue().length() == 0)) {
                     // ok
                 } else {
                     throw new IllegalArgumentException(
-                                                       "sdKey and sdValue should either both have a non-empty value or both have a empty value");
+                                                       "scName and sdValue should either both have a non-empty value or both have a empty value");
                 }
             }
             return joinPoint.proceed(joinPoint.getArgs());
