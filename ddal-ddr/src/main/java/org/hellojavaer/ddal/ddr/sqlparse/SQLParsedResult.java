@@ -28,7 +28,6 @@ public class SQLParsedResult {
 
     private String      sql;
     private Set<String> schemas;
-    private ParserState parserState;
 
     public String getSql() {
         return sql;
@@ -46,16 +45,8 @@ public class SQLParsedResult {
         this.schemas = schemas;
     }
 
-    public ParserState getParserState() {
-        return parserState;
+    public void checkIfCrossPreparedStatement(Map<Object, Object> jdbcParam) throws CrossingPreparedStatementException {
+
     }
 
-    public void setParserState(ParserState parserState) {
-        this.parserState = parserState;
-    }
-
-    public interface ParserState {
-
-        void validJdbcParam(Map<Object, Object> jdbcParam) throws CrossingPreparedStatementException;
-    }
 }

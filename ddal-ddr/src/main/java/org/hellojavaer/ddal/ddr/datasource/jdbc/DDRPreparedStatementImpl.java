@@ -15,11 +15,10 @@
  */
 package org.hellojavaer.ddal.ddr.datasource.jdbc;
 
-import org.hellojavaer.ddal.ddr.datasource.manager.DataSourceParam;
 import org.hellojavaer.ddal.ddr.datasource.exception.CrossingDataSourceException;
-import org.hellojavaer.ddal.ddr.datasource.exception.DDRDataSourceException;
 import org.hellojavaer.ddal.ddr.datasource.exception.UninitializedStatusException;
 import org.hellojavaer.ddal.ddr.datasource.exception.UnsupportedPreparedStatementInvocationException;
+import org.hellojavaer.ddal.ddr.datasource.manager.DataSourceParam;
 import org.hellojavaer.ddal.ddr.sqlparse.SQLParsedResult;
 import org.hellojavaer.ddal.ddr.utils.DDRJSONUtils;
 import org.slf4j.Logger;
@@ -36,14 +35,14 @@ import java.util.*;
  */
 public abstract class DDRPreparedStatementImpl extends DDRStatementImpl implements DDRPreparedStatement {
 
-    private Logger                      stdLogger               = LoggerFactory.getLogger("org.hellojavaer.ddr.sql");
+    private Logger                    stdLogger               = LoggerFactory.getLogger("org.hellojavaer.ddr.sql");
 
-    private String                      sql                     = null;
-    protected PreparedStatement         preparedStatement       = null;
-    private Map<Object, Object>         jdbcParameter           = new HashMap<Object, Object>();
-    private List<JdbcParamInvocation>   jdbcParamInvocationList = null;
+    private String                    sql                     = null;
+    protected PreparedStatement       preparedStatement       = null;
+    private Map<Object, Object>       jdbcParameter           = new HashMap<Object, Object>();
+    private List<JdbcParamInvocation> jdbcParamInvocationList = null;
 
-    private SQLParsedResult.ParserState parserState = null;
+    private SQLParsedResult           sqlParsedResult         = null;
 
     public DDRPreparedStatementImpl(String sql, boolean readOnly, Set<String> schemas) {
         super(readOnly, schemas);
@@ -195,10 +194,7 @@ public abstract class DDRPreparedStatementImpl extends DDRStatementImpl implemen
                     stdLogger.trace("[JdbcParameter] " + DDRJSONUtils.toJSONString(jdbcParameter));
                 }
             }
-            parserState = parsedResult.getParserState();
-            if (parserState == null) {
-                throw new DDRDataSourceException("parserState can't be null");
-            }
+            this.sqlParsedResult = parsedResult;
             // 2. check if crossing datasource
             if (isCrossDataSource(parsedResult.getSchemas())) {
                 throw new CrossingDataSourceException("Current sql is using schemas:"
@@ -219,7 +215,7 @@ public abstract class DDRPreparedStatementImpl extends DDRStatementImpl implemen
             super.playbackInvocation(statement);
             playbackSetJdbcParamInvocation(preparedStatement, jdbcParamInvocationList);
         } else {// 同一个preparedStatement 以第一次成功创建preparedStatement为限制;
-            parserState.validJdbcParam(this.jdbcParameter);
+            this.sqlParsedResult.checkIfCrossPreparedStatement(this.jdbcParameter);
         }
     }
 
