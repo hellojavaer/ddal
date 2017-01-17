@@ -15,8 +15,6 @@
  */
 package org.hellojavaer.ddal.ddr.shard;
 
-import org.hellojavaer.ddal.ddr.utils.DDRToStringBuilder;
-
 /**
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 15/11/2016.
@@ -52,6 +50,10 @@ public class RouteInfo {
 
     @Override
     public String toString() {
-        return new DDRToStringBuilder().append("scName", scName).append("tbName", tbName).toString();
+        if (scName == null) {
+            return tbName;
+        } else {
+            return new StringBuilder().append(scName).append('.').append(tbName).toString();
+        }
     }
 }
