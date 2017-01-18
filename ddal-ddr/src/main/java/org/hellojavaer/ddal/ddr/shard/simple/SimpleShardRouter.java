@@ -200,12 +200,23 @@ public class SimpleShardRouter implements ShardRouter {
     }
 
     private RouteInfo getRouteInfo(SimpleShardRouteRule rule, String scName, String tbName, Object sdValue) {
-        if (rule == null) {// 如果没有rule,参数sdKey 和 sdValue都无效
+        if (rule == null) {// 未配置rule,参数sdKey 和 sdValue都无效
             RouteInfo info = new RouteInfo();
             info.setScName(scName);
             info.setTbName(tbName);
             return info;
-        } else {
+        } else {// 配置了rule
+            if (sdValue == null) {
+                Object obj = ShardRouteContext.getRouteInfo(scName, tbName);
+                if (obj != null) {
+                    if (obj instanceof RouteInfo) {
+                        return (RouteInfo) obj;
+                    } else {
+                        return getRouteInfo(rule, scName, tbName, obj);
+                    }
+                }
+            }
+            //
             RouteInfo info = new RouteInfo();
             // throws exception
             Object scRoute = rule.parseScRoute(scName, sdValue);
