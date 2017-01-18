@@ -310,7 +310,6 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
             }
         }
 
-        //
         private volatile ConnectionResult       connectionResult;
 
         private volatile ConnectionPropertyBean prop = new ConnectionPropertyBean();
@@ -394,11 +393,12 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
                 }
 
                 @Override
-                public synchronized StatementWrapper getStatement(DataSourceParam param, String sql)
-                                                                                                    throws SQLException {
-                    ConnectionResult connectionResult = getConnection0(param);
-                    Statement statement = connectionResult.getConnection().createStatement();
-                    return new StatementWrapper(ConnectionWrapper.this, statement, connectionResult.getSchemas());
+                public StatementWrapper getStatement(DataSourceParam param, String sql) throws SQLException {
+                    synchronized (ConnectionWrapper.this) {
+                        ConnectionResult connectionResult = getConnection0(param);
+                        Statement statement = connectionResult.getConnection().createStatement();
+                        return new StatementWrapper(ConnectionWrapper.this, statement, connectionResult.getSchemas());
+                    }
                 }
             };
         }
@@ -413,11 +413,12 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
                 }
 
                 @Override
-                public synchronized StatementWrapper getStatement(DataSourceParam param, String routedSql)
-                                                                                                          throws SQLException {
-                    ConnectionResult connectionResult = getConnection0(param);
-                    Statement statement = connectionResult.getConnection().prepareStatement(routedSql);
-                    return new StatementWrapper(ConnectionWrapper.this, statement, connectionResult.getSchemas());
+                public StatementWrapper getStatement(DataSourceParam param, String routedSql) throws SQLException {
+                    synchronized (ConnectionWrapper.this) {
+                        ConnectionResult connectionResult = getConnection0(param);
+                        Statement statement = connectionResult.getConnection().prepareStatement(routedSql);
+                        return new StatementWrapper(ConnectionWrapper.this, statement, connectionResult.getSchemas());
+                    }
                 }
             };
         }
@@ -432,12 +433,13 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
                 }
 
                 @Override
-                public synchronized StatementWrapper getStatement(DataSourceParam param, String sql)
-                                                                                                    throws SQLException {
-                    ConnectionResult connectionResult = getConnection0(param);
-                    Statement statement = connectionResult.getConnection().createStatement(resultSetType,
-                                                                                           resultSetConcurrency);
-                    return new StatementWrapper(ConnectionWrapper.this, statement, connectionResult.getSchemas());
+                public StatementWrapper getStatement(DataSourceParam param, String sql) throws SQLException {
+                    synchronized (ConnectionWrapper.this) {
+                        ConnectionResult connectionResult = getConnection0(param);
+                        Statement statement = connectionResult.getConnection().createStatement(resultSetType,
+                                                                                               resultSetConcurrency);
+                        return new StatementWrapper(ConnectionWrapper.this, statement, connectionResult.getSchemas());
+                    }
                 }
             };
         }
@@ -453,12 +455,14 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
                 }
 
                 @Override
-                public synchronized StatementWrapper getStatement(DataSourceParam param, String routedSql)
-                                                                                                          throws SQLException {
-                    ConnectionResult connectionResult = getConnection0(param);
-                    Statement statement = connectionResult.getConnection().prepareStatement(routedSql, resultSetType,
-                                                                                            resultSetConcurrency);
-                    return new StatementWrapper(ConnectionWrapper.this, statement, connectionResult.getSchemas());
+                public StatementWrapper getStatement(DataSourceParam param, String routedSql) throws SQLException {
+                    synchronized (ConnectionWrapper.this) {
+                        ConnectionResult connectionResult = getConnection0(param);
+                        Statement statement = connectionResult.getConnection().prepareStatement(routedSql,
+                                                                                                resultSetType,
+                                                                                                resultSetConcurrency);
+                        return new StatementWrapper(ConnectionWrapper.this, statement, connectionResult.getSchemas());
+                    }
                 }
             };
         }
@@ -474,12 +478,13 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
                 }
 
                 @Override
-                public synchronized StatementWrapper getStatement(DataSourceParam param, String sql)
-                                                                                                    throws SQLException {
-                    ConnectionResult connectionResult = getConnection0(param);
-                    Statement statement = connection.createStatement(resultSetType, resultSetConcurrency,
-                                                                     resultSetHoldability);
-                    return new StatementWrapper(ConnectionWrapper.this, statement, connectionResult.getSchemas());
+                public StatementWrapper getStatement(DataSourceParam param, String sql) throws SQLException {
+                    synchronized (ConnectionWrapper.this) {
+                        ConnectionResult connectionResult = getConnection0(param);
+                        Statement statement = connection.createStatement(resultSetType, resultSetConcurrency,
+                                                                         resultSetHoldability);
+                        return new StatementWrapper(ConnectionWrapper.this, statement, connectionResult.getSchemas());
+                    }
                 }
             };
         }
@@ -495,12 +500,13 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
                 }
 
                 @Override
-                public synchronized StatementWrapper getStatement(DataSourceParam param, String routedSql)
-                                                                                                          throws SQLException {
-                    ConnectionResult connectionResult = getConnection0(param);
-                    Statement statement = connection.prepareStatement(routedSql, resultSetType, resultSetConcurrency,
-                                                                      resultSetHoldability);
-                    return new StatementWrapper(ConnectionWrapper.this, statement, connectionResult.getSchemas());
+                public StatementWrapper getStatement(DataSourceParam param, String routedSql) throws SQLException {
+                    synchronized (ConnectionWrapper.this) {
+                        ConnectionResult connectionResult = getConnection0(param);
+                        Statement statement = connection.prepareStatement(routedSql, resultSetType,
+                                                                          resultSetConcurrency, resultSetHoldability);
+                        return new StatementWrapper(ConnectionWrapper.this, statement, connectionResult.getSchemas());
+                    }
                 }
             };
         }
@@ -515,11 +521,12 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
                 }
 
                 @Override
-                public synchronized StatementWrapper getStatement(DataSourceParam param, String routedSql)
-                                                                                                          throws SQLException {
-                    ConnectionResult connectionResult = getConnection0(param);
-                    Statement statement = connection.prepareStatement(routedSql, autoGeneratedKeys);
-                    return new StatementWrapper(ConnectionWrapper.this, statement, connectionResult.getSchemas());
+                public StatementWrapper getStatement(DataSourceParam param, String routedSql) throws SQLException {
+                    synchronized (ConnectionWrapper.this) {
+                        ConnectionResult connectionResult = getConnection0(param);
+                        Statement statement = connection.prepareStatement(routedSql, autoGeneratedKeys);
+                        return new StatementWrapper(ConnectionWrapper.this, statement, connectionResult.getSchemas());
+                    }
                 }
             };
         }
@@ -534,11 +541,13 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
                 }
 
                 @Override
-                public synchronized StatementWrapper getStatement(DataSourceParam param, String routedSql)
-                                                                                                          throws SQLException {
-                    ConnectionResult connectionResult = getConnection0(param);
-                    Statement statement = connectionResult.getConnection().prepareStatement(routedSql, columnIndexes);
-                    return new StatementWrapper(ConnectionWrapper.this, statement, connectionResult.getSchemas());
+                public StatementWrapper getStatement(DataSourceParam param, String routedSql) throws SQLException {
+                    synchronized (ConnectionWrapper.this) {
+                        ConnectionResult connectionResult = getConnection0(param);
+                        Statement statement = connectionResult.getConnection().prepareStatement(routedSql,
+                                                                                                columnIndexes);
+                        return new StatementWrapper(ConnectionWrapper.this, statement, connectionResult.getSchemas());
+                    }
                 }
             };
         }
@@ -553,11 +562,12 @@ public abstract class AbstractDDRDataSource implements DDRDataSource {
                 }
 
                 @Override
-                public synchronized StatementWrapper getStatement(DataSourceParam param, String routedSql)
-                                                                                                          throws SQLException {
-                    ConnectionResult connectionResult = getConnection0(param);
-                    Statement statement = connectionResult.getConnection().prepareStatement(routedSql, columnNames);
-                    return new StatementWrapper(ConnectionWrapper.this, statement, connectionResult.getSchemas());
+                public StatementWrapper getStatement(DataSourceParam param, String routedSql) throws SQLException {
+                    synchronized (ConnectionWrapper.this) {
+                        ConnectionResult connectionResult = getConnection0(param);
+                        Statement statement = connectionResult.getConnection().prepareStatement(routedSql, columnNames);
+                        return new StatementWrapper(ConnectionWrapper.this, statement, connectionResult.getSchemas());
+                    }
                 }
             };
         }
