@@ -22,6 +22,11 @@ import java.util.*;
 
 /**
  *
+ * 当指定route rule后出现以下情况时会调用ShardRouteContext获取路由信息
+ * 1.未指定sdKey
+ * 2.指定了sdKey,sql中未出现sdKey可路由的表达式
+ * 3.指定了sdkey,sql中出现了sdKey可路由表达式,但参数为jdbc参数,且为空
+ *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 15/11/2016.
  */
 public class ShardRouteContext {
@@ -116,7 +121,7 @@ public class ShardRouteContext {
         }
         Map<String, Map<String, Object>> map = getCurContext().getRouteContext();
         /**
-         * 添加两条查询索引 
+         * 添加两条查询索引
          * schema_name.table_name <-> routeInfo
          * table_name <-> routeInfo
          */
@@ -144,7 +149,7 @@ public class ShardRouteContext {
     }
 
     /**
-     * 
+     *
      * 删除路由信息
      */
     public static void removeRouteInfo(String scName, String tbName) {

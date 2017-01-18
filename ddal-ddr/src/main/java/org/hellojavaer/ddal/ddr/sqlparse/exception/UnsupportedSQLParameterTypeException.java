@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2017-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,25 +19,25 @@ package org.hellojavaer.ddal.ddr.sqlparse.exception;
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 24/12/2016.
  */
-public class UnsupportedColumnTypeException extends DDRSQLParseException {
+public class UnsupportedSQLParameterTypeException extends DDRSQLParseException {
 
-    public UnsupportedColumnTypeException() {
+    public UnsupportedSQLParameterTypeException() {
     }
 
-    public UnsupportedColumnTypeException(String message) {
+    public UnsupportedSQLParameterTypeException(String message) {
         super(message);
     }
 
-    public UnsupportedColumnTypeException(String message, Throwable cause) {
+    public UnsupportedSQLParameterTypeException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public UnsupportedColumnTypeException(Throwable cause) {
+    public UnsupportedSQLParameterTypeException(Throwable cause) {
         super(cause);
     }
 
-    public UnsupportedColumnTypeException(String message, Throwable cause, boolean enableSuppression,
-                                          boolean writableStackTrace) {
+    public UnsupportedSQLParameterTypeException(String message, Throwable cause, boolean enableSuppression,
+                                                boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 }
