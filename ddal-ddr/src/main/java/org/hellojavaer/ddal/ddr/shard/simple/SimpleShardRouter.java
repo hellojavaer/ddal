@@ -20,7 +20,6 @@ import org.hellojavaer.ddal.ddr.expression.range.RangeItemVisitor;
 import org.hellojavaer.ddal.ddr.shard.*;
 import org.hellojavaer.ddal.ddr.shard.exception.AmbiguousRouteRuleBindingException;
 import org.hellojavaer.ddal.ddr.shard.exception.DuplicateRouteRuleBindingException;
-import org.hellojavaer.ddal.ddr.shard.exception.NoRouteRuleBindingException;
 import org.hellojavaer.ddal.ddr.utils.DDRStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,7 +44,7 @@ public class SimpleShardRouter implements ShardRouter {
 
         private List<String>                conflictSchemas = new ArrayList<String>();
         private SimpleShardRouteRuleBinding ruleBinding;
-        private RouteConfig                 routeInfo;
+        private RouteConfig                 routeConfig;
 
         public List<String> getConflictSchemas() {
             return conflictSchemas;
@@ -63,12 +62,12 @@ public class SimpleShardRouter implements ShardRouter {
             this.ruleBinding = ruleBinding;
         }
 
-        public RouteConfig getRouteInfo() {
-            return routeInfo;
+        public RouteConfig getRouteConfig() {
+            return routeConfig;
         }
 
-        public void setRouteInfo(RouteConfig routeInfo) {
-            this.routeInfo = routeInfo;
+        public void setRouteConfig(RouteConfig routeConfig) {
+            this.routeConfig = routeConfig;
         }
     }
 
@@ -145,8 +144,8 @@ public class SimpleShardRouter implements ShardRouter {
         if (ruleBindingWrapper == null) {
             ruleBindingWrapper = new InnerSimpleShardRouteRuleBindingWrapper();
             ruleBindingWrapper.setRuleBinding(ruleBinding);
-            ruleBindingWrapper.setRouteInfo(new RouteConfig(ruleBinding.getScName(), ruleBinding.getTbName(),
-                                                            ruleBinding.getSdKey()));
+            ruleBindingWrapper.setRouteConfig(new RouteConfig(ruleBinding.getScName(), ruleBinding.getTbName(),
+                                                              ruleBinding.getSdKey()));
             cache.put(key, ruleBindingWrapper);
         }
         ruleBindingWrapper.getConflictSchemas().add(ruleBinding.getScName());
@@ -177,10 +176,9 @@ public class SimpleShardRouter implements ShardRouter {
         tbName = DDRStringUtils.toLowerCase(tbName);
         InnerSimpleShardRouteRuleBindingWrapper bindingWrapper = getBinding(scName, tbName);
         if (bindingWrapper == null) {
-            throw new NoRouteRuleBindingException("No route rule binding for 'scName':" + scName + " and 'tbName':"
-                                                  + tbName);
+            return null;
         } else {
-            return bindingWrapper.getRouteInfo();
+            return bindingWrapper.getRouteConfig();
         }
     }
 
@@ -191,8 +189,7 @@ public class SimpleShardRouter implements ShardRouter {
         InnerSimpleShardRouteRuleBindingWrapper bindingWrapper = getBinding(scName, tbName);
         SimpleShardRouteRuleBinding binding = bindingWrapper.getRuleBinding();
         if (binding == null) {
-            throw new NoRouteRuleBindingException("No route rule binding for 'scName':" + scName + " 'tbName':"
-                                                  + tbName);
+            return null;
         } else {// 必须使用 binding 中的 scName,因为sql中的scName可能为空
             RouteInfo info = getRouteInfo(binding.getRule(), binding.getScName(), binding.getTbName(), sdValue);
             return info;

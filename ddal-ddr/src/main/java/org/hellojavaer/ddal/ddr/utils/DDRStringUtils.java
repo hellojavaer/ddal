@@ -46,4 +46,16 @@ public class DDRStringUtils {
             }
         }
     }
+
+    public static boolean equals(String s0, String s1) {
+        if (s0 == null && s1 == null) {
+            return true;
+        } else if (s0 != null) {
+            return s0.equals(s1);
+        } else if (s1 != null) {
+            return s1.equals(s0);
+        } else {
+            return false;
+        }
+    }
 }
