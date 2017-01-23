@@ -19,25 +19,25 @@ package org.hellojavaer.ddal.ddr.shard.exception;
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 02/01/2017.
  */
-public class ValueNotFoundException extends DDRShardException {
+public class ExpressionValueNotFoundException extends DDRShardException {
 
-    public ValueNotFoundException() {
+    public ExpressionValueNotFoundException() {
     }
 
-    public ValueNotFoundException(String message) {
+    public ExpressionValueNotFoundException(String message) {
         super(message);
     }
 
-    public ValueNotFoundException(String message, Throwable cause) {
+    public ExpressionValueNotFoundException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public ValueNotFoundException(Throwable cause) {
+    public ExpressionValueNotFoundException(Throwable cause) {
         super(cause);
     }
 
-    public ValueNotFoundException(String message, Throwable cause, boolean enableSuppression,
-                                  boolean writableStackTrace) {
+    public ExpressionValueNotFoundException(String message, Throwable cause, boolean enableSuppression,
+                                            boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 }

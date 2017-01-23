@@ -20,7 +20,8 @@ import org.hellojavaer.ddal.ddr.expression.format.FormatExpression;
 import org.hellojavaer.ddal.ddr.expression.format.FormatExpressionContext;
 import org.hellojavaer.ddal.ddr.expression.format.simple.SimpleFormatExpressionContext;
 import org.hellojavaer.ddal.ddr.expression.format.simple.SimpleFormatExpressionParser;
-import org.hellojavaer.ddal.ddr.shard.exception.ValueNotFoundException;
+import org.hellojavaer.ddal.ddr.shard.exception.ExpressionValueNotFoundException;
+import org.hellojavaer.ddal.ddr.utils.DDRToStringBuilder;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
@@ -158,7 +159,18 @@ public class SimpleShardRouteRule implements Serializable {
         }
     }
 
+    @Override
+    public String toString() {
+        return new DDRToStringBuilder()//
+        .append("scRoute", scRoute)//
+        .append("scFormat", scFormat)//
+        .append("tbRoute", tbRoute)//
+        .append("tbFormat", tbFormat)//
+        .toString();
+    }
+
     private static final Set<String> RESERVED_WORDS = new HashSet<String>();
+
     static {
         RESERVED_WORDS.add("db");
         RESERVED_WORDS.add("dbName");
@@ -215,11 +227,9 @@ public class SimpleShardRouteRule implements Serializable {
                 if (isReservedWords(name)) {
                     val = super.lookupVariable(name);
                     if (val == null) {
-                        throw new ValueNotFoundException(
-                                                         "Target value was not found for key '"
-                                                                 + name
-                                                                 + "' in system context when parsing route expression. Expression is '"
-                                                                 + expression + "'");
+                        throw new ExpressionValueNotFoundException("Value of '" + name
+                                                                   + "' is not found when parsing expression '"
+                                                                   + expression + "'");
                     }
                 } else {
                     val = ELFunctionManager.getRegisteredFunction(name);

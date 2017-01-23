@@ -20,6 +20,8 @@ import org.hellojavaer.ddal.ddr.expression.range.RangeItemVisitor;
 import org.hellojavaer.ddal.ddr.shard.*;
 import org.hellojavaer.ddal.ddr.shard.exception.AmbiguousRouteRuleBindingException;
 import org.hellojavaer.ddal.ddr.shard.exception.DuplicateRouteRuleBindingException;
+import org.hellojavaer.ddal.ddr.shard.exception.ShardRoutingException;
+import org.hellojavaer.ddal.ddr.shard.exception.ShardValueNotFoundException;
 import org.hellojavaer.ddal.ddr.utils.DDRStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -183,7 +185,9 @@ public class SimpleShardRouter implements ShardRouter {
     }
 
     @Override
-    public RouteInfo route(ShardRouteParamContext context, String scName, String tbName, Object sdValue) {
+    public RouteInfo route(ShardRouteParamContext context, String scName, String tbName, Object sdValue)
+                                                                                                        throws ShardValueNotFoundException,
+                                                                                                        ShardRoutingException {
         scName = DDRStringUtils.toLowerCase(scName);
         tbName = DDRStringUtils.toLowerCase(tbName);
         InnerSimpleShardRouteRuleBindingWrapper bindingWrapper = getBinding(scName, tbName);
@@ -196,7 +200,9 @@ public class SimpleShardRouter implements ShardRouter {
         }
     }
 
-    private RouteInfo getRouteInfo(SimpleShardRouteRule rule, String scName, String tbName, Object sdValue) {
+    private RouteInfo getRouteInfo(SimpleShardRouteRule rule, String scName, String tbName, Object sdValue)
+                                                                                                           throws ShardRoutingException,
+                                                                                                           ShardValueNotFoundException {
         if (rule == null) {// 未配置rule,参数sdKey 和 sdValue都无效
             RouteInfo info = new RouteInfo();
             info.setScName(scName);
@@ -211,19 +217,27 @@ public class SimpleShardRouter implements ShardRouter {
                     } else {
                         return getRouteInfo(rule, scName, tbName, obj);
                     }
+                } else {
+                    throw new ShardValueNotFoundException("shard value is not found for 'scName':" + scName + ",'tbName':" + tbName + ",routeRule:"
+                                                          + rule);
                 }
             }
             //
-            RouteInfo info = new RouteInfo();
-            // throws exception
-            Object scRoute = rule.parseScRoute(scName, sdValue);
-            String sc = rule.parseScFormat(scName, scRoute);
-            // throws exception
-            Object tbRoute = rule.parseTbRoute(tbName, sdValue);
-            String tb = rule.parseTbFormat(tbName, tbRoute);
-            info.setScName(sc);
-            info.setTbName(tb);
-            return info;
+            try {
+                RouteInfo info = new RouteInfo();
+                // throws exception
+                Object scRoute = rule.parseScRoute(scName, sdValue);
+                String sc = rule.parseScFormat(scName, scRoute);
+                // throws exception
+                Object tbRoute = rule.parseTbRoute(tbName, sdValue);
+                String tb = rule.parseTbFormat(tbName, tbRoute);
+                info.setScName(sc);
+                info.setTbName(tb);
+                return info;
+            } catch (Throwable e) {
+                throw new ShardRoutingException("'scName':" + scName + ",'tbName':" + tbName + ",'sdName':" + sdValue
+                                                + ",routeRule:" + rule, e);
+            }
         }
     }
 }
