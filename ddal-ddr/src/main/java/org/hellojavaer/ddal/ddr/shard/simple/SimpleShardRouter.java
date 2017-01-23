@@ -173,7 +173,7 @@ public class SimpleShardRouter implements ShardRouter {
     }
 
     @Override
-    public RouteConfig getRouteConfig(ShardRouteParamContext context, String scName, String tbName) {
+    public RouteConfig getRouteConfig(String scName, String tbName) {
         scName = DDRStringUtils.toLowerCase(scName);
         tbName = DDRStringUtils.toLowerCase(tbName);
         InnerSimpleShardRouteRuleBindingWrapper bindingWrapper = getBinding(scName, tbName);
@@ -185,9 +185,8 @@ public class SimpleShardRouter implements ShardRouter {
     }
 
     @Override
-    public RouteInfo route(ShardRouteParamContext context, String scName, String tbName, Object sdValue)
-                                                                                                        throws ShardValueNotFoundException,
-                                                                                                        ShardRoutingException {
+    public RouteInfo route(String scName, String tbName, Object sdValue) throws ShardValueNotFoundException,
+                                                                        ShardRoutingException {
         scName = DDRStringUtils.toLowerCase(scName);
         tbName = DDRStringUtils.toLowerCase(tbName);
         InnerSimpleShardRouteRuleBindingWrapper bindingWrapper = getBinding(scName, tbName);
@@ -218,8 +217,8 @@ public class SimpleShardRouter implements ShardRouter {
                         return getRouteInfo(rule, scName, tbName, obj);
                     }
                 } else {
-                    throw new ShardValueNotFoundException("shard value is not found for 'scName':" + scName + ",'tbName':" + tbName + ",routeRule:"
-                                                          + rule);
+                    throw new ShardValueNotFoundException("shard value is not found for 'scName':" + scName
+                                                          + ",'tbName':" + tbName + ",routeRule:" + rule);
                 }
             }
             //

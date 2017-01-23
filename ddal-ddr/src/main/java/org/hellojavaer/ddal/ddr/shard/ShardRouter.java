@@ -33,10 +33,9 @@ import org.hellojavaer.ddal.ddr.shard.exception.ShardValueNotFoundException;
  */
 public interface ShardRouter {
 
-    RouteConfig getRouteConfig(ShardRouteParamContext context, String scName, String tbName);
+    RouteConfig getRouteConfig(String scName, String tbName);
 
-    RouteInfo route(ShardRouteParamContext context, String scName, String tbName, Object sdValue)
-                                                                                                 throws ShardValueNotFoundException,
-                                                                                                 ShardRoutingException;
+    RouteInfo route(String scName, String tbName, Object sdValue) throws ShardValueNotFoundException,
+                                                                 ShardRoutingException;
 
 }
