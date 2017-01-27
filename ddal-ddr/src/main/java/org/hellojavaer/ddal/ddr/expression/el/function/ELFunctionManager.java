@@ -38,7 +38,7 @@ public class ELFunctionManager {
     }
 
     public static void registerFunction(String functionName, Method method) {
-        functionName = DDRStringUtils.trim(functionName);
+        functionName = DDRStringUtils.trimToNull(functionName);
         if (functionName == null) {
             throw new IllegalArgumentException("function name can't be empty");
         }

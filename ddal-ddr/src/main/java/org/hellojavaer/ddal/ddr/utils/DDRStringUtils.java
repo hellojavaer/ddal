@@ -21,7 +21,7 @@ package org.hellojavaer.ddal.ddr.utils;
  */
 public class DDRStringUtils {
 
-    public static String trim(String str) {
+    public static String trimToNull(String str) {
         if (str == null) {
             return null;
         } else {

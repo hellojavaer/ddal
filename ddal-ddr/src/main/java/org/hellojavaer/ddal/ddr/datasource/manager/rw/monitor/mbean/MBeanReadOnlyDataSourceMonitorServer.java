@@ -38,7 +38,7 @@ public class MBeanReadOnlyDataSourceMonitorServer implements ReadOnlyDataSourceM
     }
 
     public void setParamNameOfObjectName(String paramNameOfObjectName) {
-        this.paramNameOfObjectName = DDRStringUtils.trim(paramNameOfObjectName);
+        this.paramNameOfObjectName = DDRStringUtils.trimToNull(paramNameOfObjectName);
     }
 
     @Override

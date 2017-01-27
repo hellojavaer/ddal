@@ -87,8 +87,8 @@ public class SimpleShardRouter implements ShardRouter {
                 final String tbName = DDRStringUtils.toLowerCase(binding.getTbName());
                 // can be null
                 final String sdKey = DDRStringUtils.toLowerCase(binding.getSdKey());
-                final String sdValues = DDRStringUtils.trim(binding.getSdValues());
-                final String sdValueType = DDRStringUtils.trim(binding.getSdValueType());
+                final String sdValues = DDRStringUtils.trimToNull(binding.getSdValues());
+                final String sdValueType = DDRStringUtils.trimToNull(binding.getSdValueType());
 
                 if (scName == null) {
                     throw new IllegalArgumentException("'scName' can't be empty");

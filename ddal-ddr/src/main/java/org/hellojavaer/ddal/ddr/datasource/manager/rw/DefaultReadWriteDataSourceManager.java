@@ -531,7 +531,7 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
         }
         final Map<String, DataSourceWrapper> dataSourceMap = new HashMap<String, DataSourceWrapper>();
         for (final WriteOnlyDataSourceBinding binding : bindings) {
-            String schemasString = DDRStringUtils.trim(binding.getScNames());
+            String schemasString = DDRStringUtils.trimToNull(binding.getScNames());
             if (schemasString == null) {
                 throw new IllegalArgumentException("scNames of 'writeOnlyDataSourceQueryCache' can't be empty");
             }
@@ -557,7 +557,7 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
             }
         }
         for (String schema : schemas) {
-            schema = DDRStringUtils.trim(schema);
+            schema = DDRStringUtils.trimToNull(schema);
             if (schema == null) {
                 throw new IllegalArgumentException("Schema of 'writeOnlyDataSources' can't be null");
             }
@@ -582,7 +582,7 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
         }
         final LinkedHashMap<String, List<WeightedDataSourceWrapper>> readOnlyDataSourceIndexCacheOriginalValues = new LinkedHashMap<String, List<WeightedDataSourceWrapper>>();
         for (final ReadOnlyDataSourceBinding binding : bindings) {
-            String schemasString = DDRStringUtils.trim(binding.getScNames());
+            String schemasString = DDRStringUtils.trimToNull(binding.getScNames());
             if (schemasString == null) {
                 throw new IllegalArgumentException("scNames of 'readOnlyDataSourceQueryCache' can't be empty");
             }
@@ -719,7 +719,7 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
                     }
                     WeightedDataSourceWrapper weightedDataSourceWrapper = new WeightedDataSourceWrapper();
                     weightedDataSourceWrapper.setDataSource(weightedDataSource.getDataSource());
-                    weightedDataSourceWrapper.setName(DDRStringUtils.trim(weightedDataSource.getName()));
+                    weightedDataSourceWrapper.setName(DDRStringUtils.trimToNull(weightedDataSource.getName()));
                     weightedDataSourceWrapper.setIndex(i);
                     weightedDataSourceWrapper.setDesc(weightedDataSource.getDesc());
                     weightedDataSourceWrapper.setWeight(weightedDataSource.getWeight());
