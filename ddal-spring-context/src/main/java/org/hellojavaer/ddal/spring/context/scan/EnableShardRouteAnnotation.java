@@ -45,7 +45,7 @@ import java.util.Map;
 @Component
 public class EnableShardRouteAnnotation {
 
-    private ParameterNameDiscoverer parameterNameDiscoverer           = new DefaultParameterNameDiscoverer();
+    private ParameterNameDiscoverer parameterNameDiscoverer           = null;
     private static boolean          notSupportParameterNameDiscoverer = false;
 
     private Map<Method, InnerBean>  expressionCache                   = new HashMap<Method, InnerBean>();
@@ -73,7 +73,7 @@ public class EnableShardRouteAnnotation {
                             ExpressionParser parser = new SpelExpressionParser();
                             Expression expression0 = null;
                             String sdValue = shardRoute.sdValue();
-                            sdValue = DDRStringUtils.trim(sdValue);
+                            sdValue = DDRStringUtils.trimToNull(sdValue);
                             if (sdValue != null) {
                                 expression0 = parser.parseExpression(sdValue, PARSER_CONTEXT);
                             }
@@ -118,6 +118,7 @@ public class EnableShardRouteAnnotation {
             return null;
         } else {
             try {
+                parameterNameDiscoverer = new DefaultParameterNameDiscoverer();// only support from spring4
                 return parameterNameDiscoverer.getParameterNames(method);
             } catch (NoClassDefFoundError e) {
                 notSupportParameterNameDiscoverer = true;
