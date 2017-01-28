@@ -16,10 +16,11 @@
 package org.hellojavaer.ddal.ddr.datasource.jdbc;
 
 import org.hellojavaer.ddal.ddr.datasource.exception.CrossingDataSourceException;
+import org.hellojavaer.ddal.ddr.datasource.exception.StatementInitializationException;
 import org.hellojavaer.ddal.ddr.datasource.exception.UninitializedStatusException;
 import org.hellojavaer.ddal.ddr.datasource.jdbc.init.UninitializedStatementProcessor;
-import org.hellojavaer.ddal.ddr.datasource.manager.DataSourceParam;
 import org.hellojavaer.ddal.ddr.datasource.jdbc.property.StatementProperty;
+import org.hellojavaer.ddal.ddr.datasource.manager.DataSourceParam;
 import org.hellojavaer.ddal.ddr.sqlparse.SQLParsedResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -225,7 +226,12 @@ public abstract class DDRStatementImpl implements DDRStatement {
             DataSourceParam param = new DataSourceParam();
             param.setReadOnly(readOnly);
             param.setScNames(parsedResult.getSchemas());
-            initStatementIfAbsent(param, null);
+            try {
+                initStatementIfAbsent(param, null);
+            } catch (Throwable e) {
+                throw new StatementInitializationException("readOnly:" + this.readOnly + " ,SQLParsedResult:"
+                                                           + parsedResult + " ,original sql:[" + sql + "]", e);
+            }
             playbackInvocation(statement);
         }
         return parsedResult.getSql();
@@ -619,7 +625,7 @@ public abstract class DDRStatementImpl implements DDRStatement {
         if (statement != null) {
             statement.cancel();
         } else {// TODO
-           // ignore;
+            // ignore;
         }
     }
 

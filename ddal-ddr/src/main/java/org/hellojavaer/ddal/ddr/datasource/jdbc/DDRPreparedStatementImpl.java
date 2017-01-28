@@ -16,6 +16,7 @@
 package org.hellojavaer.ddal.ddr.datasource.jdbc;
 
 import org.hellojavaer.ddal.ddr.datasource.exception.CrossingDataSourceException;
+import org.hellojavaer.ddal.ddr.datasource.exception.StatementInitializationException;
 import org.hellojavaer.ddal.ddr.datasource.exception.UninitializedStatusException;
 import org.hellojavaer.ddal.ddr.datasource.exception.UnsupportedPreparedStatementInvocationException;
 import org.hellojavaer.ddal.ddr.datasource.manager.DataSourceParam;
@@ -210,7 +211,14 @@ public abstract class DDRPreparedStatementImpl extends DDRStatementImpl implemen
             param.setReadOnly(readOnly);
             param.setScNames(parsedResult.getSchemas());
             // 初始化statement
-            initStatementIfAbsent(param, parsedResult.getSql());
+            try {// 记录关键信息
+                initStatementIfAbsent(param, parsedResult.getSql());
+            } catch (Throwable e) {
+                throw new StatementInitializationException("readOnly:" + this.readOnly + " ,jdbc parameter:"
+                                                           + DDRJSONUtils.toJSONString(this.jdbcParameter)
+                                                           + " ,SQLParsedResult:" + parsedResult + " ,original sql:["
+                                                           + sql + "]", e);
+            }
             // 动作回放
             super.playbackInvocation(statement);
             playbackSetJdbcParamInvocation(preparedStatement, jdbcParamInvocationList);

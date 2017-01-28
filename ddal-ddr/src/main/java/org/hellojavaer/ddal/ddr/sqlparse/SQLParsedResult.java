@@ -16,6 +16,7 @@
 package org.hellojavaer.ddal.ddr.sqlparse;
 
 import org.hellojavaer.ddal.ddr.datasource.exception.CrossingPreparedStatementException;
+import org.hellojavaer.ddal.ddr.utils.DDRToStringBuilder;
 
 import java.util.Map;
 import java.util.Set;
@@ -49,4 +50,8 @@ public class SQLParsedResult {
 
     }
 
+    @Override
+    public String toString() {
+        return new DDRToStringBuilder().append("sql", sql).append("schemas", schemas).toString();
+    }
 }

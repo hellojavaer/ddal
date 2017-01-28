@@ -52,7 +52,7 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
     protected final Logger                                         stdLogger                                  = LoggerFactory.getLogger("org.hellojavaer.ddr.ds");
 
     // Original input
-    private ReadOnlyDataSourceMonitorServer readOnlyDataSourceMonitorServer;
+    private ReadOnlyDataSourceMonitorServer                        readOnlyDataSourceMonitorServer;
 
     // Original input
     private List<WriteOnlyDataSourceBinding>                       writeOnlyDataSources                       = null;
@@ -62,8 +62,8 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
     private MetaDataChecker                                        metaDataChecker                            = new DefaultMetaDataChecker();
 
     // cache
-    private Map<String, WeightedRandom>    readOnlyDataSourceQueryCache  = null;
-    private Map<String, DataSourceWrapper> writeOnlyDataSourceQueryCache = null;
+    private Map<String, WeightedRandom>                            readOnlyDataSourceQueryCache               = null;
+    private Map<String, DataSourceWrapper>                         writeOnlyDataSourceQueryCache              = null;
 
     // backup {physical schema name <-> datasources}
     private LinkedHashMap<String, List<WeightedDataSourceWrapper>> readOnlyDataSourceIndexCacheOriginalValues = null;
@@ -779,7 +779,9 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
                     } else {
                         if (!weightedDataSourceWrapper.getDataSourceWrapper().getSchemas().contains(scName)) {
                             throw new CrossingDataSourceException(
-                                                                  "scName:'"
+                                                                  "For parameter "
+                                                                          + param
+                                                                          + ", scName:'"
                                                                           + scName
                                                                           + "' is not in 'readOnlyDataSource' binding '"
                                                                           + weightedDataSourceWrapper.getDataSourceWrapper().toString()
@@ -812,7 +814,7 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
                         }
                     } else {
                         if (!dataSourceWrapper.getSchemas().contains(scName)) {
-                            throw new CrossingDataSourceException("scName:'" + scName
+                            throw new CrossingDataSourceException("For parameter " + param + ", scName:'" + scName
                                                                   + "' is not in 'writeOnlyDataSource' binding '"
                                                                   + dataSourceWrapper.toString() + "'");
                         }
