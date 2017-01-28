@@ -25,16 +25,16 @@ import org.hellojavaer.ddal.ddr.sqlparse.SQLParser;
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 11/01/2017.
  */
-public class LRUSQLParseCache implements SQLParseCache {
+public class LRUSQLParserCache implements SQLParserCache {
 
     private volatile ConcurrentLinkedHashMap<InnerQueryKey, SQLParsedState> cache;
     private Integer                                                         capacity;
     private SQLParser                                                       sqlParser;
 
-    public LRUSQLParseCache() {
+    public LRUSQLParserCache() {
     }
 
-    public LRUSQLParseCache(Integer capacity, SQLParser sqlParser) {
+    public LRUSQLParserCache(Integer capacity, SQLParser sqlParser) {
         this.capacity = capacity;
         this.sqlParser = sqlParser;
     }

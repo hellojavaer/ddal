@@ -21,6 +21,6 @@ import org.hellojavaer.ddal.ddr.sqlparse.SQLParser;
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 11/01/2017.
  */
-public interface SQLParseCache extends SQLParser {
+public interface SQLParserCache extends SQLParser {
 
 }
