@@ -15,6 +15,7 @@ public class ShardRouteHelperTest extends BaseShardParserTest {
     @Test
     public void test00() {
         List<String> expectedResult = new ArrayList();
+        expectedResult.add("db_00.user_0000");
         expectedResult.add("db_01.user_0001");
         expectedResult.add("db_02.user_0002");
         expectedResult.add("db_03.user_0003");
@@ -142,7 +143,6 @@ public class ShardRouteHelperTest extends BaseShardParserTest {
         expectedResult.add("db_05.user_0125");
         expectedResult.add("db_06.user_0126");
         expectedResult.add("db_07.user_0127");
-        expectedResult.add("db_00.user_0000");
         buildParserForId();
         int count = 0;
         List<RouteInfo> list0 = ShardRouteHelper.getConfiguredRouteInfos("db", "user");

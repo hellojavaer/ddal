@@ -4,8 +4,7 @@
 [![GitHub release](https://img.shields.io/github/release/hellojavaer/ddal.svg)](https://github.com/hellojavaer/ddal/releases)
 [![License](https://img.shields.io/badge/license-Apache%202-4EB1BA.svg)](https://www.apache.org/licenses/LICENSE-2.0.html)
 
-
-DDAL is a simple and powerful distributed datasource management component.
+DDAL is a
 
 ## Documentation
 

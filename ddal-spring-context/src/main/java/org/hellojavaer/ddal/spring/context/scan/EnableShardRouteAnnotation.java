@@ -35,9 +35,15 @@ import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
+ * add the following tags in spring configuration file
+ * <pre>
+ *      <aop:aspectj-autoproxy/>
+        <context:component-scan base-package="org.hellojavaer.ddal.spring.context.scan"/>
+ * </pre>
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 01/01/2017.
  */
@@ -140,7 +146,20 @@ public class EnableShardRouteAnnotation {
                 context.setVariable("$" + i, args[i]);
             }
         }
-        return expression.getValue(context);
+        Object ret = expression.getValue(context);
+        if (ret == null) {
+            return null;
+        } else {// FIXME: spel will return a list
+            if (ret instanceof List) {
+                if (((List) ret).isEmpty()) {
+                    return null;
+                } else {
+                    return ((List) ret).get(0);
+                }
+            } else {
+                return ret;
+            }
+        }
     }
 
     private class InnerBean {

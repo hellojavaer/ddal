@@ -420,6 +420,9 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
             return;
         }
         Map<String, Set<String>> groupedRouteInfo = getGroupedRouteInfo();
+        if(groupedRouteInfo == null || groupedRouteInfo.isEmpty()){
+            return;
+        }
         for (Map.Entry<String, DataSourceWrapper> entry : writeOnlyDataSourceQueryCache.entrySet()) {
             Connection conn = null;
             try {
@@ -463,6 +466,9 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
             return;
         }
         Map<String, Set<String>> groupedRouteInfo = getGroupedRouteInfo();
+        if(groupedRouteInfo == null || groupedRouteInfo.isEmpty()){
+            return;
+        }
         for (Map.Entry<String, List<WeightedDataSourceWrapper>> entry : readOnlyDataSourceIndexCacheOriginalValues.entrySet()) {
             for (WeightedDataSourceWrapper dataSource : entry.getValue()) {
                 Connection conn = null;
@@ -493,7 +499,8 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
     }
 
     /**
-     * group configured route information
+     *
+     * 获取由sdValues"生成"的table列表
      */
     private Map<String, Set<String>> getGroupedRouteInfo() {
         // do group{physics schema name <-> physics table names}

@@ -42,7 +42,7 @@ public class BaseShardParserTest {
         user.setScName("db");
         user.setTbName("user");
         user.setSdKey("id");
-        user.setSdValues("[1~128]");
+        user.setSdValues("[0~127]");
         user.setRule(numRule);
         bindings.add(user);
 
@@ -51,7 +51,7 @@ public class BaseShardParserTest {
         shop.setScName("db");
         shop.setTbName("shop");
         shop.setSdKey("user_id");
-        shop.setSdValues("[1~128]");
+        shop.setSdValues("[0~127]");
         shop.setRule(numRule);
         bindings.add(shop);
 
@@ -60,7 +60,7 @@ public class BaseShardParserTest {
         item.setScName("db");
         item.setTbName("item");
         item.setSdKey("user_id");
-        item.setSdValues("[1~128]");
+        item.setSdValues("[0~127]");
         item.setRule(numRule);
         bindings.add(item);
 
@@ -70,7 +70,7 @@ public class BaseShardParserTest {
         item_1.setScName("db_x");
         item_1.setTbName("item");
         item_1.setSdKey("shop_id");
-        item_1.setSdValues("[1~128]");
+        item_1.setSdValues("[0~127]");
         item_1.setRule(numRule);
         bindings.add(item_1);
 

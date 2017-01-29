@@ -37,22 +37,31 @@ public class DefaultMetaDataChecker implements MetaDataChecker {
     private static final Map<String, String> map              = new LinkedHashMap<String, String>();
 
     /**
-     *  如果tables 为空,则校验scName 是否存在
+     *  检查指定schema下是否包含指定的table
+     * 
      * @throws IllegalMetaDataException
      */
     @Override
     public void check(Connection conn, String scName, Set<String> tables) throws IllegalMetaDataException {
+        if (scName == null) {
+            throw new IllegalArgumentException("scName can't be null");
+        }
+        if (tables == null || tables.isEmpty()) {
+            throw new IllegalArgumentException("tables can't be empty");
+        }
         try {
             Set<String> set = getAllTables(conn, scName);
             if (set == null || set.isEmpty()) {
-                throw new IllegalMetaDataException("[Check MetaData Failed] Schema:" + scName
-                                                   + " is not found by associated datasource. please check your configuration");
+                throw new IllegalMetaDataException(
+                                                   "[Check MetaData Failed] Schema:'"
+                                                           + scName
+                                                           + "' has nothing tables. but in your configuration it requires tables:"
+                                                           + DDRJSONUtils.toJSONString(tables));
             }
             if (tables != null && !tables.isEmpty() && !set.containsAll(tables)) {
-                throw new IllegalMetaDataException("[Check MetaData Failed] Schema:" + scName
-                                                   + " only has this following tables:"
+                throw new IllegalMetaDataException("[Check MetaData Failed] Schema:'" + scName + "' only has tables:"
                                                    + DDRJSONUtils.toJSONString(set)
-                                                   + ", but in your configuration require this following tables:"
+                                                   + ", but in your configuration it requires tables:"
                                                    + DDRJSONUtils.toJSONString(tables));
             }
         } catch (SQLException e) {
