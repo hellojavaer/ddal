@@ -5,6 +5,8 @@
 [![License](https://img.shields.io/badge/license-Apache%202-4EB1BA.svg)](https://www.apache.org/licenses/LICENSE-2.0.html)
 
 
+DDAL is a simple and powerful distributed datasource management component.
+
 ## Documentation
 
 - [Documentation Home](https://github.com/hellojavaer/ddal/wiki)
@@ -29,10 +31,16 @@ http://repo1.maven.org/maven2/org/hellojavaer/ddal/
     <version>x.x.x</version>
 </dependency>
 
-<!-- If you want to use annotation to route in spring context,you should add this following dependency -->
+<!-- to use annotation to route in spring environment -->
 <dependency>
     <groupId>org.hellojavaer.ddal</groupId>
     <artifactId>ddal-spring-context</artifactId>
+    <version>x.x.x</version>
+</dependency>
+<!-- to use sequence service -->
+<dependency>
+    <groupId>org.hellojavaer.ddal</groupId>
+    <artifactId>ddal-sequence</artifactId>
     <version>x.x.x</version>
 </dependency>
 
