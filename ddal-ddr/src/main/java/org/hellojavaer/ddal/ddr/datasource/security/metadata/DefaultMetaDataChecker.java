@@ -44,10 +44,10 @@ public class DefaultMetaDataChecker implements MetaDataChecker {
     @Override
     public void check(Connection conn, String scName, Set<String> tables) throws IllegalMetaDataException {
         if (scName == null) {
-            throw new IllegalArgumentException("scName can't be null");
+            throw new IllegalArgumentException("[Check MetaData Failed] parameter 'scName' can't be null");
         }
         if (tables == null || tables.isEmpty()) {
-            throw new IllegalArgumentException("tables can't be empty");
+            throw new IllegalArgumentException("[Check MetaData Failed] parameter 'tables' can't be empty");
         }
         try {
             Set<String> set = getAllTables(conn, scName);

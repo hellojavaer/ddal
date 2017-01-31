@@ -420,7 +420,7 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
             return;
         }
         Map<String, Set<String>> groupedRouteInfo = getGroupedRouteInfo();
-        if(groupedRouteInfo == null || groupedRouteInfo.isEmpty()){
+        if (groupedRouteInfo == null || groupedRouteInfo.isEmpty()) {
             return;
         }
         for (Map.Entry<String, DataSourceWrapper> entry : writeOnlyDataSourceQueryCache.entrySet()) {
@@ -432,7 +432,10 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
                     conn.setReadOnly(true);
                 }
                 String scName = entry.getKey();
-                metaDataChecker.check(conn, scName, groupedRouteInfo.get(scName));
+                Set<String> tables = groupedRouteInfo.get(scName);
+                if (tables != null && !tables.isEmpty()) {
+                    metaDataChecker.check(conn, scName, tables);
+                }
                 if (readOnly == false) {
                     conn.setReadOnly(false);
                 }
@@ -466,7 +469,7 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
             return;
         }
         Map<String, Set<String>> groupedRouteInfo = getGroupedRouteInfo();
-        if(groupedRouteInfo == null || groupedRouteInfo.isEmpty()){
+        if (groupedRouteInfo == null || groupedRouteInfo.isEmpty()) {
             return;
         }
         for (Map.Entry<String, List<WeightedDataSourceWrapper>> entry : readOnlyDataSourceIndexCacheOriginalValues.entrySet()) {
@@ -479,7 +482,10 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
                         conn.setReadOnly(true);
                     }
                     String scName = entry.getKey();
-                    metaDataChecker.check(conn, scName, groupedRouteInfo.get(scName));
+                    Set<String> tables = groupedRouteInfo.get(scName);
+                    if (tables != null && !tables.isEmpty()) {
+                        metaDataChecker.check(conn, scName, tables);
+                    }
                     if (readOnly == false) {
                         conn.setReadOnly(false);
                     }
