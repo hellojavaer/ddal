@@ -199,9 +199,9 @@ public class SimpleShardRouter implements ShardRouter {
         }
     }
 
-    private RouteInfo getRouteInfo(SimpleShardRouteRule rule, String scName, String tbName, Object sdValue)
-                                                                                                           throws ShardRoutingException,
-                                                                                                           ShardValueNotFoundException {
+    private RouteInfo getRouteInfo(ShardRouteRule rule, String scName, String tbName, Object sdValue)
+                                                                                                     throws ShardRoutingException,
+                                                                                                     ShardValueNotFoundException {
         if (rule == null) {// 未配置rule,参数sdKey 和 sdValue都无效
             RouteInfo info = new RouteInfo();
             info.setScName(scName);
@@ -224,12 +224,15 @@ public class SimpleShardRouter implements ShardRouter {
             //
             try {
                 RouteInfo info = new RouteInfo();
+                ShardRouteRuleContext context = new ShardRouteRuleContext();
+                context.setScName(scName);
+                context.setTbName(tbName);
+                context.setSdValue(sdValue);
                 // throws exception
-                Object scRoute = rule.parseScRoute(scName, sdValue);
-                String sc = rule.parseScFormat(scName, scRoute);
+                String sc = rule.parseScName(context);
                 // throws exception
-                Object tbRoute = rule.parseTbRoute(tbName, sdValue);
-                String tb = rule.parseTbFormat(tbName, tbRoute);
+                String tb = rule.parseTbName(context);
+
                 info.setScName(sc);
                 info.setTbName(tb);
                 return info;

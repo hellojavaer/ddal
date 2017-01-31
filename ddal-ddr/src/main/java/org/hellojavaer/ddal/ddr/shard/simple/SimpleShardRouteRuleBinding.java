@@ -15,23 +15,28 @@
  */
 package org.hellojavaer.ddal.ddr.shard.simple;
 
+import org.hellojavaer.ddal.ddr.shard.ShardRouteRule;
+import org.hellojavaer.ddal.ddr.shard.ShardRouteRuleBinding;
+
 import java.io.Serializable;
 
 /**
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 15/11/2016.
  */
-public class SimpleShardRouteRuleBinding implements Serializable {
+public class SimpleShardRouteRuleBinding implements ShardRouteRuleBinding, Serializable {
 
-    public static final String   VALUE_TYPE_OF_NUMBER = "number";
-    public static final String   VALUE_TYPE_OF_STRING = "string";
+    private static final long  serialVersionUID     = 0L;
 
-    private String               scName;
-    private String               tbName;
-    private String               sdKey;
-    private SimpleShardRouteRule rule;
-    private String               sdValues;
-    private String               sdValueType          = VALUE_TYPE_OF_NUMBER;
+    public static final String VALUE_TYPE_OF_NUMBER = "number";
+    public static final String VALUE_TYPE_OF_STRING = "string";
+
+    private String             scName;
+    private String             tbName;
+    private String             sdKey;
+    private ShardRouteRule     rule;
+    private String             sdValues;
+    private String             sdValueType          = VALUE_TYPE_OF_NUMBER;
 
     public String getScName() {
         return scName;
@@ -57,11 +62,11 @@ public class SimpleShardRouteRuleBinding implements Serializable {
         this.sdKey = sdKey;
     }
 
-    public SimpleShardRouteRule getRule() {
+    public ShardRouteRule getRule() {
         return rule;
     }
 
-    public void setRule(SimpleShardRouteRule rule) {
+    public void setRule(ShardRouteRule rule) {
         this.rule = rule;
     }
 
