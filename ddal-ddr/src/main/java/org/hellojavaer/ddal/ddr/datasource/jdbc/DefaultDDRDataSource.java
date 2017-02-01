@@ -24,6 +24,7 @@ import org.hellojavaer.ddal.ddr.datasource.manager.DataSourceParam;
 import org.hellojavaer.ddal.ddr.shard.ShardParser;
 import org.hellojavaer.ddal.ddr.sqlparse.SQLParsedResult;
 
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -57,8 +58,16 @@ public class DefaultDDRDataSource extends AbstractDDRDataSource {
         this.shardParser = shardParser;
     }
 
+    @Override
     public SQLParsedResult parseSql(String sql, Map<Object, Object> jdbcParam) {
-        return shardParser.parse(sql, jdbcParam);
+        if (shardParser == null) {
+            SQLParsedResult sqlParsedResult = new SQLParsedResult();
+            sqlParsedResult.setSql(sql);
+            sqlParsedResult.setSchemas(Collections.<String> emptySet());
+            return sqlParsedResult;
+        } else {
+            return shardParser.parse(sql, jdbcParam);
+        }
     }
 
     @Override
