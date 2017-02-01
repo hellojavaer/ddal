@@ -145,9 +145,9 @@ public class ShardRouteHelperTest extends BaseShardParserTest {
         expectedResult.add("db_07.user_0127");
         buildParserForId();
         int count = 0;
-        List<RouteInfo> list0 = ShardRouteHelper.getConfiguredRouteInfos("db", "user");
+        List<RouteInfo> routeInfos = ShardRouteHelper.getConfiguredRouteInfos("db", "user");
         if (expectedResult != null) {
-            for (RouteInfo si : list0) {
+            for (RouteInfo si : routeInfos) {
                 Assert.equals(si.toString(), expectedResult.get(count));
                 count++;
             }

@@ -60,4 +60,22 @@ public class ShardRouteContextTest {
             ShardRouteContext.clear();
         }
     }
+
+    @Test
+    public void test03() {
+        ShardRouteContext.clear();
+        try {
+            RouteInfo routeInfo = new RouteInfo("scName_00", "user_0001");
+            ShardRouteContext.setRouteInfo("db", "user", 1);
+            ShardRouteContext.setRouteInfo("db", "user", routeInfo);
+            Assert.isTrue(ShardRouteContext.getRouteInfo(null, "user") == routeInfo);
+            ShardRouteContext.setRouteInfo("shop", "user", 2);
+            ShardRouteContext.removeRouteInfo("shop", "user");
+            Assert.isTrue(ShardRouteContext.getRouteInfo(null, "user") == routeInfo);
+            ShardRouteContext.setDefaultRouteInfo("scName", 2);
+            Assert.isTrue(ShardRouteContext.getRouteInfo("scName", "user0") == 2);
+        } finally {
+            ShardRouteContext.clear();
+        }
+    }
 }
