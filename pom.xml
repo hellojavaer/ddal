@@ -15,7 +15,7 @@
 
     <modules>
         <module>ddal-ddr</module>
-        <module>ddal-spring-context</module>
+        <module>ddal-spring</module>
         <module>ddal-sequence</module>
     </modules>
 
