@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddal.spring.context.scan;
+package org.hellojavaer.ddal.spring.scan;
 
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -42,7 +42,7 @@ import java.util.Map;
  * add the following tags in spring configuration file
  * <pre>
  *      <aop:aspectj-autoproxy/>
-        <context:component-scan base-package="org.hellojavaer.ddal.spring.context.scan"/>
+        <bean class="org.hellojavaer.ddal.spring.scan.EnableShardRouteAnnotation"/>
  * </pre>
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 01/01/2017.
@@ -66,7 +66,7 @@ public class EnableShardRouteAnnotation {
                 ShardRouteContext.clear();
             }
             if (shardRoute.scName() != null && shardRoute.scName().length() > 0 //
-                && shardRoute.sdValue() != null && shardRoute.sdValue().length() > 0) {// 禁止对系统变量路由
+                && shardRoute.sdValue() != null && shardRoute.sdValue().length() > 0) {
                 MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
                 Method method = methodSignature.getMethod();
                 InnerBean innerBean = expressionCache.get(method);

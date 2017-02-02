@@ -38,7 +38,7 @@ import java.lang.annotation.*;
 @Documented
 public @interface ShardRoute {
 
-    ContextPropagation value() default ContextPropagation.RESET_CONTEXT;
+    ContextPropagation value() default ContextPropagation.CLEAR_CONTEXT;
 
     String scName() default "";
 

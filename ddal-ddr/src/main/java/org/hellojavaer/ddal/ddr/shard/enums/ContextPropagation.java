@@ -21,6 +21,6 @@ package org.hellojavaer.ddal.ddr.shard.enums;
  */
 public enum ContextPropagation {
 
-    RESET_CONTEXT, SUB_CONTEXT;
+    CLEAR_CONTEXT, SUB_CONTEXT;
 
 }
