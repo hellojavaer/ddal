@@ -66,7 +66,7 @@ public class EnableShardRouteAnnotation {
                 ShardRouteContext.clear();
             }
             if (shardRoute.scName() != null && shardRoute.scName().length() > 0 //
-                && shardRoute.sdValue() != null && shardRoute.sdValue().length() > 0) {// 禁止对系统变量路由
+                && shardRoute.sdValue() != null && shardRoute.sdValue().length() > 0) {
                 MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
                 Method method = methodSignature.getMethod();
                 InnerBean innerBean = expressionCache.get(method);
