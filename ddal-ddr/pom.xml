@@ -7,7 +7,7 @@
 
     <groupId>org.hellojavaer.ddal</groupId>
     <artifactId>ddal-ddr</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0.M1</version>
 
     <name>ddal-ddr</name>
     <url>https://github.com/hellojavaer/ddal</url>
@@ -15,7 +15,7 @@
     <properties>
         <spring.version>4.2.5.RELEASE</spring.version>
         <junit.version>4.11</junit.version>
-        <gpg.skip>true</gpg.skip>
+        <gpg.skip>false</gpg.skip>
         <javadoc.skip>false</javadoc.skip>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <jdk.version>1.7</jdk.version>
