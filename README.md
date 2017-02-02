@@ -1,6 +1,6 @@
 # DDAL
 
-DDAL(Distributed Data Access Layer) is a simple solution for accessing database shard.
+DDAL(Distributed Data Access Layer) is a simple solution to access database shard.
 
 
 ## License
