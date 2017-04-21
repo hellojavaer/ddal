@@ -30,7 +30,7 @@ public class DefaultSequence implements Sequence {
 
     private Logger           logger      = LoggerFactory.getLogger(this.getClass());
     private String           groupName;
-    private String           logicTableName;
+    private String           logicalTableName;
     private Integer          step;                                                  // 单节点步长
     private Integer          cacheNSteps;                                           // 缓存队列大小
     private Integer          timeout;
@@ -42,10 +42,10 @@ public class DefaultSequence implements Sequence {
     public DefaultSequence() {
     }
 
-    public DefaultSequence(String groupName, String logicTableName, Integer step, Integer cacheNSteps, Integer timeout,
-                           IdGetter idGetter) {
+    public DefaultSequence(String groupName, String logicalTableName, Integer step, Integer cacheNSteps,
+                           Integer timeout, IdGetter idGetter) {
         this.groupName = groupName;
-        this.logicTableName = logicTableName;
+        this.logicalTableName = logicalTableName;
         this.step = step;
         this.cacheNSteps = cacheNSteps;
         this.timeout = timeout;
@@ -59,7 +59,7 @@ public class DefaultSequence implements Sequence {
                 if (initialized == false) {
                     // init
                     Assert.notNull(groupName, "'groupName' can't be null'");
-                    Assert.notNull(logicTableName, "'logicTableName' can't be null'");
+                    Assert.notNull(logicalTableName, "'logicalTableName' can't be null'");
                     Assert.notNull(step, "'step' must be greater than 0");
                     Assert.notNull(cacheNSteps, "'cacheNSteps' must be greater than or equal to 0");
                     Assert.notNull(timeout, "'timeout' must be greater than 0");
@@ -79,10 +79,10 @@ public class DefaultSequence implements Sequence {
 
             @Override
             public IdRange get() throws Exception {
-                IdRange idRange = getIdGetter().get(getGroupName(), getLogicTableName(), getStep());
+                IdRange idRange = getIdGetter().get(getGroupName(), getLogicalTableName(), getStep());
                 if (idRange == null) {
                     throw new NullPointerException("No id range is configured for groupName:'" + getGroupName()
-                                                   + "', logicTableName:'" + getLogicTableName() + "'");
+                                                   + "', logicalTableName:'" + getLogicalTableName() + "'");
                 } else {
                     return idRange;
                 }
@@ -110,12 +110,12 @@ public class DefaultSequence implements Sequence {
         this.groupName = groupName;
     }
 
-    public String getLogicTableName() {
-        return logicTableName;
+    public String getLogicalTableName() {
+        return logicalTableName;
     }
 
-    public void setLogicTableName(String logicTableName) {
-        this.logicTableName = logicTableName;
+    public void setLogicalTableName(String logicalTableName) {
+        this.logicalTableName = logicalTableName;
     }
 
     public Integer getStep() {

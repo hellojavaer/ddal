@@ -70,7 +70,7 @@ public class DatabaseIdGetter implements IdGetter {
      CREATE TABLE sequence (
      id bigint(20) NOT NULL,
      group_name varchar(32) NOT NULL,
-     logic_table_name varchar(64) NOT NULL,
+     logical_table_name varchar(64) NOT NULL,
      select_order bigint(11) NOT NULL,
      begin_value bigint(11) DEFAULT NULL,
      end_value bigint(11) DEFAULT NULL,
@@ -186,7 +186,7 @@ public class DatabaseIdGetter implements IdGetter {
     }
 
     @Override
-    public IdRange get(String groupName, String logicTableName, int step) throws Exception {
+    public IdRange get(String groupName, String logicalTableName, int step) throws Exception {
         init();
         int rows = 0;
         IdRange idRange = null;
@@ -202,7 +202,7 @@ public class DatabaseIdGetter implements IdGetter {
         try {
             selectStatement = connection.prepareStatement(targetSelectSql);
             selectStatement.setString(1, groupName);
-            selectStatement.setString(2, logicTableName);
+            selectStatement.setString(2, logicalTableName);
             ResultSet selectResult = selectStatement.executeQuery();
             long id = 0;
             long currentValue = 0;
@@ -254,16 +254,16 @@ public class DatabaseIdGetter implements IdGetter {
                     if (disabled != 0) {
                         if (moreThanLimit) {
                             if (logger.isWarnEnabled()) {
-                                logger.warn("[More_Than_Limit]Id range for groupName:{},logicTableName:{} is used up. More detail information is step:{},skipNSteps:{},"
+                                logger.warn("[More_Than_Limit]Id range for groupName:{},logicalTableName:{} is used up. More detail information is step:{},skipNSteps:{},"
                                                     + "endValue:{},version:{},id:{} and actually allocated range is '{} ~ {}'",
-                                            groupName, logicTableName, step, skipNSteps,//
+                                            groupName, logicalTableName, step, skipNSteps,//
                                             endValue, version, id, currentValue, oneStepEndValue);
                             }
                         } else {
                             if (logger.isInfoEnabled()) {
-                                logger.info("Id range for groupName:{},logicTableName:{} is used up. More detail information is step:{},skipNSteps:{},"
+                                logger.info("Id range for groupName:{},logicalTableName:{} is used up. More detail information is step:{},skipNSteps:{},"
                                                     + "endValue:{},version:{},id:{} and actually allocated range is '{} ~ {}'",
-                                            groupName, logicTableName, step, skipNSteps,//
+                                            groupName, logicalTableName, step, skipNSteps,//
                                             endValue, version, id, currentValue, oneStepEndValue);
                             }
                         }
