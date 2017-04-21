@@ -78,11 +78,11 @@ public class DatabaseIdGetter implements IdGetter {
      version bigint(20) NOT NULL DEFAULT '0',
      disabled tinyint(11) NOT NULL DEFAULT '0',
      PRIMARY KEY (id),
-     KEY idx_logic_table_name_group_name_select_order_disabled (logic_table_name,group_name,select_order,disabled) USING BTREE
+     KEY idx_logical_table_name_group_name_select_order_disabled (logical_table_name,group_name,select_order,disabled) USING BTREE
      ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
      */
 
-    /*** SELECT id, current_value, end_value, version FROM sc_name.sequence WHERE group_name = ? AND logic_table_name = ? AND disabled = 0 ODER BY select_oder ASC LIMIT 1 ***/
+    /*** SELECT id, current_value, end_value, version FROM sc_name.sequence WHERE group_name = ? AND logical_table_name = ? AND disabled = 0 ODER BY select_oder ASC LIMIT 1 ***/
     private String          selectSqlTemplate     = "SELECT %s, %s, %s, %s FROM %s.%s WHERE %s = ? AND %s = ? AND %s = 0 ORDER BY %s ASC LIMIT 1 ";
 
     /*** UPDATE sc_name.sequence SET current_value = ?, disabled = ?, version = version + 1 WHERE id = ? AND version = ? LIMIT 1 ***/
@@ -96,7 +96,7 @@ public class DatabaseIdGetter implements IdGetter {
 
     private String          colNameOfPrimaryKey   = "id";
     private String          colNameOfGroupName    = "group_name";
-    private String          colNameOfTableName    = "logic_table_name";
+    private String          colNameOfTableName    = "logical_table_name";
     private String          colNameOfSelectOrder  = "select_order";
     private String          colNameOfEndValue     = "end_value";
     private String          colNameOfCurrentValue = "current_value";
@@ -164,7 +164,7 @@ public class DatabaseIdGetter implements IdGetter {
                     Assert.isTrue(skipNSteps != null && skipNSteps >= 0, "'skipNSteps'[" + skipNSteps
                                                                          + "] must greater than or equal to 0");
 
-                    /*** SELECT id, current_value, end_value, version FROM sc_name.sequence WHERE group_name = ? AND logic_table_name = ? AND disabled = 0 ORDER BY select_oder ASC LIMIT 1 ***/
+                    /*** SELECT id, current_value, end_value, version FROM sc_name.sequence WHERE group_name = ? AND logical_table_name = ? AND disabled = 0 ORDER BY select_oder ASC LIMIT 1 ***/
                     // "SELECT %s, %s, %s, %s FROM %s.%s WHERE %s = ? AND %s = ? AND %s = 0 ODER BY %s ASC LIMIT 1 ";
                     targetSelectSql = String.format(getSelectSqlTemplate(), colNameOfPrimaryKey, colNameOfCurrentValue,
                                                     colNameOfEndValue,
