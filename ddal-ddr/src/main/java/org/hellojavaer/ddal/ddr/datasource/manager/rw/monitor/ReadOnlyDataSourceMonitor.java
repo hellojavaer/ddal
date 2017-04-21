@@ -30,11 +30,11 @@ public interface ReadOnlyDataSourceMonitor {
 
     String restoreWeight(String scName, int index);
 
-    Integer getWeight(String scName, String name);
+    Integer getWeight(String scName, String dataSourceName);
 
-    String setWeight(String scName, String name, int weight);
+    String setWeight(String scName, String dataSourceName, int weight);
 
-    String restoreWeight(String scName, String name);
+    String restoreWeight(String scName, String dataSourceName);
 
     /**
      * 批量权重
