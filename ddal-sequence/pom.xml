@@ -15,7 +15,7 @@
     <url>https://github.com/hellojavaer/ddal</url>
 
     <properties>
-        <ddal.version>1.0.0-SNAPSHOT</ddal.version>
+        <ddal.version>1.0.0.M2</ddal.version>
         <junit.version>4.11</junit.version>
         <gpg.skip>false</gpg.skip>
         <javadoc.skip>false</javadoc.skip>

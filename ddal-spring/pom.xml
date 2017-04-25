@@ -15,7 +15,7 @@
     <url>https://github.com/hellojavaer/ddal</url>
 
     <properties>
-        <ddal.version>1.0.0-SNAPSHOT</ddal.version>
+        <ddal.version>1.0.0.M2</ddal.version>
         <spring.version>4.2.5.RELEASE</spring.version>
         <aspectjweaver.version>1.8.9</aspectjweaver.version>
         <junit.version>4.11</junit.version>
