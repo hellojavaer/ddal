@@ -13,20 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddal.ddr.shard;
+package org.hellojavaer.ddal.ddr.expression.el.function;
 
 /**
  *
- * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 31/01/2017.
+ * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 25/04/2017.
  */
-public interface ShardRouteRuleBinding {
+public class FormatFunction {
 
-    String getScName();
-
-    String getTbName();
-
-    String getSdKey();
-
-    ShardRouteRule getRule();
-
+    public static String format(String format, Object... args) {
+        return String.format(format, args);
+    }
 }

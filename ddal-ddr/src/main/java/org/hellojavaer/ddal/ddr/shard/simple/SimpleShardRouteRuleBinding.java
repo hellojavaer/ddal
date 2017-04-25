@@ -38,6 +38,7 @@ public class SimpleShardRouteRuleBinding implements ShardRouteRuleBinding, Seria
     private String             sdValues;
     private String             sdValueType          = VALUE_TYPE_OF_NUMBER;
 
+    @Override
     public String getScName() {
         return scName;
     }
@@ -46,6 +47,7 @@ public class SimpleShardRouteRuleBinding implements ShardRouteRuleBinding, Seria
         this.scName = scName;
     }
 
+    @Override
     public String getTbName() {
         return tbName;
     }
@@ -54,6 +56,7 @@ public class SimpleShardRouteRuleBinding implements ShardRouteRuleBinding, Seria
         this.tbName = tbName;
     }
 
+    @Override
     public String getSdKey() {
         return sdKey;
     }
@@ -62,6 +65,7 @@ public class SimpleShardRouteRuleBinding implements ShardRouteRuleBinding, Seria
         this.sdKey = sdKey;
     }
 
+    @Override
     public ShardRouteRule getRule() {
         return rule;
     }

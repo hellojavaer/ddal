@@ -31,7 +31,12 @@ public class ELFunctionManager {
     private static Map<String, Method> map = new ConcurrentHashMap<String, Method>(128);
 
     static {
-        Method[] methods = MathFunction.class.getDeclaredMethods();
+        registerFunction(MathFunction.class);
+        registerFunction(FormatFunction.class);
+    }
+
+    private static void registerFunction(Class<?> clazz) {
+        Method[] methods = clazz.getDeclaredMethods();
         for (Method method : methods) {
             ELFunctionManager.registerFunction(method.getName(), method);
         }
