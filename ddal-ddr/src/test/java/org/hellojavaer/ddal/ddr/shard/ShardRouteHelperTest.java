@@ -10,7 +10,7 @@ import java.util.List;
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 18/12/2016.
  */
-public class ShardRouteHelperTest extends BaseShardParserTest {
+public class ShardRouteHelperTest extends BaseTestShardParser {
 
     @Test
     public void test00() {

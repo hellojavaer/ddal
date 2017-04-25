@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017 the original author or authors.
+ * Copyright 2017-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,6 @@
 package org.hellojavaer.ddal.ddr.shard.simple;
 
 import org.hellojavaer.ddal.ddr.expression.el.function.ELFunctionManager;
-import org.hellojavaer.ddal.ddr.expression.format.FormatExpression;
-import org.hellojavaer.ddal.ddr.expression.format.FormatExpressionContext;
-import org.hellojavaer.ddal.ddr.expression.format.simple.SimpleFormatExpressionContext;
-import org.hellojavaer.ddal.ddr.expression.format.simple.SimpleFormatExpressionParser;
 import org.hellojavaer.ddal.ddr.shard.ShardRouteRule;
 import org.hellojavaer.ddal.ddr.shard.ShardRouteRuleContext;
 import org.hellojavaer.ddal.ddr.shard.exception.ExpressionValueNotFoundException;
@@ -31,29 +27,45 @@ import org.springframework.expression.ParserContext;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 
-import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
 /**
  *
- * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 15/11/2016.
+ * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 25/04/2017.
  */
-public class SimpleShardRouteRule implements ShardRouteRule, Serializable {
+public class SpelShardRouteRule implements ShardRouteRule {
 
-    private String           scRoute;
-    private String           scFormat;
-    private String           tbRoute;
-    private String           tbFormat;
+    private String     scRouteRule;
+    private String     tbRouteRule;
 
-    private Expression       scRouteExpression;
-    private Expression       tbRouteExpression;
+    private Expression scRouteRuleExpression;
+    private Expression tbRouteRuleExpression;
 
-    private FormatExpression scFormatExpression;
-    private FormatExpression tbFormatExpression;
+    public void setScRouteRule(String scRouteRule) {
+        scRouteRule = filter(scRouteRule);
+        this.scRouteRule = scRouteRule;
+        if (scRouteRule != null) {
+            ExpressionParser parser = new SpelExpressionParser();
+            this.scRouteRuleExpression = parser.parseExpression(scRouteRule, PARSER_CONTEXT);
+        }
+    }
 
-    public String getScRoute() {
-        return scRoute;
+    public String getScRouteRule() {
+        return scRouteRule;
+    }
+
+    public void setTbRouteRule(String tbRouteRule) {
+        tbRouteRule = filter(tbRouteRule);
+        this.tbRouteRule = tbRouteRule;
+        if (tbRouteRule != null) {
+            ExpressionParser parser = new SpelExpressionParser();
+            this.tbRouteRuleExpression = parser.parseExpression(tbRouteRule, PARSER_CONTEXT);
+        }
+    }
+
+    public String getTbRouteRule() {
+        return tbRouteRule;
     }
 
     private String filter(String string) {
@@ -66,126 +78,37 @@ public class SimpleShardRouteRule implements ShardRouteRule, Serializable {
         return string;
     }
 
-    public void setScRoute(String scRoute) {
-        scRoute = filter(scRoute);
-        this.scRoute = scRoute;
-        if (scRoute != null) {
-            ExpressionParser parser = new SpelExpressionParser();
-            this.scRouteExpression = parser.parseExpression(scRoute, PARSER_CONTEXT);
-        }
-    }
-
-    public String getScFormat() {
-        return scFormat;
-    }
-
-    public void setScFormat(String scFormat) {
-        scFormat = filter(scFormat);
-        this.scFormat = scFormat;
-        if (scFormat != null) {
-            SimpleFormatExpressionParser parser = new SimpleFormatExpressionParser();
-            scFormatExpression = parser.parse(scFormat);
-        }
-    }
-
-    public String getTbRoute() {
-        return tbRoute;
-    }
-
-    public void setTbRoute(String tbRoute) {
-        tbRoute = filter(tbRoute);
-        this.tbRoute = tbRoute;
-        if (tbRoute != null) {
-            ExpressionParser parser = new SpelExpressionParser();
-
-            this.tbRouteExpression = parser.parseExpression(tbRoute, PARSER_CONTEXT);
-        }
-    }
-
-    public String getTbFormat() {
-        return tbFormat;
-    }
-
-    public void setTbFormat(String tbFormat) {
-        tbFormat = filter(tbFormat);
-        this.tbFormat = tbFormat;
-        if (tbFormat != null) {
-            SimpleFormatExpressionParser parser = new SimpleFormatExpressionParser();
-            tbFormatExpression = parser.parse(tbFormat);
-        }
-    }
-
     @Override
     public String parseScName(ShardRouteRuleContext context) {
-        Object tbRoute = parseScRoute(context);
-        return parseScFormat(context, tbRoute);
+        if (scRouteRuleExpression == null) {
+            return context.getScName();
+        } else {
+            EvaluationContext elContext = buildEvaluationContext(scRouteRule);
+            elContext.setVariable("scName", context.getScName());
+            elContext.setVariable("tbName", context.getTbName());
+            elContext.setVariable("sdValue", context.getSdValue());
+            return scRouteRuleExpression.getValue(elContext, String.class);
+        }
     }
 
     @Override
     public String parseTbName(ShardRouteRuleContext context) {
-        Object tbRoute = parseTbRoute(context);
-        return parseTbFormat(context, tbRoute);
-    }
-
-    protected Object parseScRoute(ShardRouteRuleContext context) {
-        if (scRouteExpression == null) {
-            return context.getSdValue();
-        } else {
-            EvaluationContext elContext = buildEvaluationContext(scRoute);
-            elContext.setVariable("scName", context.getScName());
-            elContext.setVariable("tbName", context.getTbName());
-            elContext.setVariable("sdValue", context.getSdValue());
-            String $0 = scRouteExpression.getValue(elContext, String.class);
-            return $0;
-        }
-    }
-
-    protected String parseScFormat(ShardRouteRuleContext context, Object scRoute) {
-        if (scFormatExpression == null) {
-            return context.getScName();
-        } else {
-            FormatExpressionContext efContext = new SimpleFormatExpressionContext();
-            efContext.setVariable("scName", context.getScName());
-            efContext.setVariable("tbName", context.getTbName());
-            efContext.setVariable("sdValue", context.getSdValue());
-            efContext.setVariable("scRoute", scRoute);
-            return scFormatExpression.getValue(efContext);
-        }
-    }
-
-    protected Object parseTbRoute(ShardRouteRuleContext context) {
-        if (tbRouteExpression == null) {
-            return context.getSdValue();
-        } else {
-            EvaluationContext elContext = buildEvaluationContext(tbRoute);
-            elContext.setVariable("scName", context.getScName());
-            elContext.setVariable("tbName", context.getTbName());
-            elContext.setVariable("sdValue", context.getSdValue());
-            String $0 = tbRouteExpression.getValue(elContext, String.class);
-            return $0;
-        }
-    }
-
-    protected String parseTbFormat(ShardRouteRuleContext context, Object tbRoute) {
-        if (tbFormatExpression == null) {
+        if (tbRouteRuleExpression == null) {
             return context.getTbName();
         } else {
-            FormatExpressionContext feContext = new SimpleFormatExpressionContext();
-            feContext.setVariable("scName", context.getScName());
-            feContext.setVariable("tbName", context.getTbName());
-            feContext.setVariable("sdValue", context.getSdValue());
-            feContext.setVariable("tbRoute", tbRoute);
-            return tbFormatExpression.getValue(feContext);
+            EvaluationContext elContext = buildEvaluationContext(tbRouteRule);
+            elContext.setVariable("scName", context.getScName());
+            elContext.setVariable("tbName", context.getTbName());
+            elContext.setVariable("sdValue", context.getSdValue());
+            return tbRouteRuleExpression.getValue(elContext, String.class);
         }
     }
 
     @Override
     public String toString() {
         return new DDRToStringBuilder()//
-        .append("scRoute", scRoute)//
-        .append("scFormat", scFormat)//
-        .append("tbRoute", tbRoute)//
-        .append("tbFormat", tbFormat)//
+        .append("scRouteRule", scRouteRule)//
+        .append("tbRouteRule", tbRouteRule)//
         .toString();
     }
 

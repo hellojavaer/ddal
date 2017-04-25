@@ -227,7 +227,7 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
             @Override
             public Integer getWeight(String scName, String dataSourceName) {
                 scName = DDRStringUtils.toLowerCase(scName);
-                dataSourceName = DDRStringUtils.toLowerCase(dataSourceName);
+                dataSourceName = DDRStringUtils.trimToNull(dataSourceName);
                 if (scName == null || dataSourceName == null || readOnlyDataSourceMapCahceCurrentValues == null
                     || readOnlyDataSourceMapCahceCurrentValues.isEmpty()) {
                     return null;
@@ -246,7 +246,7 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
             @Override
             public String setWeight(String scName, String dataSourceName, int weight) {
                 scName = DDRStringUtils.toLowerCase(scName);
-                dataSourceName = DDRStringUtils.toLowerCase(dataSourceName);
+                dataSourceName = DDRStringUtils.trimToNull(dataSourceName);
                 if (scName == null || dataSourceName == null || weight < 0) {
                     return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_ILLEGAL_ARGUMENT,
                                                          "illegal argument(s)").toString();
@@ -275,7 +275,7 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
             @Override
             public String restoreWeight(String scName, String dataSourceName) {
                 scName = DDRStringUtils.toLowerCase(scName);
-                dataSourceName = DDRStringUtils.toLowerCase(dataSourceName);
+                dataSourceName = DDRStringUtils.trimToNull(dataSourceName);
                 if (scName == null || dataSourceName == null) {
                     return new WritingMethodInvokeResult(WritingMethodInvokeResult.CODE_OF_ILLEGAL_ARGUMENT,
                                                          "illegal argument(s)").toString();
@@ -563,10 +563,10 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
 
     private void buildWriteOnlyDataSource(Map<String, DataSourceWrapper> dataSourceMap, List<String> schemas,
                                           DataSource dataSource) {
-        Set<String> uniqSchemas = new HashSet<>();
+        Set<String> uniqueSchemas = new HashSet<>();
         if (schemas != null && !schemas.isEmpty()) {
             for (String s : schemas) {
-                uniqSchemas.add(s);
+                uniqueSchemas.add(s);
             }
         }
         for (String schema : schemas) {
@@ -584,7 +584,7 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
                 throw new IllegalArgumentException("Schema '" + schema
                                                    + "' duplicate binding in 'writeOnlyDataSources' configuration");
             } else {
-                dataSourceMap.put(schema, new DataSourceWrapper(dataSource, uniqSchemas));
+                dataSourceMap.put(schema, new DataSourceWrapper(dataSource, uniqueSchemas));
             }
         }
     }

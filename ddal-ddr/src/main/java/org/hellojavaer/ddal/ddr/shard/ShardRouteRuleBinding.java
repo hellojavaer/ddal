@@ -23,17 +23,10 @@ public interface ShardRouteRuleBinding {
 
     String getScName();
 
-    void setScName(String scName);
-
     String getTbName();
-
-    void setTbName(String tbName);
 
     String getSdKey();
 
-    void setSdKey(String sdKey);
-
     ShardRouteRule getRule();
 
-    void setRule(ShardRouteRule rule);
 }
