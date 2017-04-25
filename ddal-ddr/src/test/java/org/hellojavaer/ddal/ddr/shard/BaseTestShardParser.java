@@ -14,7 +14,7 @@ import java.util.List;
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 18/12/2016.
  */
-public class BaseShardParserTest {
+public class BaseTestShardParser {
 
     /**
      * 构造数据模型
