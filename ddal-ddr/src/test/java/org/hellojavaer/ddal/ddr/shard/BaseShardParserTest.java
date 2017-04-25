@@ -1,9 +1,9 @@
 package org.hellojavaer.ddal.ddr.shard;
 
 import org.hellojavaer.ddal.ddr.shard.simple.SimpleShardParser;
-import org.hellojavaer.ddal.ddr.shard.simple.SimpleShardRouteRule;
 import org.hellojavaer.ddal.ddr.shard.simple.SimpleShardRouteRuleBinding;
 import org.hellojavaer.ddal.ddr.shard.simple.SimpleShardRouter;
+import org.hellojavaer.ddal.ddr.shard.simple.SpelShardRouteRule;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,17 +25,13 @@ public class BaseShardParserTest {
         SimpleShardRouter shardRouter = new SimpleShardRouter();
         List<SimpleShardRouteRuleBinding> bindings = new ArrayList<SimpleShardRouteRuleBinding>();
         // 定义规则
-        SimpleShardRouteRule numRule = new SimpleShardRouteRule();
-        numRule.setScRoute("{#sdValue % 8}");
-        numRule.setScFormat("{scName}_{scRoute:'%2s'}");
-        numRule.setTbRoute("{#sdValue % 128}");
-        numRule.setTbFormat("{tbName}_{tbRoute:'%4s'}");
+        SpelShardRouteRule numRule = new SpelShardRouteRule();
+        numRule.setScRouteRule("{#scName}_{#format('%02d', #sdValue % 8)}");
+        numRule.setTbRouteRule("{#tbName}_{#format('%04d', #sdValue % 128)}");
 
-        SimpleShardRouteRule strRule = new SimpleShardRouteRule();
-        strRule.setScRoute("{#sdValue.hashCode() % 8}");
-        strRule.setScFormat("{scName}_{scRoute:'%2s'}");
-        strRule.setTbRoute("{#sdValue.hashCode() % 128}");
-        strRule.setTbFormat("{tbName}_{tbRoute:'%4s'}");
+        SpelShardRouteRule strRule = new SpelShardRouteRule();
+        strRule.setScRouteRule("{#scName}_{#format('%02d', #sdValue.hashCode() % 8)}");
+        strRule.setTbRouteRule("{#tbName}_{#format('%04d', #sdValue.hashCode() % 128)}");
 
         // 用户表
         SimpleShardRouteRuleBinding user = new SimpleShardRouteRuleBinding();
@@ -63,7 +59,6 @@ public class BaseShardParserTest {
         item.setSdValues("[0~127]");
         item.setRule(numRule);
         bindings.add(item);
-
 
         // 商品异构表
         SimpleShardRouteRuleBinding item_1 = new SimpleShardRouteRuleBinding();
