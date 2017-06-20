@@ -15,6 +15,8 @@
  */
 package org.hellojavaer.ddal.ddr.shard;
 
+import java.util.Objects;
+
 /**
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 15/11/2016.
@@ -55,5 +57,43 @@ public class RouteInfo {
         } else {
             return new StringBuilder().append(scName).append('.').append(tbName).toString();
         }
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(scName, tbName);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (obj == this) {
+            return true;
+        }
+        if (!(obj instanceof RouteInfo)) {
+            return false;
+        }
+        RouteInfo routeInfo = (RouteInfo) obj;
+        if (this.scName == null) {
+            if (routeInfo.getScName() != null) {
+                return false;
+            }
+        } else {
+            if (!this.scName.equals(routeInfo.getScName())) {
+                return false;
+            }
+        }
+        if (this.tbName == null) {
+            if (routeInfo.getTbName() != null) {
+                return false;
+            }
+        } else {
+            if (!this.tbName.equals(routeInfo.getTbName())) {
+                return false;
+            }
+        }
+        return true;
     }
 }

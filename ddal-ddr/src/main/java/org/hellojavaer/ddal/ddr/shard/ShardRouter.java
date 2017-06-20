@@ -18,6 +18,10 @@ package org.hellojavaer.ddal.ddr.shard;
 import org.hellojavaer.ddal.ddr.shard.exception.ShardRoutingException;
 import org.hellojavaer.ddal.ddr.shard.exception.ShardValueNotFoundException;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 /**
  * All the shard route ways designed in 'DDR' can be summarized as two ways.
  * <pre>
@@ -35,7 +39,10 @@ public interface ShardRouter {
 
     RouteConfig getRouteConfig(String scName, String tbName);
 
-    RouteInfo route(String scName, String tbName, Object sdValue) throws ShardValueNotFoundException,
-                                                                 ShardRoutingException;
+    RouteInfo getRouteInfo(String scName, String tbName, Object sdValue) throws ShardValueNotFoundException,
+                                                                        ShardRoutingException;
 
+    List<RouteInfo> getRouteInfos(String scName, String tbName);
+
+    Map<String, Set<String>> getRoutedTables();
 }
