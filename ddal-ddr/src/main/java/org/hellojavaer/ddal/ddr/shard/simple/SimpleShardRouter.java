@@ -18,10 +18,7 @@ package org.hellojavaer.ddal.ddr.shard.simple;
 import org.hellojavaer.ddal.ddr.expression.range.RangeExpression;
 import org.hellojavaer.ddal.ddr.expression.range.RangeItemVisitor;
 import org.hellojavaer.ddal.ddr.shard.*;
-import org.hellojavaer.ddal.ddr.shard.exception.AmbiguousRouteRuleBindingException;
-import org.hellojavaer.ddal.ddr.shard.exception.DuplicateRouteRuleBindingException;
-import org.hellojavaer.ddal.ddr.shard.exception.ShardRoutingException;
-import org.hellojavaer.ddal.ddr.shard.exception.ShardValueNotFoundException;
+import org.hellojavaer.ddal.ddr.shard.exception.*;
 import org.hellojavaer.ddal.ddr.utils.DDRStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -123,7 +120,7 @@ public class SimpleShardRouter implements ShardRouter {
                             } else {
                                 throw new IllegalArgumentException("Unknown 'sdValueType':" + sdValueType);
                             }
-                            RouteInfo routeInfo = getRouteInfo(b0.getRule(), scName, tbName, v);
+                            RouteInfo routeInfo = getRouteInfo(b0, scName, tbName, v);
                             routeInfos.add(routeInfo);
                         }
                     });
@@ -207,7 +204,7 @@ public class SimpleShardRouter implements ShardRouter {
         if (binding == null) {
             return null;
         } else {// 必须使用 binding 中的 scName,因为sql中的scName可能为空
-            RouteInfo info = getRouteInfo(binding.getRule(), binding.getScName(), binding.getTbName(), sdValue);
+            RouteInfo info = getRouteInfo(binding, binding.getScName(), binding.getTbName(), sdValue);
             return info;
         }
     }
@@ -234,9 +231,10 @@ public class SimpleShardRouter implements ShardRouter {
         return sb.toString();
     }
 
-    private RouteInfo getRouteInfo(ShardRouteRule rule, String scName, String tbName, Object sdValue)
-                                                                                                     throws ShardRoutingException,
-                                                                                                     ShardValueNotFoundException {
+    private RouteInfo getRouteInfo(SimpleShardRouteRuleBinding binding, String scName, String tbName, Object sdValue)
+                                                                                                                     throws ShardRoutingException,
+                                                                                                                     ShardValueNotFoundException {
+        ShardRouteRule rule = binding.getRule();
         if (rule == null) {// 未配置rule,参数sdKey 和 sdValue都无效
             RouteInfo info = new RouteInfo();
             info.setScName(scName);
@@ -245,36 +243,49 @@ public class SimpleShardRouter implements ShardRouter {
         } else {// 配置了rule
             if (sdValue == null) {
                 Object obj = ShardRouteContext.getRouteInfo(scName, tbName);
-                if (obj != null) {
-                    if (obj instanceof RouteInfo) {
-                        return (RouteInfo) obj;
-                    } else {
-                        return getRouteInfo(rule, scName, tbName, obj);
-                    }
-                } else {
+                if (obj == null) {
                     throw new ShardValueNotFoundException("shard value is not found for 'scName':" + scName
                                                           + ",'tbName':" + tbName + ",routeRule:" + rule);
                 }
+                if (binding.getSdKey() != null && !(obj instanceof RouteInfo)) {
+                    throw new IllegalShardValueException(
+                                                         "when 'sdKey' is configed in route rule for table '"
+                                                                 + scName
+                                                                 + "."
+                                                                 + tbName
+                                                                 + "', "
+                                                                 + ", the type of 'sdValue' can only be 'RouteInfo'. but current 'sdValue' is "
+                                                                 + sdValue);
+                }
+                if (obj instanceof RouteInfo) {
+                    return (RouteInfo) obj;
+                } else {
+                    return getRouteInfoByRouteRule(rule, scName, tbName, obj);
+                }
+            } else {
+                return getRouteInfoByRouteRule(rule, scName, tbName, sdValue);
             }
-            //
-            try {
-                RouteInfo info = new RouteInfo();
-                ShardRouteRuleContext context = new ShardRouteRuleContext();
-                context.setScName(scName);
-                context.setTbName(tbName);
-                context.setSdValue(sdValue);
-                // throws exception
-                String sc = rule.parseScName(context);
-                // throws exception
-                String tb = rule.parseTbName(context);
+        }
+    }
 
-                info.setScName(sc);
-                info.setTbName(tb);
-                return info;
-            } catch (Throwable e) {
-                throw new ShardRoutingException("'scName':" + scName + ",'tbName':" + tbName + ",'sdName':" + sdValue
-                                                + ",routeRule:" + rule, e);
-            }
+    private RouteInfo getRouteInfoByRouteRule(ShardRouteRule rule, String scName, String tbName, Object sdValue) {
+        try {
+            RouteInfo info = new RouteInfo();
+            ShardRouteRuleContext context = new ShardRouteRuleContext();
+            context.setScName(scName);
+            context.setTbName(tbName);
+            context.setSdValue(sdValue);
+            // throws exception
+            String sc = rule.parseScName(context);
+            // throws exception
+            String tb = rule.parseTbName(context);
+
+            info.setScName(sc);
+            info.setTbName(tb);
+            return info;
+        } catch (Throwable e) {
+            throw new ShardRoutingException("'scName':" + scName + ",'tbName':" + tbName + ",'sdName':" + sdValue
+                                            + ",routeRule:" + rule, e);
         }
     }
 }

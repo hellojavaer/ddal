@@ -15,14 +15,12 @@
  */
 package org.hellojavaer.ddal.ddr.shard.annotation;
 
-import org.hellojavaer.ddal.ddr.shard.enums.ContextPropagation;
-
 import java.lang.annotation.*;
 
 /**
  * Setting the default route information for the schema
  * <pre>
- * This configuration is fully equivalent to invoking #{org.hellojavaer.ddal.ddr.shard.ShardRouteContext.setDefaultRouteInfo},
+ * This configuration is fully equivalent to invoking #{org.hellojavaer.ddal.ddr.shard.ShardRouteContext.setRouteInfo},
  * and this default route configuration will take effect only in the following case:
  * 1. No 'sdKey' was specified in route rule configuration
  * 2. Specified route rule in configuration but no 'sdKey' was found in sql and no associated route information was specified by #{org.hellojavaer.ddal.ddr.shard.ShardRouteContext.setRouteInfo}
@@ -37,8 +35,6 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface ShardRoute {
-
-    ContextPropagation value() default ContextPropagation.CLEAR_CONTEXT;
 
     String scName() default "";
 
