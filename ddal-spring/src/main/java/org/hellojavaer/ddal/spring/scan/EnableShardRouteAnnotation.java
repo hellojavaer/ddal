@@ -21,7 +21,6 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.hellojavaer.ddal.ddr.shard.ShardRouteContext;
 import org.hellojavaer.ddal.ddr.shard.annotation.ShardRoute;
-import org.hellojavaer.ddal.ddr.shard.enums.ContextPropagation;
 import org.hellojavaer.ddal.ddr.utils.DDRStringUtils;
 import org.springframework.core.DefaultParameterNameDiscoverer;
 import org.springframework.core.ParameterNameDiscoverer;
@@ -59,12 +58,7 @@ public class EnableShardRouteAnnotation {
     @Around("@annotation(shardRoute)")
     public Object around(ProceedingJoinPoint joinPoint, ShardRoute shardRoute) throws Throwable {
         try {
-            //
-            if (shardRoute.value() == ContextPropagation.SUB_CONTEXT) {
-                ShardRouteContext.pushSubContext();
-            } else {
-                ShardRouteContext.clear();
-            }
+            ShardRouteContext.pushContext();
             if (shardRoute.scName() != null && shardRoute.scName().length() > 0 //
                 && shardRoute.sdValue() != null && shardRoute.sdValue().length() > 0) {
                 MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
@@ -95,7 +89,10 @@ public class EnableShardRouteAnnotation {
                 } else {
                     val = calculate(innerBean.getExpression(), innerBean.getParameterNames(), args);
                 }
-                ShardRouteContext.setDefaultRouteInfo(shardRoute.scName(), val);
+                String[] scNames = shardRoute.scName().split(",");
+                for (String scName : scNames) {
+                    ShardRouteContext.setRouteInfo(scName, val);
+                }
             } else {
                 if ((shardRoute.scName() == null || shardRoute.scName().length() == 0)
                     && (shardRoute.sdValue() == null || shardRoute.sdValue().length() == 0)) {
@@ -107,11 +104,7 @@ public class EnableShardRouteAnnotation {
             }
             return joinPoint.proceed(joinPoint.getArgs());
         } finally {
-            if (shardRoute.value() == ContextPropagation.SUB_CONTEXT) {
-                ShardRouteContext.popSubContext();
-            } else {
-                ShardRouteContext.clear();
-            }
+            ShardRouteContext.popContext();
         }
     }
 
