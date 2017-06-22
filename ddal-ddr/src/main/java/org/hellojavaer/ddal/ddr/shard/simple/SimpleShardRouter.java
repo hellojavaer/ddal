@@ -244,8 +244,8 @@ public class SimpleShardRouter implements ShardRouter {
             if (sdValue == null) {
                 Object obj = ShardRouteContext.getRouteInfo(scName, tbName);
                 if (obj == null) {
-                    throw new ShardValueNotFoundException("shard value is not found for 'scName':" + scName
-                                                          + ",'tbName':" + tbName + ",routeRule:" + rule);
+                    throw new ShardValueNotFoundException("shard value is not found for scName:" + scName + ", tbName:"
+                                                          + tbName + ",routeRule:" + rule);
                 }
                 if (binding.getSdKey() != null && !(obj instanceof RouteInfo)) {
                     throw new IllegalShardValueException(
@@ -255,7 +255,7 @@ public class SimpleShardRouter implements ShardRouter {
                                                                  + tbName
                                                                  + "', "
                                                                  + ", the type of 'sdValue' can only be 'RouteInfo'. but current 'sdValue' is "
-                                                                 + sdValue);
+                                                                 + obj.getClass() + "(" + obj + ")");
                 }
                 if (obj instanceof RouteInfo) {
                     return (RouteInfo) obj;

@@ -40,7 +40,7 @@ import java.util.Map;
 /**
  * add the following tags in spring configuration file
  * <pre>
- *      <aop:aspectj-autoproxy/>
+        <aop:aspectj-autoproxy/>
         <bean class="org.hellojavaer.ddal.spring.scan.EnableShardRouteAnnotation"/>
  * </pre>
  *
@@ -118,7 +118,11 @@ public class EnableShardRouteAnnotation {
         } else {
             try {
                 parameterNameDiscoverer = new DefaultParameterNameDiscoverer();// only support from spring4
-                return parameterNameDiscoverer.getParameterNames(method);
+                String[] strs = parameterNameDiscoverer.getParameterNames(method);
+                if (strs == null) {
+                    notSupportParameterNameDiscoverer = true;
+                }
+                return strs;
             } catch (NoClassDefFoundError e) {
                 notSupportParameterNameDiscoverer = true;
                 return null;

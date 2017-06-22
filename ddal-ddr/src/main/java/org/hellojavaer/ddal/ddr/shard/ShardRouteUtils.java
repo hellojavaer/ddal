@@ -23,12 +23,12 @@ import java.util.*;
  */
 public class ShardRouteUtils {
 
-    public static Map<RouteInfo, List<?>> groupSdValuesByRouteInfo(ShardRouter shardRouter, String scName,
-                                                                   String tbName, List<?> sdValues) {
+    public static <T> Map<RouteInfo, List<T>> groupSdValuesByRouteInfo(ShardRouter shardRouter, String scName,
+                                                                       String tbName, List<T> sdValues) {
         if (sdValues == null || sdValues.isEmpty()) {
             return Collections.EMPTY_MAP;
         }
-        Map<RouteInfo, List<?>> map = new HashMap<>();
+        Map<RouteInfo, List<T>> map = new LinkedHashMap<>();
         for (Object item : sdValues) {
             RouteInfo routeInfo = shardRouter.getRouteInfo(scName, tbName, item);
             List list = map.get(routeInfo);
@@ -41,12 +41,17 @@ public class ShardRouteUtils {
         return map;
     }
 
-    public static Map<RouteInfo, Set<?>> groupSdValuesByRouteInfo(ShardRouter shardRouter, String scName,
-                                                                  String tbName, Set<?> sdValues) {
+    public static <T> Map<RouteInfo, Set<T>> groupSdValuesByRouteInfo(ShardRouter shardRouter, String scName,
+                                                                      String tbName, Set<T> sdValues) {
         if (sdValues == null || sdValues.isEmpty()) {
             return Collections.EMPTY_MAP;
         }
-        Map<RouteInfo, Set<?>> map = new HashMap<>();
+        Map<RouteInfo, Set<T>> map = null;
+        if (sdValues instanceof LinkedHashSet) {
+            map = new LinkedHashMap();
+        } else {
+            map = new HashMap<>();
+        }
         for (Object item : sdValues) {
             RouteInfo routeInfo = shardRouter.getRouteInfo(scName, tbName, item);
             Set set = map.get(routeInfo);

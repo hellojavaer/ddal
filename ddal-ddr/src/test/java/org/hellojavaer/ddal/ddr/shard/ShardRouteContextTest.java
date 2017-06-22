@@ -46,7 +46,7 @@ public class ShardRouteContextTest {
             Assert.isTrue(ShardRouteContext.getRouteInfo("sc_01", "tb") == 3);
             try {
                 ShardRouteContext.getRouteInfo(null, "tb");
-                Assert.isTrue(false);
+                throw new Error();
             } catch (AmbiguousDataSourceBindingException e) {
             }
             //
@@ -149,7 +149,7 @@ public class ShardRouteContextTest {
         // root context can't be pop
         try {
             ShardRouteContext.popContext();
-            Assert.isTrue(false);
+            throw new Error();
         } catch (IndexOutOfBoundsException e) {
         }
         //
@@ -159,7 +159,7 @@ public class ShardRouteContextTest {
         ShardRouteContext.popContext();
         try {
             ShardRouteContext.popContext();
-            Assert.isTrue(false);
+            throw new Error();
         } catch (IndexOutOfBoundsException e) {
         }
     }
