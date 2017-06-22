@@ -18,6 +18,7 @@ package org.hellojavaer.ddal.sequence;
 import java.io.Serializable;
 
 /**
+ * [begin,end] closed interval
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 04/01/2017.
  */
