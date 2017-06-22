@@ -78,7 +78,7 @@ public class DatabaseIdGetter implements IdGetter {
         version bigint(20) NOT NULL DEFAULT '0',
         deleted tinyint(1) NOT NULL DEFAULT '0',
         PRIMARY KEY (id),
-        KEY idx_table_name_schema_name_select_order_deleted (table_name,schema_name,select_order,deleted) USING BTREE
+        KEY idx_table_name_schema_name_deleted_select_order (table_name,schema_name,deleted,select_order) USING BTREE
      ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
      */
 
