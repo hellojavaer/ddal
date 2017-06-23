@@ -17,6 +17,7 @@ package org.hellojavaer.ddal.sequence.db;
 
 import org.hellojavaer.ddal.sequence.IdGetter;
 import org.hellojavaer.ddal.sequence.IdRange;
+import org.hellojavaer.ddal.sequence.exception.DirtyDataException;
 import org.hellojavaer.ddal.sequence.utils.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -238,7 +239,9 @@ public class DatabaseIdGetter implements IdGetter {
             }
             if (rows > 0) {
                 if (dirtyRow) {// 兼容异常数据
-                    return null;
+                    throw new DirtyDataException(
+                                                 String.format("id:%s, nextValue:%s, endValue:%s, version:%s, deleted:0",
+                                                               id, beginValue, endValue, version));
                 }
                 if (logger.isInfoEnabled()) {
                     logger.info("[Get_Range]: " + idRange);

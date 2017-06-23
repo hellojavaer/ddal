@@ -15,6 +15,8 @@
  */
 package org.hellojavaer.ddal.sequence;
 
+import org.hellojavaer.ddal.sequence.exception.DirtyDataException;
+import org.hellojavaer.ddal.sequence.exception.NoAvailableIdRangeFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -158,7 +160,7 @@ public abstract class IdCache {
 
             @Override
             public void run() {
-                final int baseLine = 5;
+                final int baseLine = 8;
                 final int[] sleepTimes = new int[] { 100, 200, 300, 500, 800, 1300, 2100, 3000 };
                 final int endCount = sleepTimes.length + baseLine - 1;
                 long count = 0;
@@ -181,12 +183,18 @@ public abstract class IdCache {
                         }
                         count = 0;
                     } catch (Throwable e) {
-                        logger.error("[GetIdRange]", e);
+                        if (e instanceof DirtyDataException) {
+                            logger.error("[GetIdRange] DirtyDataException: " + e.getMessage());
+                        } else if (e instanceof NoAvailableIdRangeFoundException) {
+                            logger.error("[GetIdRange] NoAvailableIdRangeException: " + e.getMessage());
+                        } else {
+                            logger.error("[GetIdRange] Exception", e);
+                        }
                         if (count >= baseLine) {
                             try {
                                 Thread.sleep(sleepTimes[(int) (count - baseLine)]);
                             } catch (InterruptedException e1) {
-                                logger.error("[GetIdRangeSleep]", e1);
+                                logger.error("[GetIdRange] SleepException", e1);
                             }
                         }
                         if (count < endCount) {

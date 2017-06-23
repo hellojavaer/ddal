@@ -15,6 +15,7 @@
  */
 package org.hellojavaer.ddal.sequence;
 
+import org.hellojavaer.ddal.sequence.exception.NoAvailableIdRangeFoundException;
 import org.hellojavaer.ddal.sequence.utils.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,8 +30,8 @@ import org.slf4j.LoggerFactory;
 public class DefaultSequence implements Sequence {
 
     private Logger           logger      = LoggerFactory.getLogger(this.getClass());
-    private String           groupName;
-    private String           logicalTableName;
+    private String           schemaName;
+    private String           tableName;
     private Integer          step;                                                  // 单节点步长
     private Integer          cacheNSteps;                                           // 缓存队列大小
     private Integer          timeout;
@@ -42,10 +43,10 @@ public class DefaultSequence implements Sequence {
     public DefaultSequence() {
     }
 
-    public DefaultSequence(String groupName, String logicalTableName, Integer step, Integer cacheNSteps,
-                           Integer timeout, IdGetter idGetter) {
-        this.groupName = groupName;
-        this.logicalTableName = logicalTableName;
+    public DefaultSequence(String schemaName, String tableName, Integer step, Integer cacheNSteps, Integer timeout,
+                           IdGetter idGetter) {
+        this.schemaName = schemaName;
+        this.tableName = tableName;
         this.step = step;
         this.cacheNSteps = cacheNSteps;
         this.timeout = timeout;
@@ -58,8 +59,8 @@ public class DefaultSequence implements Sequence {
             synchronized (this) {
                 if (initialized == false) {
                     // init
-                    Assert.notNull(groupName, "'groupName' can't be null'");
-                    Assert.notNull(logicalTableName, "'logicalTableName' can't be null'");
+                    Assert.notNull(schemaName, "'schemaName' can't be null'");
+                    Assert.notNull(tableName, "'tableName' can't be null'");
                     Assert.notNull(step, "'step' must be greater than 0");
                     Assert.notNull(cacheNSteps, "'cacheNSteps' must be greater than or equal to 0");
                     Assert.notNull(timeout, "'timeout' must be greater than 0");
@@ -79,10 +80,11 @@ public class DefaultSequence implements Sequence {
 
             @Override
             public IdRange get() throws Exception {
-                IdRange idRange = getIdGetter().get(getGroupName(), getLogicalTableName(), getStep());
+                IdRange idRange = getIdGetter().get(getSchemaName(), getTableName(), getStep());
                 if (idRange == null) {
-                    throw new NullPointerException("No id range is configured for groupName:'" + getGroupName()
-                                                   + "', logicalTableName:'" + getLogicalTableName() + "'");
+                    throw new NoAvailableIdRangeFoundException("No available id rang was found for schemaName:'"
+                                                               + getSchemaName() + "', tableName:'" + getTableName()
+                                                               + "'");
                 } else {
                     return idRange;
                 }
@@ -102,20 +104,20 @@ public class DefaultSequence implements Sequence {
         }
     }
 
-    public String getGroupName() {
-        return groupName;
+    public String getSchemaName() {
+        return schemaName;
     }
 
-    public void setGroupName(String groupName) {
-        this.groupName = groupName;
+    public void setSchemaName(String schemaName) {
+        this.schemaName = schemaName;
     }
 
-    public String getLogicalTableName() {
-        return logicalTableName;
+    public String getTableName() {
+        return tableName;
     }
 
-    public void setLogicalTableName(String logicalTableName) {
-        this.logicalTableName = logicalTableName;
+    public void setTableName(String tableName) {
+        this.tableName = tableName;
     }
 
     public Integer getStep() {
