@@ -28,15 +28,16 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 04/01/2017.
  */
-public abstract class IdCache {
+abstract class IdCache {
 
     private Logger           logger = LoggerFactory.getLogger(this.getClass());
     private SumBlockingQueue list;
 
     private int              step;
     private int              cacheNSteps;
+    private ExceptionHandler exceptionHandler;
 
-    public IdCache(int step, int cacheNSteps) {
+    public IdCache(int step, int cacheNSteps, ExceptionHandler exceptionHandler) {
         if (step <= 0) {
             throw new IllegalArgumentException("step must be greater than 0");
         }
@@ -45,6 +46,7 @@ public abstract class IdCache {
         }
         this.step = step;
         this.cacheNSteps = cacheNSteps;
+        this.exceptionHandler = exceptionHandler;
         this.list = new SumBlockingQueue(step * cacheNSteps);
         startProducer();
     }
@@ -82,6 +84,11 @@ public abstract class IdCache {
                         }
                         count = 0;
                     } catch (Throwable e) {
+                        if (exceptionHandler != null) {
+                            if (exceptionHandler.handle(e)) {
+                                continue;
+                            }
+                        }
                         if (e instanceof DirtyDataException) {
                             logger.error("[GetIdRange] " + e.getMessage());
                         } else if (e instanceof NoAvailableIdRangeFoundException) {

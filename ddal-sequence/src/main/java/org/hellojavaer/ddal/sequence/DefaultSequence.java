@@ -40,17 +40,20 @@ public class DefaultSequence implements Sequence {
     private volatile IdCache idCache;
     private boolean          initialized = false;
 
+    private ExceptionHandler exceptionHandler;
+
     public DefaultSequence() {
     }
 
     public DefaultSequence(String schemaName, String tableName, Integer step, Integer cacheNSteps, Integer timeout,
-                           IdGetter idGetter) {
+                           IdGetter idGetter, ExceptionHandler exceptionHandler) {
         this.schemaName = schemaName;
         this.tableName = tableName;
         this.step = step;
         this.cacheNSteps = cacheNSteps;
         this.timeout = timeout;
         this.idGetter = idGetter;
+        this.exceptionHandler = exceptionHandler;
         init();
     }
 
@@ -76,7 +79,7 @@ public class DefaultSequence implements Sequence {
         if (cacheNSteps <= 0) {
             throw new IllegalArgumentException("cacheNSteps[" + cacheNSteps + "] must greater then 0");
         }
-        return new IdCache(step, cacheNSteps) {
+        return new IdCache(step, cacheNSteps, exceptionHandler) {
 
             @Override
             public IdRange getIdRange() throws Exception {
@@ -150,5 +153,13 @@ public class DefaultSequence implements Sequence {
 
     public void setIdGetter(IdGetter idGetter) {
         this.idGetter = idGetter;
+    }
+
+    public ExceptionHandler getExceptionHandler() {
+        return exceptionHandler;
+    }
+
+    public void setExceptionHandler(ExceptionHandler exceptionHandler) {
+        this.exceptionHandler = exceptionHandler;
     }
 }
