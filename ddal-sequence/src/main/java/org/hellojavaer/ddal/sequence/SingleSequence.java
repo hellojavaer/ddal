@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 03/01/2017.
  */
-public class DefaultSequence implements Sequence {
+public class SingleSequence implements Sequence {
 
     private Logger           logger      = LoggerFactory.getLogger(this.getClass());
     private String           schemaName;
@@ -42,11 +42,11 @@ public class DefaultSequence implements Sequence {
 
     private ExceptionHandler exceptionHandler;
 
-    public DefaultSequence() {
+    public SingleSequence() {
     }
 
-    public DefaultSequence(String schemaName, String tableName, Integer step, Integer cacheNSteps, Integer timeout,
-                           IdGetter idGetter, ExceptionHandler exceptionHandler) {
+    public SingleSequence(String schemaName, String tableName, Integer step, Integer cacheNSteps, Integer timeout,
+                          IdGetter idGetter, ExceptionHandler exceptionHandler) {
         this.schemaName = schemaName;
         this.tableName = tableName;
         this.step = step;
