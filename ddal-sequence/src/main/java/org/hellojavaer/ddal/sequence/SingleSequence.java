@@ -46,6 +46,17 @@ public class SingleSequence implements Sequence {
     }
 
     public SingleSequence(String schemaName, String tableName, Integer step, Integer cacheNSteps, Integer timeout,
+                          IdGetter idGetter) {
+        this.schemaName = schemaName;
+        this.tableName = tableName;
+        this.step = step;
+        this.cacheNSteps = cacheNSteps;
+        this.timeout = timeout;
+        this.idGetter = idGetter;
+        init();
+    }
+
+    public SingleSequence(String schemaName, String tableName, Integer step, Integer cacheNSteps, Integer timeout,
                           IdGetter idGetter, ExceptionHandler exceptionHandler) {
         this.schemaName = schemaName;
         this.tableName = tableName;
