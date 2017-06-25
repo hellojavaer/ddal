@@ -20,11 +20,9 @@ import org.hellojavaer.ddal.sequence.exception.NoAvailableIdRangeFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  *
@@ -32,125 +30,27 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public abstract class IdCache {
 
-    private Logger                          logger    = LoggerFactory.getLogger(this.getClass());
-    private LinkedBlockingQueue<InnerRange> list;
+    private Logger           logger = LoggerFactory.getLogger(this.getClass());
+    private SumBlockingQueue list;
 
-    private Object                          emptyLock = new Object();
-    private Object                          writeLock = new Object();
+    private int              step;
+    private int              cacheNSteps;
 
-    public IdCache(int capacity) {
-        list = new LinkedBlockingQueue<>(capacity);
+    public IdCache(int step, int cacheNSteps) {
+        if (step <= 0) {
+            throw new IllegalArgumentException("step must be greater than 0");
+        }
+        if (cacheNSteps <= 0) {
+            throw new IllegalArgumentException("cacheNSteps must be greater than 0");
+        }
+        this.step = step;
+        this.cacheNSteps = cacheNSteps;
+        this.list = new SumBlockingQueue(step * cacheNSteps);
         startProducer();
     }
 
-    // 数据库保持结束值
-    protected class InnerRange {
-
-        private long          beginValue;                        // 包含自身
-        private long          endValue;                          // 包含自身
-        private AtomicLong    count;                             //
-        private AtomicBoolean deleted = new AtomicBoolean(false);
-
-        public InnerRange(long beginValue, long endValue) {
-            this.beginValue = beginValue;
-            this.endValue = endValue;
-            this.count = new AtomicLong(beginValue);
-        }
-
-        public long getBeginValue() {
-            return beginValue;
-        }
-
-        public void setBeginValue(long beginValue) {
-            this.beginValue = beginValue;
-        }
-
-        public long getEndValue() {
-            return endValue;
-        }
-
-        public void setEndValue(long endValue) {
-            this.endValue = endValue;
-        }
-
-        public AtomicLong getCount() {
-            return count;
-        }
-
-        public void setCount(AtomicLong count) {
-            this.count = count;
-        }
-
-        public AtomicBoolean getDeleted() {
-            return deleted;
-        }
-
-        public void setDeleted(AtomicBoolean deleted) {
-            this.deleted = deleted;
-        }
-    }
-
-    private ThreadLocal<InnerRange> cache = new ThreadLocal<InnerRange>();
-
-    public long peek(int timeout) throws InterruptedException, TimeoutException {
-        InnerRange range = cache.get();
-        if (range == null) {
-            return peek0(timeout);
-        } else {
-            long i = range.getCount().getAndIncrement();
-            if (i + 1 > range.getEndValue()) {
-                cache.set(null);
-                remove(range);
-            }
-            if (i <= range.getEndValue()) {
-                return i;
-            } else {
-                return peek0(timeout);
-            }
-        }
-    }
-
-    private long peek0(int timeout) throws InterruptedException, TimeoutException {
-        InnerRange range = list.peek();
-        if (range == null) {
-            synchronized (emptyLock) {
-                int remainTime = timeout;
-                while (true) {
-                    long start = System.currentTimeMillis();
-                    range = list.peek();
-                    if (range == null) {
-                        if (remainTime <= 0) {
-                            throw new TimeoutException(Integer.toString(timeout));
-                        } else {
-                            emptyLock.wait(timeout);
-                            remainTime -= System.currentTimeMillis() - start;
-                        }
-                    } else {
-                        break;
-                    }
-                }
-            }
-        }
-        long i = range.getCount().getAndIncrement();
-        if (i + 1 > range.getEndValue()) {
-            remove(range);
-        } else {
-            cache.set(range);
-        }
-        if (i <= range.getEndValue()) {
-            return i;
-        } else {
-            return peek0(timeout);
-        }
-    }
-
-    private void remove(InnerRange item) {
-        synchronized (writeLock) {
-            if (item.getDeleted().compareAndSet(false, true)) {
-                list.remove(item);
-                writeLock.notifyAll();
-            }
-        }
+    public long get(int timeout) throws InterruptedException, TimeoutException {
+        return list.get(timeout, TimeUnit.MILLISECONDS);
     }
 
     private static AtomicInteger threadCount = new AtomicInteger(0);
@@ -171,24 +71,23 @@ public abstract class IdCache {
                     }
                     //
                     try {
-                        synchronized (writeLock) {
-                            if (list.remainingCapacity() <= 0) {
-                                writeLock.wait();
-                            }
-                            IdRange range = get();
-                            list.put(new InnerRange(range.getBeginValue(), range.getEndValue()));
-                            synchronized (emptyLock) {
-                                emptyLock.notifyAll();
-                            }
+                        IdRange range = getIdRange();
+                        int c = (int) ((range.getEndValue() - range.getBeginValue() + step) / step);
+                        long beginValue = range.getBeginValue();
+                        for (int i = 0; i < c; i++) {
+                            long endValue = beginValue + step - 1;
+                            endValue = endValue > range.getEndValue() ? range.getEndValue() : endValue;
+                            list.put(new IdRange(beginValue, endValue));
+                            beginValue += step;
                         }
                         count = 0;
                     } catch (Throwable e) {
                         if (e instanceof DirtyDataException) {
-                            logger.error("[GetIdRange] DirtyDataException: " + e.getMessage());
+                            logger.error("[GetIdRange] " + e.getMessage());
                         } else if (e instanceof NoAvailableIdRangeFoundException) {
-                            logger.error("[GetIdRange] NoAvailableIdRangeException: " + e.getMessage());
+                            logger.error("[GetIdRange] " + e.getMessage());
                         } else {
-                            logger.error("[GetIdRange] Exception", e);
+                            logger.error("[GetIdRange]", e);
                         }
                         if (count >= baseLine) {
                             try {
@@ -206,5 +105,5 @@ public abstract class IdCache {
         }.start();
     }
 
-    public abstract IdRange get() throws Exception;
+    public abstract IdRange getIdRange() throws Exception;
 }

@@ -76,10 +76,10 @@ public class DefaultSequence implements Sequence {
         if (cacheNSteps <= 0) {
             throw new IllegalArgumentException("cacheNSteps[" + cacheNSteps + "] must greater then 0");
         }
-        return new IdCache(cacheNSteps) {
+        return new IdCache(step, cacheNSteps) {
 
             @Override
-            public IdRange get() throws Exception {
+            public IdRange getIdRange() throws Exception {
                 IdRange idRange = getIdGetter().get(getSchemaName(), getTableName(), getStep());
                 if (idRange == null) {
                     throw new NoAvailableIdRangeFoundException("No available id rang was found for schemaName:'"
@@ -96,7 +96,7 @@ public class DefaultSequence implements Sequence {
     public long nextValue() {
         init();
         try {
-            return idCache.peek(timeout);
+            return idCache.get(timeout);
         } catch (RuntimeException e0) {
             throw e0;
         } catch (Exception e) {
