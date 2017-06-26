@@ -33,7 +33,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public abstract class IdCache {
 
     private Logger           logger         = LoggerFactory.getLogger(this.getClass());
-    private SumBlockingQueue sumBlockingQueue;
+    private SummedBlockingQueue summedBlockingQueue;
 
     private int              step;
     private int              cacheNSteps;
@@ -57,7 +57,7 @@ public abstract class IdCache {
         this.cacheNSteps = cacheNSteps;
         this.initTimeout = initTimeout;
         this.exceptionHandler = exceptionHandler;
-        this.sumBlockingQueue = new SumBlockingQueue(step * cacheNSteps);
+        this.summedBlockingQueue = new SummedBlockingQueue(step * cacheNSteps);
         this.delayRetryBaseLine = delayRetryBaseLine;
         //
         startProducer();
@@ -73,7 +73,7 @@ public abstract class IdCache {
                 throw new TimeoutException(initTimeout + " ms");
             }
         }
-        return sumBlockingQueue.get(timeout, TimeUnit.MILLISECONDS);
+        return summedBlockingQueue.get(timeout, TimeUnit.MILLISECONDS);
     }
 
     private static AtomicInteger threadCount = new AtomicInteger(0);
@@ -99,10 +99,10 @@ public abstract class IdCache {
                         for (int i = 0; i < c; i++) {
                             long endValue = beginValue + step - 1;
                             endValue = endValue > range.getEndValue() ? range.getEndValue() : endValue;
-                            sumBlockingQueue.put(new IdRange(beginValue, endValue));
+                            summedBlockingQueue.put(new IdRange(beginValue, endValue));
                             beginValue += step;
                             //
-                            if (inited.get() == false && sumBlockingQueue.remainingSum() <= 0) {
+                            if (inited.get() == false && summedBlockingQueue.remainingSum() <= 0) {
                                 inited.set(true);
                                 countDownLatch.countDown();
                             }

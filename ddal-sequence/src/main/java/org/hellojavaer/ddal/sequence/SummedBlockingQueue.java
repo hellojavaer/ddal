@@ -13,7 +13,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * 
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 06/025/2017.
  */
-class SumBlockingQueue {
+class SummedBlockingQueue {
 
     static class Node {
 
@@ -36,7 +36,7 @@ class SumBlockingQueue {
     private final long          sum;
     private final AtomicLong    countForSum      = new AtomicLong(0);
 
-    public SumBlockingQueue(long sum) {
+    public SummedBlockingQueue(long sum) {
         this.sum = sum;
         last = head = new Node(null);
     }
