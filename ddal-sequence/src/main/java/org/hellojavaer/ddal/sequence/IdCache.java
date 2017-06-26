@@ -30,22 +30,23 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 04/01/2017.
  */
-abstract class IdCache {
+public abstract class IdCache {
 
     private Logger           logger         = LoggerFactory.getLogger(this.getClass());
     private SumBlockingQueue sumBlockingQueue;
 
     private int              step;
     private int              cacheNSteps;
-    private ExceptionHandler exceptionHandler;
     private int              initTimeout;
+    private int              delayRetryBaseLine;
+    private ExceptionHandler exceptionHandler;
 
     private AtomicBoolean    inited         = new AtomicBoolean(false);
     private CountDownLatch   countDownLatch = new CountDownLatch(1);
 
-    public IdCache(int step, int cacheNSteps, int initTimeout, ExceptionHandler exceptionHandler)
-                                                                                                 throws InterruptedException,
-                                                                                                 TimeoutException {
+    public IdCache(int step, int cacheNSteps, int initTimeout, ExceptionHandler exceptionHandler, int delayRetryBaseLine)
+                                                                                                                         throws InterruptedException,
+                                                                                                                         TimeoutException {
         if (step <= 0) {
             throw new IllegalArgumentException("step must be greater than 0");
         }
@@ -57,8 +58,10 @@ abstract class IdCache {
         this.initTimeout = initTimeout;
         this.exceptionHandler = exceptionHandler;
         this.sumBlockingQueue = new SumBlockingQueue(step * cacheNSteps);
+        this.delayRetryBaseLine = delayRetryBaseLine;
+        //
         startProducer();
-
+        //
         if (countDownLatch.await(initTimeout, TimeUnit.MILLISECONDS) == false) {
             throw new TimeoutException(initTimeout + " ms");
         }
@@ -76,13 +79,12 @@ abstract class IdCache {
     private static AtomicInteger threadCount = new AtomicInteger(0);
 
     private void startProducer() {
-        new Thread("IdCache-" + threadCount.getAndIncrement()) {
+        new Thread(IdCache.class.getSimpleName() + "-" + threadCount.getAndIncrement()) {
 
             @Override
             public void run() {
-                final int baseLine = 8;
                 final int[] sleepTimes = new int[] { 100, 200, 300, 500, 800, 1300, 2100, 3000 };
-                final int endCount = sleepTimes.length + baseLine - 1;
+                final int endCount = sleepTimes.length + delayRetryBaseLine - 1;
                 long count = 0;
                 while (true) {
                     if (Thread.interrupted()) {
@@ -119,11 +121,11 @@ abstract class IdCache {
                         } else {
                             logger.error("[GetIdRange]", e);
                         }
-                        if (count >= baseLine) {
+                        if (count >= delayRetryBaseLine) {
                             try {
-                                Thread.sleep(sleepTimes[(int) (count - baseLine)]);
+                                Thread.sleep(sleepTimes[(int) (count - delayRetryBaseLine)]);
                             } catch (InterruptedException e1) {
-                                logger.error("[GetIdRange] SleepException", e1);
+                                logger.error("[GetIdRange]", e1);
                             }
                         }
                         if (count < endCount) {
