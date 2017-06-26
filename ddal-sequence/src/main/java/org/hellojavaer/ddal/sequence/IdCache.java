@@ -32,17 +32,17 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public abstract class IdCache {
 
-    private Logger           logger         = LoggerFactory.getLogger(this.getClass());
+    private Logger              logger         = LoggerFactory.getLogger(this.getClass());
     private SummedBlockingQueue summedBlockingQueue;
 
-    private int              step;
-    private int              cacheNSteps;
-    private int              initTimeout;
-    private int              delayRetryBaseLine;
-    private ExceptionHandler exceptionHandler;
+    private int                 step;
+    private int                 cacheNSteps;
+    private int                 initTimeout;
+    private int                 delayRetryBaseLine;
+    private ExceptionHandler    exceptionHandler;
 
-    private AtomicBoolean    inited         = new AtomicBoolean(false);
-    private CountDownLatch   countDownLatch = new CountDownLatch(1);
+    private AtomicBoolean       inited         = new AtomicBoolean(false);
+    private CountDownLatch      countDownLatch = new CountDownLatch(1);
 
     public IdCache(int step, int cacheNSteps, int initTimeout, ExceptionHandler exceptionHandler, int delayRetryBaseLine)
                                                                                                                          throws InterruptedException,
@@ -85,7 +85,7 @@ public abstract class IdCache {
             public void run() {
                 final int[] sleepTimes = new int[] { 100, 200, 300, 500, 800, 1300, 2100, 3000 };
                 final int endCount = sleepTimes.length + delayRetryBaseLine - 1;
-                long count = 0;
+                AtomicInteger retryCount = new AtomicInteger(0);
                 while (true) {
                     if (Thread.interrupted()) {
                         logger.error("[" + Thread.currentThread().getName() + " interrupted]");
@@ -107,10 +107,10 @@ public abstract class IdCache {
                                 countDownLatch.countDown();
                             }
                         }
-                        count = 0;
+                        retryCount.set(0);
                     } catch (Throwable e) {
                         if (exceptionHandler != null) {
-                            if (exceptionHandler.handle(e)) {
+                            if (exceptionHandler.handle(e, retryCount)) {
                                 continue;
                             }
                         }
@@ -121,15 +121,15 @@ public abstract class IdCache {
                         } else {
                             logger.error("[GetIdRange]", e);
                         }
-                        if (count >= delayRetryBaseLine) {
+                        if (retryCount.get() >= delayRetryBaseLine) {
                             try {
-                                Thread.sleep(sleepTimes[(int) (count - delayRetryBaseLine)]);
+                                Thread.sleep(sleepTimes[(int) (retryCount.get() - delayRetryBaseLine)]);
                             } catch (InterruptedException e1) {
                                 logger.error("[GetIdRange]", e1);
                             }
                         }
-                        if (count < endCount) {
-                            count++;
+                        if (retryCount.get() < endCount) {
+                            retryCount.getAndIncrement();
                         }
                     }
                 }

@@ -15,6 +15,8 @@
  */
 package org.hellojavaer.ddal.sequence;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 25/06/2017.
@@ -23,9 +25,8 @@ public interface ExceptionHandler {
 
     /**
      * 
-     * @param e
      * @return true this exception will be ignore, false this exception will be transmitted to system processor. 
      */
-    boolean handle(Throwable e);
+    boolean handle(Throwable e, AtomicInteger retryCount);
 
 }
