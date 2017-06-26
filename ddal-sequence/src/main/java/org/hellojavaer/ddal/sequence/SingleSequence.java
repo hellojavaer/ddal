@@ -20,6 +20,8 @@ import org.hellojavaer.ddal.sequence.utils.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.TimeoutException;
+
 /**
  * 步长
  * 阈值
@@ -32,43 +34,43 @@ public class SingleSequence implements Sequence {
     private Logger           logger      = LoggerFactory.getLogger(this.getClass());
     private String           schemaName;
     private String           tableName;
-    private Integer          step;                                                  // 单节点步长
-    private Integer          cacheNSteps;                                           // 缓存队列大小
-    private Integer          timeout;
+    private int              step;                                                  // 单节点步长
+    private int              cacheNSteps;                                           // 缓存队列大小
     private IdGetter         idGetter;
 
     private volatile IdCache idCache;
     private boolean          initialized = false;
 
+    private int              initTimeout;
+    private int              getTimeout;
     private ExceptionHandler exceptionHandler;
 
-    public SingleSequence() {
-    }
-
-    public SingleSequence(String schemaName, String tableName, Integer step, Integer cacheNSteps, Integer timeout,
-                          IdGetter idGetter) {
+    public SingleSequence(String schemaName, String tableName, int step, int cacheNSteps, int initTimeout,
+                          IdGetter idGetter, int getTimeout) {
         this.schemaName = schemaName;
         this.tableName = tableName;
         this.step = step;
         this.cacheNSteps = cacheNSteps;
-        this.timeout = timeout;
+        this.initTimeout = initTimeout;
         this.idGetter = idGetter;
+        this.getTimeout = getTimeout;
         init();
     }
 
-    public SingleSequence(String schemaName, String tableName, Integer step, Integer cacheNSteps, Integer timeout,
-                          IdGetter idGetter, ExceptionHandler exceptionHandler) {
+    public SingleSequence(String schemaName, String tableName, int step, int cacheNSteps, int initTimeout,
+                          IdGetter idGetter, int getTimeout, ExceptionHandler exceptionHandler) {
         this.schemaName = schemaName;
         this.tableName = tableName;
         this.step = step;
         this.cacheNSteps = cacheNSteps;
-        this.timeout = timeout;
+        this.initTimeout = initTimeout;
         this.idGetter = idGetter;
+        this.getTimeout = getTimeout;
         this.exceptionHandler = exceptionHandler;
         init();
     }
 
-    public void init() {
+    private void init() {
         if (initialized == false) {
             synchronized (this) {
                 if (initialized == false) {
@@ -77,8 +79,9 @@ public class SingleSequence implements Sequence {
                     Assert.notNull(tableName, "'tableName' can't be null'");
                     Assert.notNull(step, "'step' must be greater than 0");
                     Assert.notNull(cacheNSteps, "'cacheNSteps' must be greater than or equal to 0");
-                    Assert.notNull(timeout, "'timeout' must be greater than 0");
+                    Assert.notNull(initTimeout, "'initTimeout' must be greater than 0");
                     Assert.notNull(idGetter, "'idGetter' can't be null'");
+                    Assert.notNull(getTimeout, "'getTimeout' must be greater than 0");
                     idCache = getIdCache();
                     initialized = true;
                 }
@@ -90,27 +93,33 @@ public class SingleSequence implements Sequence {
         if (cacheNSteps <= 0) {
             throw new IllegalArgumentException("cacheNSteps[" + cacheNSteps + "] must greater then 0");
         }
-        return new IdCache(step, cacheNSteps, exceptionHandler) {
+        try {
+            return new IdCache(step, cacheNSteps, initTimeout, exceptionHandler) {
 
-            @Override
-            public IdRange getIdRange() throws Exception {
-                IdRange idRange = getIdGetter().get(getSchemaName(), getTableName(), getStep());
-                if (idRange == null) {
-                    throw new NoAvailableIdRangeFoundException("No available id rang was found for schemaName:'"
-                                                               + getSchemaName() + "', tableName:'" + getTableName()
-                                                               + "'");
-                } else {
-                    return idRange;
+                @Override
+                public IdRange getIdRange() throws Exception {
+                    IdRange idRange = getIdGetter().get(getSchemaName(), getTableName(), getStep());
+                    if (idRange == null) {
+                        throw new NoAvailableIdRangeFoundException("No available id rang was found for schemaName:'"
+                                                                   + getSchemaName() + "', tableName:'"
+                                                                   + getTableName() + "'");
+                    } else {
+                        return idRange;
+                    }
                 }
-            }
-        };
+            };
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } catch (TimeoutException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public long nextValue() {
-        init();
         try {
-            return idCache.get(timeout);
+            init();
+            return idCache.get(getTimeout);
         } catch (RuntimeException e0) {
             throw e0;
         } catch (Exception e) {
@@ -122,55 +131,31 @@ public class SingleSequence implements Sequence {
         return schemaName;
     }
 
-    public void setSchemaName(String schemaName) {
-        this.schemaName = schemaName;
-    }
-
     public String getTableName() {
         return tableName;
     }
 
-    public void setTableName(String tableName) {
-        this.tableName = tableName;
-    }
-
-    public Integer getStep() {
+    public int getStep() {
         return step;
     }
 
-    public void setStep(Integer step) {
-        this.step = step;
-    }
-
-    public Integer getCacheNSteps() {
+    public int getCacheNSteps() {
         return cacheNSteps;
-    }
-
-    public void setCacheNSteps(Integer cacheNSteps) {
-        this.cacheNSteps = cacheNSteps;
-    }
-
-    public Integer getTimeout() {
-        return timeout;
-    }
-
-    public void setTimeout(Integer timeout) {
-        this.timeout = timeout;
     }
 
     public IdGetter getIdGetter() {
         return idGetter;
     }
 
-    public void setIdGetter(IdGetter idGetter) {
-        this.idGetter = idGetter;
+    public int getInitTimeout() {
+        return initTimeout;
+    }
+
+    public int getGetTimeout() {
+        return getTimeout;
     }
 
     public ExceptionHandler getExceptionHandler() {
         return exceptionHandler;
-    }
-
-    public void setExceptionHandler(ExceptionHandler exceptionHandler) {
-        this.exceptionHandler = exceptionHandler;
     }
 }

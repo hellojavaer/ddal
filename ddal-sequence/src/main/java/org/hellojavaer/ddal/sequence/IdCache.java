@@ -20,8 +20,10 @@ import org.hellojavaer.ddal.sequence.exception.NoAvailableIdRangeFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -30,14 +32,20 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 abstract class IdCache {
 
-    private Logger           logger = LoggerFactory.getLogger(this.getClass());
-    private SumBlockingQueue list;
+    private Logger           logger         = LoggerFactory.getLogger(this.getClass());
+    private SumBlockingQueue sumBlockingQueue;
 
     private int              step;
     private int              cacheNSteps;
     private ExceptionHandler exceptionHandler;
+    private int              initTimeout;
 
-    public IdCache(int step, int cacheNSteps, ExceptionHandler exceptionHandler) {
+    private AtomicBoolean    inited         = new AtomicBoolean(false);
+    private CountDownLatch   countDownLatch = new CountDownLatch(1);
+
+    public IdCache(int step, int cacheNSteps, int initTimeout, ExceptionHandler exceptionHandler)
+                                                                                                 throws InterruptedException,
+                                                                                                 TimeoutException {
         if (step <= 0) {
             throw new IllegalArgumentException("step must be greater than 0");
         }
@@ -46,13 +54,23 @@ abstract class IdCache {
         }
         this.step = step;
         this.cacheNSteps = cacheNSteps;
+        this.initTimeout = initTimeout;
         this.exceptionHandler = exceptionHandler;
-        this.list = new SumBlockingQueue(step * cacheNSteps);
+        this.sumBlockingQueue = new SumBlockingQueue(step * cacheNSteps);
         startProducer();
+
+        if (countDownLatch.await(initTimeout, TimeUnit.MILLISECONDS) == false) {
+            throw new TimeoutException(initTimeout + " ms");
+        }
     }
 
     public long get(int timeout) throws InterruptedException, TimeoutException {
-        return list.get(timeout, TimeUnit.MILLISECONDS);
+        if (inited.get() == false) {
+            if (countDownLatch.await(initTimeout, TimeUnit.MILLISECONDS) == false) {
+                throw new TimeoutException(initTimeout + " ms");
+            }
+        }
+        return sumBlockingQueue.get(timeout, TimeUnit.MILLISECONDS);
     }
 
     private static AtomicInteger threadCount = new AtomicInteger(0);
@@ -79,8 +97,13 @@ abstract class IdCache {
                         for (int i = 0; i < c; i++) {
                             long endValue = beginValue + step - 1;
                             endValue = endValue > range.getEndValue() ? range.getEndValue() : endValue;
-                            list.put(new IdRange(beginValue, endValue));
+                            sumBlockingQueue.put(new IdRange(beginValue, endValue));
                             beginValue += step;
+                            //
+                            if (inited.get() == false && sumBlockingQueue.remainingSum() <= 0) {
+                                inited.set(true);
+                                countDownLatch.countDown();
+                            }
                         }
                         count = 0;
                     } catch (Throwable e) {

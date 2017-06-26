@@ -234,4 +234,8 @@ class SumBlockingQueue {
     private void enqueue(Node node) {
         last = last.next = node;
     }
+
+    public long remainingSum() {
+        return sum - countForSum.get();
+    }
 }
