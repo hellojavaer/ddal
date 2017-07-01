@@ -42,12 +42,15 @@ public class DefaultMetaDataChecker implements MetaDataChecker {
      * @throws IllegalMetaDataException
      */
     @Override
-    public void check(Connection conn, String scName, Set<String> tables) throws IllegalMetaDataException {
+    public void check(Connection conn, String scName, String tbName) throws IllegalMetaDataException {
+        if(true){
+            return;
+        }
         if (scName == null) {
             throw new IllegalArgumentException("[Check MetaData Failed] parameter 'scName' can't be null");
         }
-        if (tables == null || tables.isEmpty()) {
-            throw new IllegalArgumentException("[Check MetaData Failed] parameter 'tables' can't be empty");
+        if (tbName == null) {
+            throw new IllegalArgumentException("[Check MetaData Failed] parameter 'tbName' can't be null");
         }
         try {
             Set<String> set = getAllTables(conn, scName);
@@ -55,14 +58,14 @@ public class DefaultMetaDataChecker implements MetaDataChecker {
                 throw new IllegalMetaDataException(
                                                    "[Check MetaData Failed] Schema:'"
                                                            + scName
-                                                           + "' has nothing tables. but in your configuration it requires tables:"
-                                                           + DDRJSONUtils.toJSONString(tables));
+                                                           + "' has nothing tables. but in your configuration it requires table:"
+                                                           + tbName);
             }
-            if (tables != null && !tables.isEmpty() && !set.containsAll(tables)) {
+            if (!set.contains(tbName)) {
                 throw new IllegalMetaDataException("[Check MetaData Failed] Schema:'" + scName + "' only has tables:"
                                                    + DDRJSONUtils.toJSONString(set)
-                                                   + ", but in your configuration it requires tables:"
-                                                   + DDRJSONUtils.toJSONString(tables));
+                                                   + ", but in your configuration it requires table:"
+                                                   + tbName);
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);

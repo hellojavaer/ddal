@@ -29,6 +29,7 @@ import org.hellojavaer.ddal.ddr.expression.range.RangeExpression;
 import org.hellojavaer.ddal.ddr.expression.range.RangeItemVisitor;
 import org.hellojavaer.ddal.ddr.lb.random.WeightItem;
 import org.hellojavaer.ddal.ddr.lb.random.WeightedRandom;
+import org.hellojavaer.ddal.ddr.shard.RouteInfo;
 import org.hellojavaer.ddal.ddr.shard.ShardRouter;
 import org.hellojavaer.ddal.ddr.utils.DDRJSONUtils;
 import org.hellojavaer.ddal.ddr.utils.DDRStringUtils;
@@ -436,18 +437,8 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
             Connection conn = null;
             try {
                 conn = entry.getValue().getDataSource().getConnection();
-                boolean readOnly = conn.isReadOnly();
-                if (readOnly == false) {
-                    conn.setReadOnly(true);
-                }
                 String scName = entry.getKey();
-                Set<String> tables = routedTables.get(scName);
-                if (tables != null && !tables.isEmpty()) {
-                    metaDataChecker.check(conn, scName, tables);
-                }
-                if (readOnly == false) {
-                    conn.setReadOnly(false);
-                }
+                check(conn, scName);
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             } finally {
@@ -473,12 +464,7 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
     }
 
     private void check(LinkedHashMap<String, List<WeightedDataSourceWrapper>> readOnlyDataSourceIndexCacheOriginalValues) {
-        if (readOnlyDataSourceIndexCacheOriginalValues == null || readOnlyDataSourceIndexCacheOriginalValues.isEmpty()
-            || metaDataChecker == null || shardRouter == null) {
-            return;
-        }
-        Map<String, Set<String>> routedTables = shardRouter.getRoutedTables();
-        if (routedTables == null || routedTables.isEmpty()) {
+        if (readOnlyDataSourceIndexCacheOriginalValues == null || readOnlyDataSourceIndexCacheOriginalValues.isEmpty()) {
             return;
         }
         for (Map.Entry<String, List<WeightedDataSourceWrapper>> entry : readOnlyDataSourceIndexCacheOriginalValues.entrySet()) {
@@ -486,18 +472,8 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
                 Connection conn = null;
                 try {
                     conn = dataSource.getDataSource().getConnection();
-                    boolean readOnly = conn.isReadOnly();
-                    if (readOnly == false) {
-                        conn.setReadOnly(true);
-                    }
                     String scName = entry.getKey();
-                    Set<String> tables = routedTables.get(scName);
-                    if (tables != null && !tables.isEmpty()) {
-                        metaDataChecker.check(conn, scName, tables);
-                    }
-                    if (readOnly == false) {
-                        conn.setReadOnly(false);
-                    }
+                    check(conn, scName);
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
                 } finally {
@@ -509,6 +485,29 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
                         }
                     }
                 }
+            }
+        }
+    }
+
+    private void check(Connection conn, String scName) {
+        if (metaDataChecker == null || shardRouter == null) {
+            return;
+        }
+        Map<String, Set<String>> routedTables = shardRouter.getRoutedTables();
+        if (routedTables == null) {
+            return;
+        }
+        Set<String> tables = routedTables.get(scName);
+        if (tables == null) {
+            return;
+        }
+        for (String tbName : tables) {
+            List<RouteInfo> routeInfos = shardRouter.getRouteInfos(scName, tbName);
+            if (routeInfos == null || routeInfos.isEmpty()) {
+                continue;
+            }
+            for (RouteInfo routeInfo : routeInfos) {
+                metaDataChecker.check(conn, routeInfo.getScName(), routeInfo.getTbName());
             }
         }
     }
