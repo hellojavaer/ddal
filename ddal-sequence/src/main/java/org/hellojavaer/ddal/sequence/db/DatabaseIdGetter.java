@@ -190,7 +190,7 @@ public class DatabaseIdGetter implements IdGetter {
         PreparedStatement selectStatement = null;
         PreparedStatement updateStatement = null;
         boolean isNewConnection = false;
-        if (connection == null) {
+        if (connection == null || connection.isClosed()) {
             connection = dataSource.getConnection();
             isNewConnection = true;
             connection.setAutoCommit(false);
