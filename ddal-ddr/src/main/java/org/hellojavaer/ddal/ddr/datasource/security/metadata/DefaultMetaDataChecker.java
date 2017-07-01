@@ -43,9 +43,6 @@ public class DefaultMetaDataChecker implements MetaDataChecker {
      */
     @Override
     public void check(Connection conn, String scName, String tbName) throws IllegalMetaDataException {
-        if(true){
-            return;
-        }
         if (scName == null) {
             throw new IllegalArgumentException("[Check MetaData Failed] parameter 'scName' can't be null");
         }
@@ -77,6 +74,7 @@ public class DefaultMetaDataChecker implements MetaDataChecker {
         PreparedStatement statement = conn.prepareStatement(sql);
         statement.setString(1, scName);
         ResultSet rs = statement.executeQuery();
+
         Set<String> tabs = new HashSet<>();
         while (rs.next()) {
             tabs.add(DDRStringUtils.toLowerCase(rs.getString(1)));
