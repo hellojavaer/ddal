@@ -43,81 +43,76 @@ class SummedBlockingQueue {
 
     static class InnerIdRange {
 
-        private final long beginValue;
-        private final long endValue;
-        private AtomicLong count;
+        private final long       beginValue;
+        private final long       endValue;
+        private final AtomicLong counter;
 
         public InnerIdRange(long beginValue, long endValue) {
             this.beginValue = beginValue;
             this.endValue = endValue;
-            this.count = new AtomicLong(beginValue);
+            this.counter = new AtomicLong(beginValue);
         }
 
-        public long getAndIncrement() throws CountOutOfBoundsException {
-            long cur = count.getAndIncrement();
-            if (cur > endValue) {
-                throw new CountOutOfBoundsException();
-            } else {
-                return cur;
-            }
-        }
-    }
-
-    static class CountOutOfBoundsException extends Exception {
-
-        public CountOutOfBoundsException() {
+        public long getBeginValue() {
+            return beginValue;
         }
 
-        public CountOutOfBoundsException(String message) {
-            super(message);
+        public long getEndValue() {
+            return endValue;
         }
 
-        public CountOutOfBoundsException(String message, Throwable cause) {
-            super(message, cause);
-        }
-
-        public CountOutOfBoundsException(Throwable cause) {
-            super(cause);
-        }
-
-        public CountOutOfBoundsException(String message, Throwable cause, boolean enableSuppression,
-                                         boolean writableStackTrace) {
-            super(message, cause, enableSuppression, writableStackTrace);
+        public AtomicLong getCounter() {
+            return counter;
         }
     }
 
-    ThreadLocal<InnerIdRange> threadLocal = new ThreadLocal();
+    private ThreadLocal<InnerIdRange> threadLocal = new ThreadLocal();
 
     public long get(long timeout, TimeUnit unit) throws InterruptedException, TimeoutException {
         InnerIdRange idRange = threadLocal.get();
         if (idRange != null) {
-            try {
-                long id = idRange.getAndIncrement();
+            long id = idRange.getCounter().getAndIncrement();
+            if (id <= idRange.getEndValue()) {
                 long c = countForSum.decrementAndGet();
                 if (c == sum - 1) {
                     signalNotFull();
                 }
+                if (id == idRange.getEndValue()) {
+                    remove(idRange);
+                    threadLocal.set(null);
+                }
                 return id;
-            } catch (CountOutOfBoundsException e) {
+            } else {
                 remove(idRange);
+                threadLocal.set(null);
+                return recursiveGetFromQueue(timeout, unit);
             }
+        } else {
+            return recursiveGetFromQueue(timeout, unit);
         }
+    }
+
+    private long recursiveGetFromQueue(long timeout, TimeUnit unit) throws TimeoutException, InterruptedException {
         long nanoTimeout = unit.toNanos(timeout);
         while (true) {
             long now = System.nanoTime();
-            idRange = get(nanoTimeout);
+            InnerIdRange idRange = get(nanoTimeout);
             if (idRange == null) {
                 throw new TimeoutException(unit.toMillis(timeout) + " ms");
             } else {
-                try {
-                    long id = idRange.getAndIncrement();
+                long id = idRange.getCounter().getAndIncrement();
+                if (id <= idRange.getEndValue()) {
                     long c = countForSum.decrementAndGet();
                     if (c == sum - 1) {
                         signalNotFull();
                     }
-                    threadLocal.set(idRange);
+                    if (id == idRange.getEndValue()) {
+                        remove(idRange);
+                    } else {
+                        threadLocal.set(idRange);
+                    }
                     return id;
-                } catch (CountOutOfBoundsException e) {
+                } else {
                     remove(idRange);
                     nanoTimeout -= System.nanoTime() - now;
                     if (nanoTimeout <= 0) {
@@ -139,7 +134,6 @@ class SummedBlockingQueue {
                     return null;
                 }
             }
-
             Node first = head.next;
             if (first == null) x = null;
             else x = first.item;
