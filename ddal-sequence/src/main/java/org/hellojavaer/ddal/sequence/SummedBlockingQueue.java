@@ -66,6 +66,31 @@ class SummedBlockingQueue {
         }
     }
 
+    public void put(IdRange idRange) throws InterruptedException {
+        if (idRange.getEndValue() < idRange.getBeginValue()) {
+            throw new IllegalArgumentException("end value must be greater than or equal to begin value");
+        }
+        Node node = new Node(new InnerIdRange(idRange.getBeginValue(), idRange.getEndValue()));
+        final ReentrantLock putLock = this.putLock;
+        final AtomicInteger count = this.countForCapacity;
+        putLock.lockInterruptibly();
+        long c = -1;
+        try {
+            while (countForSum.get() >= sum) {
+                notFull.await();
+            }
+            enqueue(node);
+            c = count.incrementAndGet();
+            long s = countForSum.addAndGet(idRange.getEndValue() - idRange.getBeginValue() + 1);
+            if (s < sum) {
+                notFull.signal();
+            }
+        } finally {
+            putLock.unlock();
+        }
+        if (c == 1) signalNotEmpty();
+    }
+
     private ThreadLocal<InnerIdRange> threadLocal = new ThreadLocal();
 
     public long get(long timeout, TimeUnit unit) throws InterruptedException, TimeoutException {
@@ -129,10 +154,15 @@ class SummedBlockingQueue {
         takeLock.lockInterruptibly();
         InnerIdRange x = null;
         try {
-            if (count.get() == 0) {
+            while (count.get() == 0) {
+                long now = System.nanoTime();
+                if (nanoTimeout <= 0) {
+                    return null;
+                }
                 if (notEmpty.awaitNanos(nanoTimeout) <= 0) {
                     return null;
                 }
+                nanoTimeout -= System.nanoTime() - now;
             }
             Node first = head.next;
             if (first == null) x = null;
@@ -145,31 +175,6 @@ class SummedBlockingQueue {
             takeLock.unlock();
         }
         return x;
-    }
-
-    public void put(IdRange idRange) throws InterruptedException {
-        if (idRange.getEndValue() < idRange.getBeginValue()) {
-            throw new IllegalArgumentException("end value must be greater than or equal to begin value");
-        }
-        Node node = new Node(new InnerIdRange(idRange.getBeginValue(), idRange.getEndValue()));
-        final ReentrantLock putLock = this.putLock;
-        final AtomicInteger count = this.countForCapacity;
-        putLock.lockInterruptibly();
-        long c = -1;
-        try {
-            while (countForSum.get() >= sum) {
-                notFull.await();
-            }
-            enqueue(node);
-            c = count.incrementAndGet();
-            long s = countForSum.addAndGet(idRange.getEndValue() - idRange.getBeginValue() + 1);
-            if (s < sum) {
-                notFull.signal();
-            }
-        } finally {
-            putLock.unlock();
-        }
-        if (c == 1) signalNotEmpty();
     }
 
     public boolean remove(Object o) {
