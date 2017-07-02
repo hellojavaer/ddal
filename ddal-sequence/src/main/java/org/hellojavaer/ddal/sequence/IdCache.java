@@ -68,11 +68,6 @@ public abstract class IdCache {
     }
 
     public long get(int timeout) throws InterruptedException, TimeoutException {
-        if (inited.get() == false) {
-            if (countDownLatch.await(initTimeout, TimeUnit.MILLISECONDS) == false) {
-                throw new TimeoutException(initTimeout + " ms");
-            }
-        }
         return summedBlockingQueue.get(timeout, TimeUnit.MILLISECONDS);
     }
 
