@@ -506,8 +506,19 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
             if (routeInfos == null || routeInfos.isEmpty()) {
                 continue;
             }
+            // group table by schema
+            Map<String, Set<String>> groupedTables = new LinkedHashMap<>();
             for (RouteInfo routeInfo : routeInfos) {
-                metaDataChecker.check(conn, routeInfo.getScName(), routeInfo.getTbName());
+                Set<String> physicalTbs = groupedTables.get(routeInfo.getScName());
+                if (physicalTbs == null) {
+                    physicalTbs = new LinkedHashSet<>();
+                    groupedTables.put(routeInfo.getScName(), physicalTbs);
+                }
+                physicalTbs.add(routeInfo.getTbName());
+            }
+            // check meta data
+            for (Map.Entry<String, Set<String>> entry : groupedTables.entrySet()) {
+                metaDataChecker.check(conn, entry.getKey(), entry.getValue());
             }
         }
     }

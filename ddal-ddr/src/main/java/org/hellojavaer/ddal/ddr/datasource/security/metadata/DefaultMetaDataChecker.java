@@ -42,12 +42,12 @@ public class DefaultMetaDataChecker implements MetaDataChecker {
      * @throws IllegalMetaDataException
      */
     @Override
-    public void check(Connection conn, String scName, String tbName) throws IllegalMetaDataException {
+    public void check(Connection conn, String scName, Collection<String> tbNames) throws IllegalMetaDataException {
         if (scName == null) {
             throw new IllegalArgumentException("[Check MetaData Failed] parameter 'scName' can't be null");
         }
-        if (tbName == null) {
-            throw new IllegalArgumentException("[Check MetaData Failed] parameter 'tbName' can't be null");
+        if (tbNames == null || tbNames.isEmpty()) {
+            throw new IllegalArgumentException("[Check MetaData Failed] parameter 'tbNames' can't be empty");
         }
         try {
             Set<String> set = getAllTables(conn, scName);
@@ -56,13 +56,14 @@ public class DefaultMetaDataChecker implements MetaDataChecker {
                                                    "[Check MetaData Failed] Schema:'"
                                                            + scName
                                                            + "' has nothing tables. but in your configuration it requires table:"
-                                                           + tbName);
+                                                           + DDRJSONUtils.toJSONString(tbNames));
             }
-            if (!set.contains(tbName)) {
-                throw new IllegalMetaDataException("[Check MetaData Failed] Schema:'" + scName + "' only has tables:"
-                                                   + DDRJSONUtils.toJSONString(set)
-                                                   + ", but in your configuration it requires table:"
-                                                   + tbName);
+            for (String tbName : tbNames) {
+                if (!set.contains(tbName)) {
+                    throw new IllegalMetaDataException("[Check MetaData Failed] Schema:'" + scName
+                                                       + "' only has tables:" + DDRJSONUtils.toJSONString(set)
+                                                       + ", but in your configuration it requires table:" + tbName);
+                }
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);

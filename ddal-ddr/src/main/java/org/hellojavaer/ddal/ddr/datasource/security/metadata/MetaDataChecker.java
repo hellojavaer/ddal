@@ -18,6 +18,7 @@ package org.hellojavaer.ddal.ddr.datasource.security.metadata;
 import org.hellojavaer.ddal.ddr.datasource.exception.IllegalMetaDataException;
 
 import java.sql.Connection;
+import java.util.Collection;
 
 /**
  *
@@ -25,6 +26,6 @@ import java.sql.Connection;
  */
 public interface MetaDataChecker {
 
-    void check(Connection conn, String scName, String tbName) throws IllegalMetaDataException;
+    void check(Connection conn, String scName, Collection<String> tbNames) throws IllegalMetaDataException;
 
 }
