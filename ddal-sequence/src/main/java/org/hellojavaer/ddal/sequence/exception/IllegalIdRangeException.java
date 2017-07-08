@@ -19,24 +19,25 @@ package org.hellojavaer.ddal.sequence.exception;
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 23/06/2017.
  */
-public class DirtyDataException extends SequenceException {
+public class IllegalIdRangeException extends SequenceException {
 
-    public DirtyDataException() {
+    public IllegalIdRangeException() {
     }
 
-    public DirtyDataException(String message) {
+    public IllegalIdRangeException(String message) {
         super(message);
     }
 
-    public DirtyDataException(String message, Throwable cause) {
+    public IllegalIdRangeException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public DirtyDataException(Throwable cause) {
+    public IllegalIdRangeException(Throwable cause) {
         super(cause);
     }
 
-    public DirtyDataException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+    public IllegalIdRangeException(String message, Throwable cause, boolean enableSuppression,
+                                   boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 }

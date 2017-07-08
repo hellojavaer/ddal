@@ -15,6 +15,7 @@
  */
 package org.hellojavaer.ddal.sequence;
 
+import org.hellojavaer.ddal.sequence.exception.IllegalIdRangeException;
 import org.hellojavaer.ddal.sequence.exception.NoAvailableIdRangeFoundException;
 import org.hellojavaer.ddal.sequence.utils.Assert;
 import org.slf4j.Logger;
@@ -85,9 +86,12 @@ public class SingleSequence implements Sequence {
                         throw new NoAvailableIdRangeFoundException("No available id rang was found for schemaName:'"
                                                                    + getSchemaName() + "', tableName:'"
                                                                    + getTableName() + "'");
-                    } else {
-                        return idRange;
                     }
+                    if (idRange.getBeginValue() > idRange.getEndValue()) {
+                        throw new IllegalIdRangeException("Illegal id range " + idRange + " for schemaName:'"
+                                                          + getSchemaName() + "', tableName:'" + getTableName() + "'");
+                    }
+                    return idRange;
                 }
             };
         } catch (InterruptedException e) {

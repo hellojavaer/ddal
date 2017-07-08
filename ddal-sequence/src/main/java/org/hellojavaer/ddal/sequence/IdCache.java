@@ -15,7 +15,7 @@
  */
 package org.hellojavaer.ddal.sequence;
 
-import org.hellojavaer.ddal.sequence.exception.DirtyDataException;
+import org.hellojavaer.ddal.sequence.exception.IllegalIdRangeException;
 import org.hellojavaer.ddal.sequence.exception.NoAvailableIdRangeFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,9 +44,8 @@ public abstract class IdCache {
     private AtomicBoolean       inited         = new AtomicBoolean(false);
     private CountDownLatch      countDownLatch = new CountDownLatch(1);
 
-    public IdCache(int step, int cacheNSteps, int initTimeout, ExceptionHandler exceptionHandler, int delayRetryBaseLine)
-                                                                                                                         throws InterruptedException,
-                                                                                                                         TimeoutException {
+    public IdCache(int step, int cacheNSteps, int initTimeout, ExceptionHandler exceptionHandler,
+                   int delayRetryBaseLine) throws InterruptedException, TimeoutException {
         if (step <= 0) {
             throw new IllegalArgumentException("step must be greater than 0");
         }
@@ -89,6 +88,12 @@ public abstract class IdCache {
                     //
                     try {
                         IdRange range = getIdRange();
+                        if (range == null) {
+                            throw new NoAvailableIdRangeFoundException("No available id range was found");
+                        }
+                        if (range.getBeginValue() > range.getEndValue()) {
+                            throw new IllegalIdRangeException("Illegal id range " + range);
+                        }
                         int c = (int) ((range.getEndValue() - range.getBeginValue() + step) / step);
                         long beginValue = range.getBeginValue();
                         for (int i = 0; i < c; i++) {
@@ -109,7 +114,7 @@ public abstract class IdCache {
                                 continue;
                             }
                         }
-                        if (e instanceof DirtyDataException) {
+                        if (e instanceof IllegalIdRangeException) {
                             logger.error("[GetIdRange] " + e.getMessage());
                         } else if (e instanceof NoAvailableIdRangeFoundException) {
                             logger.error("[GetIdRange] " + e.getMessage());

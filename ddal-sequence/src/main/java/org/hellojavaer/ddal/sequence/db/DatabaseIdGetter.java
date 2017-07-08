@@ -17,7 +17,8 @@ package org.hellojavaer.ddal.sequence.db;
 
 import org.hellojavaer.ddal.sequence.IdGetter;
 import org.hellojavaer.ddal.sequence.IdRange;
-import org.hellojavaer.ddal.sequence.exception.DirtyDataException;
+import org.hellojavaer.ddal.sequence.exception.IllegalIdRangeException;
+import org.hellojavaer.ddal.sequence.exception.NoAvailableIdRangeFoundException;
 import org.hellojavaer.ddal.sequence.utils.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -214,7 +215,8 @@ public class DatabaseIdGetter implements IdGetter {
                 }
                 version = ((Number) selectResult.getLong(4)).longValue();
             } else {
-                return null;
+                throw new NoAvailableIdRangeFoundException("No available id rang was found for schemaName:'"
+                                                           + schemaName + "', tableName:'" + tableName + "'");
             }
             long beginValue = nextValue;
             updateStatement = connection.prepareStatement(targetUpdateSql);
@@ -239,9 +241,9 @@ public class DatabaseIdGetter implements IdGetter {
             }
             if (rows > 0) {
                 if (dirtyRow) {// 兼容异常数据
-                    throw new DirtyDataException(
-                                                 String.format("id:%s, nextValue:%s, endValue:%s, version:%s, deleted:0",
-                                                               id, beginValue, endValue, version));
+                    throw new IllegalIdRangeException(
+                                                      String.format("Illegal id range {id:%s, nextValue:%s, endValue:%s, version:%s, deleted:0}",
+                                                                    id, beginValue, endValue, version));
                 }
                 if (logger.isInfoEnabled()) {
                     logger.info("[Get_Range]: " + idRange);
