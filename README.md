@@ -18,6 +18,7 @@ After sql routing, datasource routing will use the schemas returned by sql routi
 
 
 ## News
+- version 1.0.0.M3 released.
 - version 1.0.0.M2 released.
 - version 1.0.0.M1 released.
 
