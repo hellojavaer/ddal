@@ -30,7 +30,8 @@ After sql routing, datasource routing will use the schemas returned by sql routi
 
 ```
 // list all physical tables by specified 'scName' and 'tbName'
-List<RouteInfo> routeInfos = shardRouter.getRouteInfos(scName, tbName);for (RouteInfo routeInfo : routeInfos) {
+List<RouteInfo> routeInfos = shardRouter.getRouteInfos(scName, tbName);
+for (RouteInfo routeInfo : routeInfos) {
     ShardRouteContext.setRouteInfo(scName, tbName, routeInfo);
     // TODO: do your business here
     // ...
