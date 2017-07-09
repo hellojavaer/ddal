@@ -15,7 +15,6 @@
     <url>https://github.com/hellojavaer/ddal</url>
 
     <properties>
-        <ddal.version>1.0.0-SNAPSHOT</ddal.version>
         <junit.version>4.11</junit.version>
         <gpg.skip>true</gpg.skip>
         <javadoc.skip>false</javadoc.skip>
@@ -143,7 +142,7 @@
         <dependency>
             <groupId>org.hellojavaer.ddal</groupId>
             <artifactId>ddal-ddr</artifactId>
-            <version>${ddal.version}</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
