@@ -10,7 +10,7 @@ DDAL is licensed under **Apache Software License, Version 2.0**.
 
 ## Summary
 
-DDAL contains ddal-ddr, ddal-sequence, ddal-spring and ddal-jsqlparser.
+DDAL include ddal-ddr, ddal-sequence, ddal-spring and ddal-jsqlparser.
 DDR's core module is sql routing which corresponds to ShardParser and datasource routing which corresponds to DataSourceManager. sql routing is actually converting the logic table name and schema name to its physical name in sql. ShardRouteRuleBinding determines which schema-table should be converted, ShardRouteRule and ShardRouteContext determines how to converte the logic table name and schema name.(see more detail aboute this).
 sql routing result contains converted sql and the schemas which associated witch the converted tables.
 In DataSourceManager, one datasource is associated with multiple schemas, DataSourceManager depends on the inputing schemas to choose which datasource should be returned.
@@ -23,7 +23,21 @@ After sql routing, datasource routing will use the schemas returned by sql routi
 
 ### [Release Notes](https://github.com/hellojavaer/ddal/releases)
 
-## Extensions in the latest version 1.0.0.M2
+## Extensions in the latest version 1.0.0.M3
+
+- provide a easier way for scanning table query
+
+```
+// list all physical tables by specified 'scName' and 'tbName'
+List<RouteInfo> routeInfos = shardRouter.getRouteInfos(scName, tbName);for (RouteInfo routeInfo : routeInfos) {
+    ShardRouteContext.setRouteInfo(scName, tbName, routeInfo);
+    // TODO: do your business here
+    // ...
+    ShardRouteContext.clearContext();
+}
+```
+
+## Extensions in the version 1.0.0.M2
 
 - provide a more simple way to configure route rule
 
@@ -57,13 +71,13 @@ http://repo1.maven.org/maven2/org/hellojavaer/ddal/
     <version>x.x.x</version>
 </dependency>
 
-<!-- to use annotation to route in spring environment -->
+<!-- use annotation to route in spring environment -->
 <dependency>
     <groupId>org.hellojavaer.ddal</groupId>
     <artifactId>ddal-spring</artifactId>
     <version>x.x.x</version>
 </dependency>
-<!-- to use sequence service -->
+<!-- use sequence service -->
 <dependency>
     <groupId>org.hellojavaer.ddal</groupId>
     <artifactId>ddal-sequence</artifactId>
