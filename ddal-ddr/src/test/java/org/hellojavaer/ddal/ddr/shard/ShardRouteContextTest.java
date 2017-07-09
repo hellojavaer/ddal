@@ -1,5 +1,6 @@
 package org.hellojavaer.ddal.ddr.shard;
 
+import org.hellojavaer.ddal.ddr.datasource.exception.AmbiguousDataSourceBindingException;
 import org.hellojavaer.ddal.ddr.utils.Assert;
 import org.junit.Test;
 
@@ -9,73 +10,157 @@ import org.junit.Test;
  */
 public class ShardRouteContextTest {
 
-    @Test
-    public void test00() {
-        ShardRouteContext.clear();
-        try {
-            ShardRouteContext.setRouteInfo("db", "user", 1);
-            Assert.isTrue(ShardRouteContext.getRouteInfo(null, "user") == 1);
-            ShardRouteContext.setRouteInfo("shop", "user", 2);
-            Assert.isTrue(ShardRouteContext.getRouteInfo("shop", "user") == 2);
-        } finally {
-            ShardRouteContext.clear();
-        }
-    }
-
+    /**
+     * 一个context 单个绑定
+     */
     @Test
     public void test01() {
-        ShardRouteContext.clear();
+        ShardRouteContext.clearContext();
         try {
-            ShardRouteContext.setRouteInfo("db", "user", 1);
-            ShardRouteContext.pushSubContext();
-            ShardRouteContext.setRouteInfo("shop", "user", 2);
-            ShardRouteContext.setRouteInfo("shop", "user", 3);
-            Assert.isTrue(ShardRouteContext.getRouteInfo(null, "user") == 3);
-            ShardRouteContext.setRouteInfo("shop", "user", null);
-            ShardRouteContext.setRouteInfo("shop", "user", null);
-            Assert.isTrue(ShardRouteContext.getRouteInfo(null, "user") == null);
-            ShardRouteContext.popSubContext();
-            Assert.isTrue(ShardRouteContext.getRouteInfo(null, "user") == 1);
-            try {
-                ShardRouteContext.popSubContext();
-                Assert.isTrue(false);
-            } catch (IndexOutOfBoundsException e) {
-            }
-            ShardRouteContext.clear();
-            Assert.isTrue(ShardRouteContext.getRouteInfo(null, "user") == null);
+            ShardRouteContext.setRouteInfo("sc", "tb", 2);
+            Assert.isTrue(ShardRouteContext.getRouteInfo("sc", "tb") == 2);
+            Assert.isTrue(ShardRouteContext.getRouteInfo(null, "tb") == 2);
+            Assert.isTrue(ShardRouteContext.containsRouteInfo("sc", "tb"));
+
+            Assert.isTrue(ShardRouteContext.removeRouteInfo("sc", "tb") == 2);
+            Assert.isTrue(ShardRouteContext.getRouteInfo("sc", "tb") == null);
+            Assert.isTrue(ShardRouteContext.getRouteInfo(null, "tb") == null);
+            Assert.isTrue(ShardRouteContext.containsRouteInfo("sc", "tb") == false);
         } finally {
-            ShardRouteContext.clear();
+            ShardRouteContext.clearContext();
         }
     }
 
+    /**
+     * 一个context多个绑定的情况
+     */
     @Test
     public void test02() {
-        ShardRouteContext.clear();
+        ShardRouteContext.clearContext();
         try {
-            ShardRouteContext.setRouteInfo("db", "user", 1);
-            ShardRouteContext.setRouteInfo("shop", "user", 2);
-            ShardRouteContext.removeRouteInfo("shop", "user");
-            Assert.isTrue(ShardRouteContext.getRouteInfo(null, "user") == 1);
+            ShardRouteContext.setRouteInfo("sc_00", "tb", 2);
+            ShardRouteContext.setRouteInfo("sc_01", "tb", 3);
+            Assert.isTrue(ShardRouteContext.containsRouteInfo("sc_00", "tb"));
+            Assert.isTrue(ShardRouteContext.getRouteInfo("sc_00", "tb") == 2);
+            Assert.isTrue(ShardRouteContext.containsRouteInfo("sc_01", "tb"));
+            Assert.isTrue(ShardRouteContext.getRouteInfo("sc_01", "tb") == 3);
+            try {
+                ShardRouteContext.getRouteInfo(null, "tb");
+                throw new Error();
+            } catch (AmbiguousDataSourceBindingException e) {
+            }
+            //
+            Assert.isTrue(ShardRouteContext.removeRouteInfo("sc_00", "tb") == 2);
+            Assert.isTrue(ShardRouteContext.getRouteInfo(null, "tb") == 3);
         } finally {
-            ShardRouteContext.clear();
+            ShardRouteContext.clearContext();
         }
     }
 
+    /**
+     * 一个context内 default test
+     */
     @Test
     public void test03() {
-        ShardRouteContext.clear();
+        ShardRouteContext.clearContext();
         try {
-            RouteInfo routeInfo = new RouteInfo("scName_00", "user_0001");
-            ShardRouteContext.setRouteInfo("db", "user", 1);
-            ShardRouteContext.setRouteInfo("db", "user", routeInfo);
-            Assert.isTrue(ShardRouteContext.getRouteInfo(null, "user") == routeInfo);
-            ShardRouteContext.setRouteInfo("shop", "user", 2);
-            ShardRouteContext.removeRouteInfo("shop", "user");
-            Assert.isTrue(ShardRouteContext.getRouteInfo(null, "user") == routeInfo);
-            ShardRouteContext.setDefaultRouteInfo("scName", 2);
-            Assert.isTrue(ShardRouteContext.getRouteInfo("scName", "user0") == 2);
+            // add
+            ShardRouteContext.setRouteInfo("sc", 2);
+            Assert.isTrue(ShardRouteContext.getRouteInfo("sc") == 2);
+            Assert.isTrue(ShardRouteContext.containsRouteInfo("sc"));
+            Assert.isTrue(ShardRouteContext.getRouteInfo("sc", "anything") == 2);
+            Assert.isTrue(ShardRouteContext.containsRouteInfo("sc", "anything") == false);
+
+            // remove
+            Assert.isTrue(ShardRouteContext.removeRouteInfo("sc") == 2);
+            Assert.isTrue(ShardRouteContext.getRouteInfo("sc") == null);
+            Assert.isTrue(ShardRouteContext.containsRouteInfo("sc") == false);
+            Assert.isTrue(ShardRouteContext.getRouteInfo("sc", "anything") == null);
+            Assert.isTrue(ShardRouteContext.containsRouteInfo("sc", "anything") == false);
         } finally {
-            ShardRouteContext.clear();
+            ShardRouteContext.clearContext();
+        }
+    }
+
+    /**
+     * 多个context 不使用default
+     */
+    @Test
+    public void test10() {
+        ShardRouteContext.clearContext();
+        try {
+            // 继承
+            ShardRouteContext.setRouteInfo("sc", "tb", 2);
+            ShardRouteContext.pushContext();
+            Assert.isTrue(ShardRouteContext.getRouteInfo("sc", "tb") == 2);
+            Assert.isTrue(ShardRouteContext.getRouteInfo(null, "tb") == 2);
+            Assert.isTrue(ShardRouteContext.containsRouteInfo("sc", "tb") == false);
+            ShardRouteContext.setRouteInfo("sc_01", "tb", 3);
+            Assert.isTrue(ShardRouteContext.getRouteInfo("sc", "tb") == 2);
+            Assert.isTrue(ShardRouteContext.getRouteInfo(null, "tb") == 3);
+
+            // 删除上一级context内容测试
+            Assert.isTrue(ShardRouteContext.removeRouteInfo("sc", "tb") == null);
+
+            // 覆盖测试
+            ShardRouteContext.setRouteInfo("sc", "tb", null);
+            Assert.isTrue(ShardRouteContext.removeRouteInfo("sc_01", "tb") == 3);
+            Assert.isTrue(ShardRouteContext.getRouteInfo(null, "tb") == null);
+
+            ShardRouteContext.popContext();
+            Assert.isTrue(ShardRouteContext.removeRouteInfo("sc", "tb") == 2);
+        } finally {
+            ShardRouteContext.clearContext();
+        }
+    }
+
+    /**
+     * 多个context 使用default
+     */
+    @Test
+    public void test11() {
+        ShardRouteContext.clearContext();
+        try {
+            // 继承
+            ShardRouteContext.setRouteInfo("sc", 1);
+
+            ShardRouteContext.pushContext();
+            Assert.isTrue(ShardRouteContext.getRouteInfo("sc", "tb") == 1);
+            Assert.isTrue(ShardRouteContext.containsRouteInfo("sc", "tb") == false);
+            Assert.isTrue(ShardRouteContext.containsRouteInfo("sc") == false);
+
+            ShardRouteContext.setRouteInfo("sc", "tb", 2);
+            Assert.isTrue(ShardRouteContext.getRouteInfo("sc", "tb") == 2);
+            Assert.isTrue(ShardRouteContext.containsRouteInfo("sc", "tb") == true);
+            Assert.isTrue(ShardRouteContext.containsRouteInfo("sc") == false);
+
+            ShardRouteContext.popContext();
+            Assert.isTrue(ShardRouteContext.removeRouteInfo("sc") == 1);
+        } finally {
+            ShardRouteContext.clearContext();
+        }
+    }
+
+    /**
+     * 
+     */
+    @Test
+    public void test20() {
+        // root context can't be pop
+        try {
+            ShardRouteContext.popContext();
+            throw new Error();
+        } catch (IndexOutOfBoundsException e) {
+        }
+        //
+        ShardRouteContext.pushContext();
+        ShardRouteContext.pushContext();
+        ShardRouteContext.popContext();
+        ShardRouteContext.popContext();
+        try {
+            ShardRouteContext.popContext();
+            throw new Error();
+        } catch (IndexOutOfBoundsException e) {
         }
     }
 }

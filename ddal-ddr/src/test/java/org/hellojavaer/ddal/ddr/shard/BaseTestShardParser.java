@@ -20,7 +20,7 @@ public class BaseTestShardParser {
      * 构造数据模型
      * @return
      */
-    protected ShardParser buildParserForId() {
+    protected SimpleShardParser buildParserForId() {
         SimpleShardParser parser = new SimpleShardParser();
         SimpleShardRouter shardRouter = new SimpleShardRouter();
         List<SimpleShardRouteRuleBinding> bindings = new ArrayList<SimpleShardRouteRuleBinding>();

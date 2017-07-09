@@ -15,22 +15,22 @@
  */
 package org.hellojavaer.ddal.ddr.datasource.manager.rw;
 
-import org.hellojavaer.ddal.ddr.datasource.manager.DataSourceParam;
-import org.hellojavaer.ddal.ddr.datasource.manager.rw.monitor.ReadOnlyDataSourceMonitorServer;
-import org.hellojavaer.ddal.ddr.datasource.manager.rw.monitor.WritingMethodInvokeResult;
-import org.hellojavaer.ddal.ddr.lb.random.WeightItem;
-import org.hellojavaer.ddal.ddr.lb.random.WeightedRandom;
 import org.hellojavaer.ddal.ddr.datasource.WeightedDataSource;
 import org.hellojavaer.ddal.ddr.datasource.exception.CrossingDataSourceException;
 import org.hellojavaer.ddal.ddr.datasource.exception.DataSourceNotFoundException;
 import org.hellojavaer.ddal.ddr.datasource.jdbc.DataSourceWrapper;
+import org.hellojavaer.ddal.ddr.datasource.manager.DataSourceParam;
 import org.hellojavaer.ddal.ddr.datasource.manager.rw.monitor.ReadOnlyDataSourceMonitor;
+import org.hellojavaer.ddal.ddr.datasource.manager.rw.monitor.ReadOnlyDataSourceMonitorServer;
+import org.hellojavaer.ddal.ddr.datasource.manager.rw.monitor.WritingMethodInvokeResult;
 import org.hellojavaer.ddal.ddr.datasource.security.metadata.DefaultMetaDataChecker;
 import org.hellojavaer.ddal.ddr.datasource.security.metadata.MetaDataChecker;
 import org.hellojavaer.ddal.ddr.expression.range.RangeExpression;
 import org.hellojavaer.ddal.ddr.expression.range.RangeItemVisitor;
+import org.hellojavaer.ddal.ddr.lb.random.WeightItem;
+import org.hellojavaer.ddal.ddr.lb.random.WeightedRandom;
 import org.hellojavaer.ddal.ddr.shard.RouteInfo;
-import org.hellojavaer.ddal.ddr.shard.ShardRouteHelper;
+import org.hellojavaer.ddal.ddr.shard.ShardRouter;
 import org.hellojavaer.ddal.ddr.utils.DDRJSONUtils;
 import org.hellojavaer.ddal.ddr.utils.DDRStringUtils;
 import org.hellojavaer.ddal.ddr.utils.DDRToStringBuilder;
@@ -58,8 +58,9 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
     private List<WriteOnlyDataSourceBinding>                       writeOnlyDataSources                       = null;
     private List<ReadOnlyDataSourceBinding>                        readOnlyDataSources                        = null;
 
-    //
+    // Original input
     private MetaDataChecker                                        metaDataChecker                            = new DefaultMetaDataChecker();
+    private ShardRouter                                            shardRouter                                = null;
 
     // cache
     private Map<String, WeightedRandom>                            readOnlyDataSourceQueryCache               = null;
@@ -82,6 +83,14 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
 
     public void setMetaDataChecker(MetaDataChecker metaDataChecker) {
         this.metaDataChecker = metaDataChecker;
+    }
+
+    public ShardRouter getShardRouter() {
+        return shardRouter;
+    }
+
+    public void setShardRouter(ShardRouter shardRouter) {
+        this.shardRouter = shardRouter;
     }
 
     private static class WeightedDataSourceWrapper extends WeightedDataSource implements Cloneable {
@@ -416,29 +425,20 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
     }
 
     private void check(Map<String, DataSourceWrapper> writeOnlyDataSourceQueryCache) {
-        if (writeOnlyDataSourceQueryCache == null || writeOnlyDataSourceQueryCache.isEmpty() || metaDataChecker == null) {
+        if (writeOnlyDataSourceQueryCache == null || writeOnlyDataSourceQueryCache.isEmpty() || metaDataChecker == null
+            || shardRouter == null) {
             return;
         }
-        Map<String, Set<String>> groupedRouteInfo = getGroupedRouteInfo();
-        if (groupedRouteInfo == null || groupedRouteInfo.isEmpty()) {
+        Map<String, Set<String>> routedTables = shardRouter.getRoutedTables();
+        if (routedTables == null || routedTables.isEmpty()) {
             return;
         }
         for (Map.Entry<String, DataSourceWrapper> entry : writeOnlyDataSourceQueryCache.entrySet()) {
             Connection conn = null;
             try {
                 conn = entry.getValue().getDataSource().getConnection();
-                boolean readOnly = conn.isReadOnly();
-                if (readOnly == false) {
-                    conn.setReadOnly(true);
-                }
                 String scName = entry.getKey();
-                Set<String> tables = groupedRouteInfo.get(scName);
-                if (tables != null && !tables.isEmpty()) {
-                    metaDataChecker.check(conn, scName, tables);
-                }
-                if (readOnly == false) {
-                    conn.setReadOnly(false);
-                }
+                check(conn, scName);
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             } finally {
@@ -464,12 +464,7 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
     }
 
     private void check(LinkedHashMap<String, List<WeightedDataSourceWrapper>> readOnlyDataSourceIndexCacheOriginalValues) {
-        if (readOnlyDataSourceIndexCacheOriginalValues == null || readOnlyDataSourceIndexCacheOriginalValues.isEmpty()
-            || metaDataChecker == null) {
-            return;
-        }
-        Map<String, Set<String>> groupedRouteInfo = getGroupedRouteInfo();
-        if (groupedRouteInfo == null || groupedRouteInfo.isEmpty()) {
+        if (readOnlyDataSourceIndexCacheOriginalValues == null || readOnlyDataSourceIndexCacheOriginalValues.isEmpty()) {
             return;
         }
         for (Map.Entry<String, List<WeightedDataSourceWrapper>> entry : readOnlyDataSourceIndexCacheOriginalValues.entrySet()) {
@@ -477,18 +472,8 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
                 Connection conn = null;
                 try {
                     conn = dataSource.getDataSource().getConnection();
-                    boolean readOnly = conn.isReadOnly();
-                    if (readOnly == false) {
-                        conn.setReadOnly(true);
-                    }
                     String scName = entry.getKey();
-                    Set<String> tables = groupedRouteInfo.get(scName);
-                    if (tables != null && !tables.isEmpty()) {
-                        metaDataChecker.check(conn, scName, tables);
-                    }
-                    if (readOnly == false) {
-                        conn.setReadOnly(false);
-                    }
+                    check(conn, scName);
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
                 } finally {
@@ -504,38 +489,38 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
         }
     }
 
-    /**
-     *
-     * 获取由sdValues"生成"的table列表
-     */
-    private Map<String, Set<String>> getGroupedRouteInfo() {
-        // do group{physics schema name <-> physics table names}
-        Map<String, Set<String>> phyMap = new HashMap<String, Set<String>>();
-        Set<String> schemas = ShardRouteHelper.getConfiguredSchemas();
-        if (schemas == null || schemas.isEmpty()) {
-            return phyMap;
+    private void check(Connection conn, String scName) {
+        if (metaDataChecker == null || shardRouter == null) {
+            return;
         }
-        for (String scName : schemas) {
-            Set<String> tbNames = ShardRouteHelper.getConfiguredTables(scName);
-            if (tbNames == null || tbNames.isEmpty()) {
+        Map<String, Set<String>> routedTables = shardRouter.getRoutedTables();
+        if (routedTables == null) {
+            return;
+        }
+        Set<String> tables = routedTables.get(scName);
+        if (tables == null) {
+            return;
+        }
+        for (String tbName : tables) {
+            List<RouteInfo> routeInfos = shardRouter.getRouteInfos(scName, tbName);
+            if (routeInfos == null || routeInfos.isEmpty()) {
                 continue;
             }
-            for (String tbName : tbNames) {
-                List<RouteInfo> routeInfos = ShardRouteHelper.getConfiguredRouteInfos(scName, tbName);
-                if (routeInfos == null || routeInfos.isEmpty()) {
-                    continue;
+            // group table by schema
+            Map<String, Set<String>> groupedTables = new LinkedHashMap<>();
+            for (RouteInfo routeInfo : routeInfos) {
+                Set<String> physicalTbs = groupedTables.get(routeInfo.getScName());
+                if (physicalTbs == null) {
+                    physicalTbs = new LinkedHashSet<>();
+                    groupedTables.put(routeInfo.getScName(), physicalTbs);
                 }
-                for (RouteInfo routeInfo : routeInfos) {
-                    Set<String> ts = phyMap.get(routeInfo.getScName());
-                    if (ts == null) {
-                        ts = new HashSet<String>();
-                        phyMap.put(routeInfo.getScName(), ts);
-                    }
-                    ts.add(routeInfo.getTbName());
-                }
+                physicalTbs.add(routeInfo.getTbName());
+            }
+            // check meta data
+            for (Map.Entry<String, Set<String>> entry : groupedTables.entrySet()) {
+                metaDataChecker.check(conn, entry.getKey(), entry.getValue());
             }
         }
-        return phyMap;
     }
 
     private void initWriteOnlyDataSource(List<WriteOnlyDataSourceBinding> bindings) {

@@ -1,19 +1,19 @@
 package org.hellojavaer.ddal.ddr.shard;
 
+import org.hellojavaer.ddal.ddr.shard.simple.SimpleShardParser;
 import org.hellojavaer.ddal.ddr.utils.Assert;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  *
- * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 18/12/2016.
+ * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 22/06/2017.
  */
-public class ShardRouteHelperTest extends BaseTestShardParser {
+public class ShardContextUtilsTest extends BaseTestShardParser {
 
     @Test
-    public void test00() {
+    public void groupSdValuesByRouteInfo() {
         List<String> expectedResult = new ArrayList();
         expectedResult.add("db_00.user_0000");
         expectedResult.add("db_01.user_0001");
@@ -143,14 +143,32 @@ public class ShardRouteHelperTest extends BaseTestShardParser {
         expectedResult.add("db_05.user_0125");
         expectedResult.add("db_06.user_0126");
         expectedResult.add("db_07.user_0127");
-        buildParserForId();
+
+        List<Long> list = new ArrayList<>();
+        for (int i = 0; i < 128; i++) {
+            list.add((long) i);
+        }
+        SimpleShardParser shardParser = this.buildParserForId();
+
+        Map<RouteInfo, List<Long>> map = ShardRouteUtils.groupSdValuesByRouteInfo(shardParser.getShardRouter(), "db",
+                                                                                  "user", list);
         int count = 0;
-        List<RouteInfo> routeInfos = ShardRouteHelper.getConfiguredRouteInfos("db", "user");
-        if (expectedResult != null) {
-            for (RouteInfo si : routeInfos) {
-                Assert.equals(si.toString(), expectedResult.get(count));
-                count++;
-            }
+        for (Map.Entry<RouteInfo, List<Long>> entry : map.entrySet()) {
+            Assert.isTrue(entry.getKey().toString().equals(expectedResult.get(count)));
+            count++;
+        }
+
+        Set<Long> set = new LinkedHashSet<>();
+        for (int i = 0; i < 128; i++) {
+            set.add((long) i);
+        }
+
+        Map<RouteInfo, Set<Long>> map1 = ShardRouteUtils.groupSdValuesByRouteInfo(shardParser.getShardRouter(), "db",
+                                                                                  "user", set);
+        int i = 0;
+        for (Map.Entry<RouteInfo, Set<Long>> entry : map1.entrySet()) {
+            Assert.isTrue(entry.getKey().toString().equals(expectedResult.get(i)));
+            i++;
         }
     }
 

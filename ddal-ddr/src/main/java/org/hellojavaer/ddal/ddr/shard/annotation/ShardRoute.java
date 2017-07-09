@@ -15,20 +15,19 @@
  */
 package org.hellojavaer.ddal.ddr.shard.annotation;
 
-import org.hellojavaer.ddal.ddr.shard.enums.ContextPropagation;
-
 import java.lang.annotation.*;
 
 /**
  * Setting the default route information for the schema
  * <pre>
- * This configuration is fully equivalent to invoking #{org.hellojavaer.ddal.ddr.shard.ShardRouteContext.setDefaultRouteInfo},
+ * This configuration is fully equivalent to invoking #{org.hellojavaer.ddal.ddr.shard.ShardRouteContext.setRouteInfo},
  * and this default route configuration will take effect only in the following case:
  * 1. No 'sdKey' was specified in route rule configuration
  * 2. Specified route rule in configuration but no 'sdKey' was found in sql and no associated route information was specified by #{org.hellojavaer.ddal.ddr.shard.ShardRouteContext.setRouteInfo}
  *
- * 'ShardRoute' is designed base on 'one schema one route rule'. 'one schema one rule route' is a good practice.
- * But if you need to access one more schemas which may have different route rule in one sql, you should add this annotation on its sub-invoking method.
+ * 'ShardRoute' is designed base on 'one schema one route rule'.
+ *
+ * But if you need to access one more schemas which have different route rule in one sql, you should add this annotation on its sub-invoking method.
  *
  *</pre>
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 01/01/2017.
@@ -38,10 +37,17 @@ import java.lang.annotation.*;
 @Documented
 public @interface ShardRoute {
 
-    ContextPropagation value() default ContextPropagation.CLEAR_CONTEXT;
-
+    /**
+     * allow a comma-delimited list of scNames
+     * 
+     * @return
+     */
     String scName() default "";
 
+    /**
+     *
+     * @return
+     */
     String sdValue() default "";
 
 }

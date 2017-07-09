@@ -42,12 +42,12 @@ public class DefaultMetaDataChecker implements MetaDataChecker {
      * @throws IllegalMetaDataException
      */
     @Override
-    public void check(Connection conn, String scName, Set<String> tables) throws IllegalMetaDataException {
+    public void check(Connection conn, String scName, Collection<String> tbNames) throws IllegalMetaDataException {
         if (scName == null) {
             throw new IllegalArgumentException("[Check MetaData Failed] parameter 'scName' can't be null");
         }
-        if (tables == null || tables.isEmpty()) {
-            throw new IllegalArgumentException("[Check MetaData Failed] parameter 'tables' can't be empty");
+        if (tbNames == null || tbNames.isEmpty()) {
+            throw new IllegalArgumentException("[Check MetaData Failed] parameter 'tbNames' can't be empty");
         }
         try {
             Set<String> set = getAllTables(conn, scName);
@@ -55,14 +55,15 @@ public class DefaultMetaDataChecker implements MetaDataChecker {
                 throw new IllegalMetaDataException(
                                                    "[Check MetaData Failed] Schema:'"
                                                            + scName
-                                                           + "' has nothing tables. but in your configuration it requires tables:"
-                                                           + DDRJSONUtils.toJSONString(tables));
+                                                           + "' has nothing tables. but in your configuration it requires table:"
+                                                           + DDRJSONUtils.toJSONString(tbNames));
             }
-            if (tables != null && !tables.isEmpty() && !set.containsAll(tables)) {
-                throw new IllegalMetaDataException("[Check MetaData Failed] Schema:'" + scName + "' only has tables:"
-                                                   + DDRJSONUtils.toJSONString(set)
-                                                   + ", but in your configuration it requires tables:"
-                                                   + DDRJSONUtils.toJSONString(tables));
+            for (String tbName : tbNames) {
+                if (!set.contains(tbName)) {
+                    throw new IllegalMetaDataException("[Check MetaData Failed] Schema:'" + scName
+                                                       + "' only has tables:" + DDRJSONUtils.toJSONString(set)
+                                                       + ", but in your configuration it requires table:" + tbName);
+                }
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -74,6 +75,7 @@ public class DefaultMetaDataChecker implements MetaDataChecker {
         PreparedStatement statement = conn.prepareStatement(sql);
         statement.setString(1, scName);
         ResultSet rs = statement.executeQuery();
+
         Set<String> tabs = new HashSet<>();
         while (rs.next()) {
             tabs.add(DDRStringUtils.toLowerCase(rs.getString(1)));

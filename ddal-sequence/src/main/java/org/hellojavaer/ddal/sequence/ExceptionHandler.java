@@ -15,12 +15,18 @@
  */
 package org.hellojavaer.ddal.sequence;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  *
- * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 04/01/2017.
+ * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 25/06/2017.
  */
-public interface IdGetter {
+public interface ExceptionHandler {
 
-    IdRange get(String schemaName, String tableName, int step) throws Exception;
+    /**
+     * 
+     * @return true this exception will be ignore, false this exception will be transmitted to system processor. 
+     */
+    boolean handle(Throwable e, AtomicInteger retryCount);
 
 }

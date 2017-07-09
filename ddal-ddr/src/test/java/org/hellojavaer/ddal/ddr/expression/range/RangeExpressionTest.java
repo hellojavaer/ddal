@@ -216,7 +216,7 @@ public class RangeExpressionTest {
                     //System.out.println(val);
                 }
             });
-            Assert.isTrue(false);
+            throw new Error();
         } catch (RangeExpressionException e) {
         }
     }
@@ -245,7 +245,7 @@ public class RangeExpressionTest {
                     //System.out.println(val);
                 }
             });
-            Assert.isTrue(false);
+            throw new Error();
         } catch (RangeExpressionException e) {
         }
     }
@@ -260,7 +260,7 @@ public class RangeExpressionTest {
                     //System.out.println(val);
                 }
             });
-            Assert.isTrue(false);
+            throw new Error();
         } catch (RangeExpressionException e) {
 
         }
@@ -276,7 +276,7 @@ public class RangeExpressionTest {
                     //System.out.println(val);
                 }
             });
-            Assert.isTrue(false);
+            throw new Error();
         } catch (RangeExpressionException e) {
 
         }
@@ -292,7 +292,7 @@ public class RangeExpressionTest {
                     //System.out.println(val);
                 }
             });
-            Assert.isTrue(false);
+            throw new Error();
         } catch (RangeExpressionException e) {
         }
     }
@@ -307,7 +307,7 @@ public class RangeExpressionTest {
                     //System.out.println(val);
                 }
             });
-            Assert.isTrue(false);
+            throw new Error();
         } catch (RangeExpressionException e) {
 
         }
@@ -323,7 +323,7 @@ public class RangeExpressionTest {
                     //System.out.println(val);
                 }
             });
-            Assert.isTrue(false);
+            throw new Error();
         } catch (RangeExpressionException e) {
         }
     }
