@@ -15,7 +15,6 @@
     <url>https://github.com/hellojavaer/ddal</url>
 
     <properties>
-        <ddal.version>1.0.0-SNAPSHOT</ddal.version>
         <spring.version>4.2.5.RELEASE</spring.version>
         <aspectjweaver.version>1.8.9</aspectjweaver.version>
         <junit.version>4.11</junit.version>
@@ -145,7 +144,7 @@
         <dependency>
             <groupId>org.hellojavaer.ddal</groupId>
             <artifactId>ddal-ddr</artifactId>
-            <version>${ddal.version}</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
