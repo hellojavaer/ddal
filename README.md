@@ -53,7 +53,7 @@ rule.setTbRouteRule("{#tbName}_{#format('%04d', #sdValue % 8)}");
 
 - [Documentation Home](https://github.com/hellojavaer/ddal/wiki)
 - [Frequently Asked Questions](https://github.com/hellojavaer/ddal/wiki/faq)
-
+- [Get some demos](https://github.com/hellojavaer/ddal-demos/)
 
 ## Download
 
