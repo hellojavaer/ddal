@@ -64,4 +64,36 @@ public class ShardRouteUtils {
         return map;
     }
 
+    public static Map<String, List<RouteInfo>> groupRouteInfosByScName(List<RouteInfo> routeInfos) {
+        if (routeInfos == null || routeInfos.isEmpty()) {
+            return Collections.EMPTY_MAP;
+        }
+        Map<String, List<RouteInfo>> map = new LinkedHashMap<>();
+        for (RouteInfo routeInfo : routeInfos) {
+            List<RouteInfo> list = map.get(routeInfo.getScName());
+            if (list == null) {
+                list = new ArrayList<>();
+                map.put(routeInfo.getScName(), list);
+            }
+            list.add(routeInfo);
+        }
+        return map;
+    }
+
+    public static Map<String, Set<RouteInfo>> groupRouteInfosByScName(Set<RouteInfo> routeInfos) {
+        if (routeInfos == null || routeInfos.isEmpty()) {
+            return Collections.EMPTY_MAP;
+        }
+        Map<String, Set<RouteInfo>> map = new LinkedHashMap<>();
+        for (RouteInfo routeInfo : routeInfos) {
+            Set<RouteInfo> set = map.get(routeInfo.getScName());
+            if (set == null) {
+                set = new LinkedHashSet<>();
+                map.put(routeInfo.getScName(), set);
+            }
+            set.add(routeInfo);
+        }
+        return map;
+    }
+
 }
