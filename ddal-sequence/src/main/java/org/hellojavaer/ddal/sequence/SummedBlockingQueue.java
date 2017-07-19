@@ -42,16 +42,18 @@ class SummedBlockingQueue {
         }
     }
 
-    private final AtomicInteger countForCapacity = new AtomicInteger(0);
-    private transient Node      head;
-    private transient Node      last;
-    private final ReentrantLock takeLock         = new ReentrantLock();
-    private final Condition     notEmpty         = takeLock.newCondition();
-    private final ReentrantLock putLock          = new ReentrantLock();
-    private final Condition     notFull          = putLock.newCondition();
+    private final AtomicInteger             countForCapacity = new AtomicInteger(0);
+    private transient Node                  head;
+    private transient Node                  last;
+    private final ReentrantLock             takeLock         = new ReentrantLock();
+    private final Condition                 notEmpty         = takeLock.newCondition();
+    private final ReentrantLock             putLock          = new ReentrantLock();
+    private final Condition                 notFull          = putLock.newCondition();
 
-    private final long          sum;
-    private final AtomicLong    countForSum      = new AtomicLong(0);
+    private final long                      sum;
+    private final AtomicLong                countForSum      = new AtomicLong(0);
+
+    private final ThreadLocal<InnerIdRange> threadLocal      = new ThreadLocal();
 
     public SummedBlockingQueue(long sum) {
         this.sum = sum;
@@ -108,9 +110,13 @@ class SummedBlockingQueue {
         if (c == 1) signalNotEmpty();
     }
 
-    private ThreadLocal<InnerIdRange> threadLocal = new ThreadLocal();
-
     public long get(long timeout, TimeUnit unit) throws InterruptedException, TimeoutException {
+        if (timeout < 0) {
+            throw new IllegalArgumentException("'timeout' must be greater then or equal to 0");
+        }
+        if(unit == null){
+            throw new IllegalArgumentException("'unit' can't be null");
+        }
         InnerIdRange idRange = threadLocal.get();
         if (idRange != null) {
             long id = idRange.getCounter().getAndIncrement();
@@ -140,7 +146,7 @@ class SummedBlockingQueue {
             long now = System.nanoTime();
             InnerIdRange idRange = get(nanoTimeout);
             if (idRange == null) {
-                throw new TimeoutException(unit.toMillis(timeout) + " ms");
+                throw new TimeoutException(timeout + " " + unit);
             } else {
                 long id = idRange.getCounter().getAndIncrement();
                 if (id <= idRange.getEndValue()) {
@@ -158,7 +164,7 @@ class SummedBlockingQueue {
                     remove(idRange);
                     nanoTimeout -= System.nanoTime() - now;
                     if (nanoTimeout <= 0) {
-                        throw new TimeoutException(unit.toMillis(timeout) + " ms");
+                        throw new TimeoutException(timeout + " " + unit);
                     }
                 }
             }
