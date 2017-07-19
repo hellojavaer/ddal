@@ -66,8 +66,8 @@ public abstract class IdCache {
         }
     }
 
-    public long get(int timeout) throws InterruptedException, TimeoutException {
-        return summedBlockingQueue.get(timeout, TimeUnit.MILLISECONDS);
+    public long get(long timeout, TimeUnit timeUnit) throws InterruptedException, TimeoutException {
+        return summedBlockingQueue.get(timeout, timeUnit);
     }
 
     private static AtomicInteger threadCount = new AtomicInteger(0);

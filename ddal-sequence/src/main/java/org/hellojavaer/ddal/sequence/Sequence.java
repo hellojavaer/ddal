@@ -15,12 +15,16 @@
  */
 package org.hellojavaer.ddal.sequence;
 
+import org.hellojavaer.ddal.sequence.exception.GetSequenceTimeoutException;
+
+import java.util.concurrent.TimeUnit;
+
 /**
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 03/01/2017.
  */
 public interface Sequence {
 
-    long nextValue();
+    long nextValue(long timeout, TimeUnit timeUnit) throws GetSequenceTimeoutException;
 
 }

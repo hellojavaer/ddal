@@ -15,12 +15,14 @@
  */
 package org.hellojavaer.ddal.sequence;
 
+import org.hellojavaer.ddal.sequence.exception.GetSequenceTimeoutException;
 import org.hellojavaer.ddal.sequence.exception.IllegalIdRangeException;
 import org.hellojavaer.ddal.sequence.exception.NoAvailableIdRangeFoundException;
 import org.hellojavaer.ddal.sequence.utils.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -42,39 +44,35 @@ public class SingleSequence implements Sequence {
     private int              cacheNSteps;                                                             // 缓存队列大小
     private int              initTimeout;
     private IdGetter         idGetter;
-    private int              getTimeout;
     private ExceptionHandler exceptionHandler;
 
     private IdCache          idCache;
 
     public SingleSequence(String schemaName, String tableName, int step, int cacheNSteps, int initTimeout,
-                          IdGetter idGetter, int getTimeout) {
-        this(schemaName, tableName, step, cacheNSteps, initTimeout, idGetter, getTimeout, null,
+                          IdGetter idGetter) {
+        this(schemaName, tableName, step, cacheNSteps, initTimeout, idGetter, null, DEFAULT_DELAY_RETRY_BASE_LINE);
+    }
+
+    public SingleSequence(String schemaName, String tableName, int step, int cacheNSteps, int initTimeout,
+                          IdGetter idGetter, ExceptionHandler exceptionHandler) {
+        this(schemaName, tableName, step, cacheNSteps, initTimeout, idGetter, exceptionHandler,
              DEFAULT_DELAY_RETRY_BASE_LINE);
     }
 
     public SingleSequence(String schemaName, String tableName, int step, int cacheNSteps, int initTimeout,
-                          IdGetter idGetter, int getTimeout, ExceptionHandler exceptionHandler) {
-        this(schemaName, tableName, step, cacheNSteps, initTimeout, idGetter, getTimeout, exceptionHandler,
-             DEFAULT_DELAY_RETRY_BASE_LINE);
-    }
-
-    public SingleSequence(String schemaName, String tableName, int step, int cacheNSteps, int initTimeout,
-                          IdGetter idGetter, int getTimeout, ExceptionHandler exceptionHandler, int delayRetryBaseLine) {
+                          IdGetter idGetter, ExceptionHandler exceptionHandler, int delayRetryBaseLine) {
         Assert.notNull(schemaName, "'schemaName' can't be null'");
         Assert.notNull(tableName, "'tableName' can't be null'");
         Assert.isTrue(step > 0, "'step' must be greater than 0");
         Assert.isTrue(cacheNSteps > 0, "'cacheNSteps' must be greater than 0");
         Assert.isTrue(initTimeout > 0, "'initTimeout' must be greater than 0");
         Assert.notNull(idGetter, "'idGetter' can't be null'");
-        Assert.isTrue(getTimeout > 0, "'getTimeout' must be greater than 0");
         this.schemaName = schemaName;
         this.tableName = tableName;
         this.step = step;
         this.cacheNSteps = cacheNSteps;
         this.initTimeout = initTimeout;
         this.idGetter = idGetter;
-        this.getTimeout = getTimeout;
         this.exceptionHandler = exceptionHandler;
         try {
             this.idCache = new IdCache(step, cacheNSteps, initTimeout, exceptionHandler, delayRetryBaseLine) {
@@ -102,9 +100,11 @@ public class SingleSequence implements Sequence {
     }
 
     @Override
-    public long nextValue() {
+    public long nextValue(long timeout, TimeUnit timeUnit) throws GetSequenceTimeoutException {
         try {
-            return idCache.get(getTimeout);
+            return idCache.get(timeout, timeUnit);
+        } catch (TimeoutException e1) {
+            throw new GetSequenceTimeoutException(e1);
         } catch (RuntimeException e0) {
             throw e0;
         } catch (Exception e) {
@@ -134,10 +134,6 @@ public class SingleSequence implements Sequence {
 
     public IdGetter getIdGetter() {
         return idGetter;
-    }
-
-    public int getGetTimeout() {
-        return getTimeout;
     }
 
     public ExceptionHandler getExceptionHandler() {
