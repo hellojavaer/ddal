@@ -18,6 +18,7 @@ package org.hellojavaer.ddal.sequence;
 import org.hellojavaer.ddal.sequence.exception.GetSequenceTimeoutException;
 import org.hellojavaer.ddal.sequence.exception.IllegalIdRangeException;
 import org.hellojavaer.ddal.sequence.exception.NoAvailableIdRangeFoundException;
+import org.hellojavaer.ddal.sequence.exception.SequenceException;
 import org.hellojavaer.ddal.sequence.utils.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,8 +46,10 @@ public class SingleSequence implements Sequence {
     private int              initTimeout;
     private IdGetter         idGetter;
     private ExceptionHandler exceptionHandler;
+    private int              delayRetryBaseLine;
 
     private IdCache          idCache;
+    private boolean          initialized                   = false;
 
     public SingleSequence(String schemaName, String tableName, int step, int cacheNSteps, int initTimeout,
                           IdGetter idGetter) {
@@ -61,12 +64,6 @@ public class SingleSequence implements Sequence {
 
     public SingleSequence(String schemaName, String tableName, int step, int cacheNSteps, int initTimeout,
                           IdGetter idGetter, ExceptionHandler exceptionHandler, int delayRetryBaseLine) {
-        Assert.notNull(schemaName, "'schemaName' can't be null'");
-        Assert.notNull(tableName, "'tableName' can't be null'");
-        Assert.isTrue(step > 0, "'step' must be greater than 0");
-        Assert.isTrue(cacheNSteps > 0, "'cacheNSteps' must be greater than 0");
-        Assert.isTrue(initTimeout > 0, "'initTimeout' must be greater than 0");
-        Assert.notNull(idGetter, "'idGetter' can't be null'");
         this.schemaName = schemaName;
         this.tableName = tableName;
         this.step = step;
@@ -74,41 +71,63 @@ public class SingleSequence implements Sequence {
         this.initTimeout = initTimeout;
         this.idGetter = idGetter;
         this.exceptionHandler = exceptionHandler;
-        try {
-            this.idCache = new IdCache(step, cacheNSteps, initTimeout, exceptionHandler, delayRetryBaseLine) {
+        this.delayRetryBaseLine = delayRetryBaseLine;
+    }
 
-                @Override
-                public IdRange getIdRange() throws Exception {
-                    IdRange idRange = getIdGetter().get(getSchemaName(), getTableName(), getStep());
-                    if (idRange == null) {
-                        throw new NoAvailableIdRangeFoundException("No available id rang was found for schemaName:'"
-                                                                   + getSchemaName() + "', tableName:'"
-                                                                   + getTableName() + "'");
+    public void init() {
+        if (initialized == false) {
+            synchronized (this) {
+                if (initialized == false) {
+                    Assert.notNull(schemaName, "'schemaName' can't be null'");
+                    Assert.notNull(tableName, "'tableName' can't be null'");
+                    Assert.isTrue(step > 0, "'step' must be greater than 0");
+                    Assert.isTrue(cacheNSteps > 0, "'cacheNSteps' must be greater than 0");
+                    Assert.isTrue(initTimeout > 0, "'initTimeout' must be greater than 0");
+                    Assert.notNull(idGetter, "'idGetter' can't be null'");
+                    Assert.isTrue(delayRetryBaseLine > 0, "'delayRetryBaseLine' must be greater than 0");
+                    try {
+                        this.idCache = new IdCache(step, cacheNSteps, initTimeout, exceptionHandler, delayRetryBaseLine) {
+
+                            @Override
+                            public IdRange getIdRange() throws Exception {
+                                IdRange idRange = getIdGetter().get(getSchemaName(), getTableName(), getStep());
+                                if (idRange == null) {
+                                    throw new NoAvailableIdRangeFoundException(
+                                                                               "No available id rang was found for schemaName:'"
+                                                                                       + getSchemaName()
+                                                                                       + "', tableName:'"
+                                                                                       + getTableName() + "'");
+                                }
+                                if (idRange.getBeginValue() > idRange.getEndValue()) {
+                                    throw new IllegalIdRangeException("Illegal id range " + idRange
+                                                                      + " for schemaName:'" + getSchemaName()
+                                                                      + "', tableName:'" + getTableName() + "'");
+                                }
+                                return idRange;
+                            }
+                        };
+                    } catch (InterruptedException e) {
+                        throw new SequenceException(e);
+                    } catch (TimeoutException e) {
+                        throw new GetSequenceTimeoutException(e);
                     }
-                    if (idRange.getBeginValue() > idRange.getEndValue()) {
-                        throw new IllegalIdRangeException("Illegal id range " + idRange + " for schemaName:'"
-                                                          + getSchemaName() + "', tableName:'" + getTableName() + "'");
-                    }
-                    return idRange;
+                    initialized = true;
                 }
-            };
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        } catch (TimeoutException e) {
-            throw new RuntimeException(e);
+            }
         }
     }
 
     @Override
     public long nextValue(long timeout, TimeUnit timeUnit) throws GetSequenceTimeoutException {
         try {
+            init();
             return idCache.get(timeout, timeUnit);
         } catch (TimeoutException e1) {
             throw new GetSequenceTimeoutException(e1);
-        } catch (RuntimeException e0) {
+        } catch (SequenceException e0) {
             throw e0;
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new SequenceException(e);
         }
     }
 
@@ -116,31 +135,63 @@ public class SingleSequence implements Sequence {
         return schemaName;
     }
 
+    public void setSchemaName(String schemaName) {
+        this.schemaName = schemaName;
+    }
+
     public String getTableName() {
         return tableName;
+    }
+
+    public void setTableName(String tableName) {
+        this.tableName = tableName;
     }
 
     public int getStep() {
         return step;
     }
 
+    public void setStep(int step) {
+        this.step = step;
+    }
+
     public int getCacheNSteps() {
         return cacheNSteps;
+    }
+
+    public void setCacheNSteps(int cacheNSteps) {
+        this.cacheNSteps = cacheNSteps;
     }
 
     public int getInitTimeout() {
         return initTimeout;
     }
 
+    public void setInitTimeout(int initTimeout) {
+        this.initTimeout = initTimeout;
+    }
+
     public IdGetter getIdGetter() {
         return idGetter;
+    }
+
+    public void setIdGetter(IdGetter idGetter) {
+        this.idGetter = idGetter;
     }
 
     public ExceptionHandler getExceptionHandler() {
         return exceptionHandler;
     }
 
-    public IdCache getIdCache() {
-        return idCache;
+    public void setExceptionHandler(ExceptionHandler exceptionHandler) {
+        this.exceptionHandler = exceptionHandler;
+    }
+
+    public int getDelayRetryBaseLine() {
+        return delayRetryBaseLine;
+    }
+
+    public void setDelayRetryBaseLine(int delayRetryBaseLine) {
+        this.delayRetryBaseLine = delayRetryBaseLine;
     }
 }
