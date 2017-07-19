@@ -15,12 +15,12 @@
     <url>https://github.com/hellojavaer/ddal</url>
 
     <properties>
-        <spring.version>4.2.5.RELEASE</spring.version>
-        <junit.version>4.11</junit.version>
         <gpg.skip>true</gpg.skip>
         <javadoc.skip>false</javadoc.skip>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <spring.version>4.2.5.RELEASE</spring.version>
+        <junit.version>4.11</junit.version>
         <jdk.version>1.7</jdk.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
     <developers>
         <developer>
