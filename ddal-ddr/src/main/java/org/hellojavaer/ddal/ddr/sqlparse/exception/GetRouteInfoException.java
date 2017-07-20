@@ -19,25 +19,25 @@ package org.hellojavaer.ddal.ddr.sqlparse.exception;
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 23/01/2017.
  */
-public class GettingRoutInfoException extends DDRSQLParseException {
+public class GetRouteInfoException extends DDRSQLParseException {
 
-    public GettingRoutInfoException() {
+    public GetRouteInfoException() {
     }
 
-    public GettingRoutInfoException(String message) {
+    public GetRouteInfoException(String message) {
         super(message);
     }
 
-    public GettingRoutInfoException(String message, Throwable cause) {
+    public GetRouteInfoException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public GettingRoutInfoException(Throwable cause) {
+    public GetRouteInfoException(Throwable cause) {
         super(cause);
     }
 
-    public GettingRoutInfoException(String message, Throwable cause, boolean enableSuppression,
-                                    boolean writableStackTrace) {
+    public GetRouteInfoException(String message, Throwable cause, boolean enableSuppression,
+                                 boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 }

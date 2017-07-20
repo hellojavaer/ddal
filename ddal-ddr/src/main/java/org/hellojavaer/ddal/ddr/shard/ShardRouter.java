@@ -15,7 +15,7 @@
  */
 package org.hellojavaer.ddal.ddr.shard;
 
-import org.hellojavaer.ddal.ddr.shard.exception.ShardRoutingException;
+import org.hellojavaer.ddal.ddr.shard.exception.ShardRouteException;
 import org.hellojavaer.ddal.ddr.shard.exception.ShardValueNotFoundException;
 
 import java.util.List;
@@ -40,7 +40,7 @@ public interface ShardRouter {
     RouteConfig getRouteConfig(String scName, String tbName);
 
     RouteInfo getRouteInfo(String scName, String tbName, Object sdValue) throws ShardValueNotFoundException,
-                                                                        ShardRoutingException;
+                                                                                ShardRouteException;
 
     List<RouteInfo> getRouteInfos(String scName, String tbName);
 
