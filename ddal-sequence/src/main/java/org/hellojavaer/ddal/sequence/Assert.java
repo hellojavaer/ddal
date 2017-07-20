@@ -17,10 +17,22 @@ package org.hellojavaer.ddal.sequence;
 
 /**
  *
- * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 04/01/2017.
+ * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 06/01/2017.
  */
-public interface IdGetter {
+class Assert {
 
-    IdRange get(String schemaName, String tableName, int step) throws Exception;
+    public static void notNull(Object obj) {
+        isTrue(obj != null, "[Assertion failed] - this object can't be null");
+    }
+
+    public static void notNull(Object obj, String msg) {
+        isTrue(obj != null, msg);
+    }
+
+    public static void isTrue(boolean expression, String message) {
+        if (!expression) {
+            throw new IllegalArgumentException(message);
+        }
+    }
 
 }

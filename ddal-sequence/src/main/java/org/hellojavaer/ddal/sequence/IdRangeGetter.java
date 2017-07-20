@@ -13,26 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddal.sequence.utils;
+package org.hellojavaer.ddal.sequence;
 
 /**
  *
- * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 06/01/2017.
+ * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 04/01/2017.
  */
-public class Assert {
+public interface IdRangeGetter {
 
-    public static void notNull(Object obj) {
-        isTrue(obj != null, "[Assertion failed] - this object can't be null");
-    }
-
-    public static void notNull(Object obj, String msg) {
-        isTrue(obj != null, msg);
-    }
-
-    public static void isTrue(boolean expression, String message) {
-        if (!expression) {
-            throw new IllegalArgumentException(message);
-        }
-    }
+    IdRange get(String schemaName, String tableName, int step) throws Exception;
 
 }
