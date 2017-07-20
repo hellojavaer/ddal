@@ -40,29 +40,32 @@ public class SingleSequence implements Sequence {
 
     private String           schemaName;
     private String           tableName;
-    private int              step;                                                                    // 单节点步长
-    private int              cacheNSteps;                                                             // 缓存队列大小
-    private int              initTimeout;
+    private Integer          step;                                                                    // 单节点步长
+    private Integer          cacheNSteps;                                                             // 缓存队列大小
+    private Integer          initTimeout;
     private IdRangeGetter    idRangeGetter;
     private ExceptionHandler exceptionHandler;
-    private int              delayRetryBaseLine;
+    private Integer          delayRetryBaseLine            = DEFAULT_DELAY_RETRY_BASE_LINE;
 
     private IdCache          idCache;
     private boolean          initialized                   = false;
 
-    public SingleSequence(String schemaName, String tableName, int step, int cacheNSteps, int initTimeout,
+    public SingleSequence() {
+    }
+
+    public SingleSequence(String schemaName, String tableName, Integer step, Integer cacheNSteps, Integer initTimeout,
                           IdRangeGetter idRangeGetter) {
         this(schemaName, tableName, step, cacheNSteps, initTimeout, idRangeGetter, null, DEFAULT_DELAY_RETRY_BASE_LINE);
     }
 
-    public SingleSequence(String schemaName, String tableName, int step, int cacheNSteps, int initTimeout,
+    public SingleSequence(String schemaName, String tableName, Integer step, Integer cacheNSteps, Integer initTimeout,
                           IdRangeGetter idRangeGetter, ExceptionHandler exceptionHandler) {
         this(schemaName, tableName, step, cacheNSteps, initTimeout, idRangeGetter, exceptionHandler,
              DEFAULT_DELAY_RETRY_BASE_LINE);
     }
 
-    public SingleSequence(String schemaName, String tableName, int step, int cacheNSteps, int initTimeout,
-                          IdRangeGetter idRangeGetter, ExceptionHandler exceptionHandler, int delayRetryBaseLine) {
+    public SingleSequence(String schemaName, String tableName, Integer step, Integer cacheNSteps, Integer initTimeout,
+                          IdRangeGetter idRangeGetter, ExceptionHandler exceptionHandler, Integer delayRetryBaseLine) {
         this.schemaName = schemaName;
         this.tableName = tableName;
         this.step = step;
@@ -71,6 +74,7 @@ public class SingleSequence implements Sequence {
         this.idRangeGetter = idRangeGetter;
         this.exceptionHandler = exceptionHandler;
         this.delayRetryBaseLine = delayRetryBaseLine;
+        init();
     }
 
     public void init() {
@@ -79,10 +83,14 @@ public class SingleSequence implements Sequence {
                 if (initialized == false) {
                     Assert.notNull(schemaName, "'schemaName' can't be null'");
                     Assert.notNull(tableName, "'tableName' can't be null'");
+                    Assert.notNull(step, "'step' can't be null'");
                     Assert.isTrue(step > 0, "'step' must be greater than 0");
+                    Assert.notNull(cacheNSteps, "'cacheNSteps' can't be null'");
                     Assert.isTrue(cacheNSteps > 0, "'cacheNSteps' must be greater than 0");
+                    Assert.notNull(initTimeout, "'initTimeout' can't be null'");
                     Assert.isTrue(initTimeout > 0, "'initTimeout' must be greater than 0");
                     Assert.notNull(idRangeGetter, "'idRangeGetter' can't be null'");
+                    Assert.notNull(delayRetryBaseLine, "'delayRetryBaseLine' can't be null'");
                     Assert.isTrue(delayRetryBaseLine > 0, "'delayRetryBaseLine' must be greater than 0");
                     try {
                         this.idCache = new IdCache(step, cacheNSteps, initTimeout, exceptionHandler, delayRetryBaseLine) {
@@ -146,27 +154,27 @@ public class SingleSequence implements Sequence {
         this.tableName = tableName;
     }
 
-    public int getStep() {
+    public Integer getStep() {
         return step;
     }
 
-    public void setStep(int step) {
+    public void setStep(Integer step) {
         this.step = step;
     }
 
-    public int getCacheNSteps() {
+    public Integer getCacheNSteps() {
         return cacheNSteps;
     }
 
-    public void setCacheNSteps(int cacheNSteps) {
+    public void setCacheNSteps(Integer cacheNSteps) {
         this.cacheNSteps = cacheNSteps;
     }
 
-    public int getInitTimeout() {
+    public Integer getInitTimeout() {
         return initTimeout;
     }
 
-    public void setInitTimeout(int initTimeout) {
+    public void setInitTimeout(Integer initTimeout) {
         this.initTimeout = initTimeout;
     }
 
@@ -186,11 +194,11 @@ public class SingleSequence implements Sequence {
         this.exceptionHandler = exceptionHandler;
     }
 
-    public int getDelayRetryBaseLine() {
+    public Integer getDelayRetryBaseLine() {
         return delayRetryBaseLine;
     }
 
-    public void setDelayRetryBaseLine(int delayRetryBaseLine) {
+    public void setDelayRetryBaseLine(Integer delayRetryBaseLine) {
         this.delayRetryBaseLine = delayRetryBaseLine;
     }
 }
