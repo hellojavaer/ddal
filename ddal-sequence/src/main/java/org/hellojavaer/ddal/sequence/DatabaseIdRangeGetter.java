@@ -249,7 +249,7 @@ public class DatabaseIdRangeGetter implements IdRangeGetter {
                 deleted = 1;
                 dirtyRow = true;
             } else {
-                if (dbStep != null && skipNSteps != null && skipNSteps > 0) {
+                if (dbStep != null && dbStep > 0 && skipNSteps != null && skipNSteps > 0) {
                     nextValue = nextValue + step * (skipNSteps + 1);
                 } else {
                     nextValue = nextValue + step;
