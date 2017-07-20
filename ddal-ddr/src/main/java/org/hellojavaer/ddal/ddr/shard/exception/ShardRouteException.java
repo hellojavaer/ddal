@@ -13,31 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddal.ddr.sqlparse.exception;
+package org.hellojavaer.ddal.ddr.shard.exception;
+
+import org.hellojavaer.ddal.ddr.sqlparse.exception.DDRSQLParseException;
 
 /**
  *
- * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 23/12/2016.
+ * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 02/01/2017.
  */
-public class AmbiguousRoutingResultException extends DDRSQLParseException {
+public class ShardRouteException extends DDRSQLParseException {
 
-    public AmbiguousRoutingResultException() {
+    public ShardRouteException() {
     }
 
-    public AmbiguousRoutingResultException(String message) {
+    public ShardRouteException(String message) {
         super(message);
     }
 
-    public AmbiguousRoutingResultException(String message, Throwable cause) {
+    public ShardRouteException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public AmbiguousRoutingResultException(Throwable cause) {
+    public ShardRouteException(Throwable cause) {
         super(cause);
     }
 
-    public AmbiguousRoutingResultException(String message, Throwable cause, boolean enableSuppression,
-                                           boolean writableStackTrace) {
+    public ShardRouteException(String message, Throwable cause, boolean enableSuppression,
+                               boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 }

@@ -23,7 +23,7 @@ import java.io.Serializable;
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 22/12/2016.
  */
-public class WritingMethodInvokeResult implements Serializable {
+public class WriterMethodInvokeResult implements Serializable {
 
     private static final long serialVersionUID         = 0L;
 
@@ -35,10 +35,10 @@ public class WritingMethodInvokeResult implements Serializable {
     private Integer           code;
     private String            desc;
 
-    public WritingMethodInvokeResult() {
+    public WriterMethodInvokeResult() {
     }
 
-    public WritingMethodInvokeResult(Integer code, String desc) {
+    public WriterMethodInvokeResult(Integer code, String desc) {
         this.code = code;
         this.desc = desc;
     }

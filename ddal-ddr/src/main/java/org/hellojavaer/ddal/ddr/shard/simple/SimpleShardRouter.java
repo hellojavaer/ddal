@@ -196,7 +196,7 @@ public class SimpleShardRouter implements ShardRouter {
 
     @Override
     public RouteInfo getRouteInfo(String scName, String tbName, Object sdValue) throws ShardValueNotFoundException,
-                                                                               ShardRoutingException {
+                                                                                       ShardRouteException {
         scName = DDRStringUtils.toLowerCase(scName);
         tbName = DDRStringUtils.toLowerCase(tbName);
         InnerSimpleShardRouteRuleBindingWrapper bindingWrapper = getBinding(scName, tbName);
@@ -211,7 +211,7 @@ public class SimpleShardRouter implements ShardRouter {
 
     @Override
     public List<RouteInfo> getRouteInfos(String scName, String tbName) throws ShardValueNotFoundException,
-                                                                      ShardRoutingException {
+                                                                              ShardRouteException {
         return routeInfoMap.get(buildQueryKey(scName, tbName));
     }
 
@@ -232,8 +232,8 @@ public class SimpleShardRouter implements ShardRouter {
     }
 
     private RouteInfo getRouteInfo(SimpleShardRouteRuleBinding binding, String scName, String tbName, Object sdValue)
-                                                                                                                     throws ShardRoutingException,
-                                                                                                                     ShardValueNotFoundException {
+            throws ShardRouteException,
+                   ShardValueNotFoundException {
         ShardRouteRule rule = binding.getRule();
         if (rule == null) {// 未配置rule,参数sdKey 和 sdValue都无效
             RouteInfo info = new RouteInfo();
@@ -284,8 +284,8 @@ public class SimpleShardRouter implements ShardRouter {
             info.setTbName(tb);
             return info;
         } catch (Throwable e) {
-            throw new ShardRoutingException("'scName':" + scName + ",'tbName':" + tbName + ",'sdName':" + sdValue
-                                            + ",routeRule:" + rule, e);
+            throw new ShardRouteException("'scName':" + scName + ",'tbName':" + tbName + ",'sdName':" + sdValue
+                                          + ",routeRule:" + rule, e);
         }
     }
 }
