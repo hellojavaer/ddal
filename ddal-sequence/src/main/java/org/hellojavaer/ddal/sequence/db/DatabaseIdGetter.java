@@ -76,6 +76,8 @@ public class DatabaseIdGetter implements IdGetter {
         begin_value bigint(20) NOT NULL,
         next_value bigint(20) NOT NULL,
         end_value bigint(20) DEFAULT NULL,
+        step int(11),
+        skip_n_steps int(11),
         select_order int(11) NOT NULL,
         version bigint(20) NOT NULL DEFAULT '0',
         deleted tinyint(1) NOT NULL DEFAULT '0',
@@ -84,8 +86,8 @@ public class DatabaseIdGetter implements IdGetter {
      ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
      */
 
-    /*** SELECT id, next_value, end_value, version FROM sc.sequence WHERE schema_name = ? AND table_name = ? AND deleted = 0 ODER BY select_order ASC LIMIT 1 ***/
-    private String          selectSqlTemplate    = "SELECT %s, %s, %s, %s FROM %s.%s WHERE %s = ? AND %s = ? AND %s = 0 ORDER BY %s ASC LIMIT 1 ";
+    /*** SELECT id, next_value, end_value, step, skip_n_steps, version FROM sc.sequence WHERE schema_name = ? AND table_name = ? AND deleted = 0 ODER BY select_order ASC LIMIT 1 ***/
+    private String          selectSqlTemplate    = "SELECT %s, %s, %s, %s, %s, %s FROM %s.%s WHERE %s = ? AND %s = ? AND %s = 0 ORDER BY %s ASC LIMIT 1 ";
 
     /*** UPDATE sc.sequence SET next_value = ?, deleted = ?, version = version + 1 WHERE id = ? AND version = ? LIMIT 1 ***/
     private String          updateSqlTemplate    = "UPDATE %s.%s SET %s = ?, %s = ?, %s = %s + 1 WHERE %s = ? AND %s = ? LIMIT 1";
@@ -100,6 +102,8 @@ public class DatabaseIdGetter implements IdGetter {
     private String          colNameOfTableName   = "table_name";
     private String          colNameOfNextValue   = "next_value";
     private String          colNameOfEndValue    = "end_value";
+    private String          colNameOfStep        = "step";                                                                                                //
+    private String          colNameOfSkipNSteps  = "skip_n_steps";                                                                                        //
     private String          colNameOfSelectOrder = "select_order";
     private String          colNameOfDeleted     = "deleted";
     private String          colNameOfVersion     = "version";
@@ -158,13 +162,18 @@ public class DatabaseIdGetter implements IdGetter {
                     Assert.notNull(colNameOfTableName, "'colNameOfTableName' can't be null");
                     Assert.notNull(colNameOfNextValue, "'colNameOfNextValue' can't be null");
                     Assert.notNull(colNameOfEndValue, "'colNameOfEndValue' can't be null");
+                    Assert.notNull(colNameOfStep, "'colNameOfStep' can't be null");
+                    Assert.notNull(colNameOfSkipNSteps, "'colNameOfSkipNSteps' can't be null");
                     Assert.notNull(colNameOfSelectOrder, "'colNameOfSelectOrder' can't be null");
                     Assert.notNull(colNameOfDeleted, "'colNameOfDeleted' can't be null");
                     Assert.notNull(colNameOfVersion, "'colNameOfVersion' can't be null");
-                    /*** SELECT id, next_value, end_value, version FROM sc.sequence WHERE schema_name = ? AND table_name = ? AND deleted = 0 ORDER BY select_order ASC LIMIT 1 ***/
-                    // "SELECT %s, %s, %s, %s FROM %s.%s WHERE %s = ? AND %s = ? AND %s = 0 ODER BY %s ASC LIMIT 1 ";
-                    targetSelectSql = String.format(getSelectSqlTemplate(), colNameOfPrimaryKey, colNameOfNextValue,
-                                                    colNameOfEndValue,
+                    /*** SELECT id, next_value, end_value, step, skip_n_steps, version FROM sc.sequence WHERE schema_name = ? AND table_name = ? AND deleted = 0 ORDER BY select_order ASC LIMIT 1 ***/
+                    // "SELECT %s, %s, %s, %s, %s, %s FROM %s.%s WHERE %s = ? AND %s = ? AND %s = 0 ODER BY %s ASC LIMIT 1 ";
+                    targetSelectSql = String.format(getSelectSqlTemplate(), colNameOfPrimaryKey,
+                                                    colNameOfNextValue,//
+                                                    colNameOfEndValue,//
+                                                    colNameOfStep,//
+                                                    colNameOfSkipNSteps,//
                                                     colNameOfVersion,//
                                                     scName,
                                                     tbName,//
@@ -204,28 +213,47 @@ public class DatabaseIdGetter implements IdGetter {
             long id = 0;
             long nextValue = 0;
             Long endValue = null;
+            Integer dbStep = null;
+            Integer skipNSteps = null;
             byte deleted = 0;
             long version = 0;
-            if (selectResult.next()) {
+            if (selectResult.next()) {//
                 id = ((Number) selectResult.getObject(1)).longValue();
                 nextValue = ((Number) selectResult.getLong(2)).longValue();
                 Object endValueObj = selectResult.getObject(3);
                 if (endValueObj != null) {
                     endValue = ((Number) endValueObj).longValue();
                 }
-                version = ((Number) selectResult.getLong(4)).longValue();
+                Object stepObj = selectResult.getObject(4);
+                if (stepObj != null) {
+                    dbStep = ((Number) stepObj).intValue();
+                }
+                Object skipNStepsObj = selectResult.getObject(5);
+                if (skipNStepsObj != null) {
+                    skipNSteps = ((Number) skipNStepsObj).intValue();
+                }
+                version = ((Number) selectResult.getLong(6)).longValue();
             } else {
                 throw new NoAvailableIdRangeFoundException("No available id rang was found for schemaName:'"
                                                            + schemaName + "', tableName:'" + tableName + "'");
             }
-            long beginValue = nextValue;
+            // 数据库步长优先
+            if (dbStep != null && dbStep > 0) {
+                step = dbStep;
+            }
+            long idRangeBegin = nextValue;
+            long idRangeEnd = nextValue + step - 1;
             updateStatement = connection.prepareStatement(targetUpdateSql);
             boolean dirtyRow = false;
             if (endValue != null && nextValue > endValue) {// 兼容异常数据
                 deleted = 1;
                 dirtyRow = true;
             } else {
-                nextValue = nextValue + step;
+                if (dbStep != null && skipNSteps != null && skipNSteps > 0) {
+                    nextValue = nextValue + step * (skipNSteps + 1);
+                } else {
+                    nextValue = nextValue + step;
+                }
                 if (endValue != null && nextValue > endValue) {
                     nextValue = endValue + 1;
                     deleted = 1;
@@ -243,7 +271,7 @@ public class DatabaseIdGetter implements IdGetter {
                 if (dirtyRow) {// 兼容异常数据
                     throw new IllegalIdRangeException(
                                                       String.format("Illegal id range {id:%s, nextValue:%s, endValue:%s, version:%s, deleted:0}",
-                                                                    id, beginValue, endValue, version));
+                                                                    id, nextValue, endValue, version));
                 }
                 if (logger.isInfoEnabled()) {
                     logger.info("[Get_Range]: " + idRange);
@@ -253,10 +281,10 @@ public class DatabaseIdGetter implements IdGetter {
                         logger.info("Id range for schemaName:{},tableName:{} is used up. More detail information is step:{},"
                                             + "endValue:{},version:{},id:{} and actually allocated range is '{} ~ {}'",
                                     schemaName, tableName, step,//
-                                    endValue, version, id, beginValue, nextValue - 1);
+                                    endValue, version, id, idRangeBegin, idRangeEnd);
                     }
                 }
-                return new IdRange(beginValue, nextValue - 1);
+                return new IdRange(idRangeBegin, idRangeEnd);
             } else {
                 throw new ConcurrentModificationException();
             }
@@ -339,6 +367,22 @@ public class DatabaseIdGetter implements IdGetter {
 
     public void setColNameOfTableName(String colNameOfTableName) {
         this.colNameOfTableName = colNameOfTableName;
+    }
+
+    public String getColNameOfStep() {
+        return colNameOfStep;
+    }
+
+    public void setColNameOfStep(String colNameOfStep) {
+        this.colNameOfStep = colNameOfStep;
+    }
+
+    public String getColNameOfSkipNSteps() {
+        return colNameOfSkipNSteps;
+    }
+
+    public void setColNameOfSkipNSteps(String colNameOfSkipNSteps) {
+        this.colNameOfSkipNSteps = colNameOfSkipNSteps;
     }
 
     public String getColNameOfSelectOrder() {
