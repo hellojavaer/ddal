@@ -243,6 +243,9 @@ public class DatabaseIdGetter implements IdGetter {
             }
             long idRangeBegin = nextValue;
             long idRangeEnd = nextValue + step - 1;
+            if (endValue != null && idRangeEnd > endValue) {
+                idRangeEnd = endValue;
+            }
             updateStatement = connection.prepareStatement(targetUpdateSql);
             boolean dirtyRow = false;
             if (endValue != null && nextValue > endValue) {// 兼容异常数据
