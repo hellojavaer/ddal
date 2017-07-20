@@ -21,6 +21,7 @@ import org.hellojavaer.ddal.sequence.exception.SequenceException;
 import java.util.Collection;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  *
@@ -28,11 +29,11 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class PollingGroupSequence implements GroupSequence {
 
-    private final Sequence[]      sequences;
+    private final Sequence[]    sequences;
 
-    private final ExecutorService executorService;
+    private final AtomicInteger count = new AtomicInteger(-1);
 
-    private final AtomicInteger   count = new AtomicInteger(-1);
+    private final ReentrantLock lock  = new ReentrantLock();
 
     static class InnerThreadFactory implements ThreadFactory {
 
@@ -53,8 +54,6 @@ public class PollingGroupSequence implements GroupSequence {
             this.sequences[i] = sequence;
             i++;
         }
-        this.executorService = new ThreadPoolExecutor(0, this.sequences.length, 0L, TimeUnit.MILLISECONDS,
-                                                      new LinkedBlockingQueue<Runnable>(), new InnerThreadFactory());
     }
 
     public PollingGroupSequence(Sequence... sequences) {
@@ -65,12 +64,14 @@ public class PollingGroupSequence implements GroupSequence {
         for (int i = 0; i < sequences.length; i++) {
             this.sequences[i] = sequences[i];
         }
-        this.executorService = new ThreadPoolExecutor(0, this.sequences.length, 0L, TimeUnit.MILLISECONDS,
-                                                      new LinkedBlockingQueue<Runnable>(), new InnerThreadFactory());
     }
 
     @Override
-    public long nextValue(final long timeout, final TimeUnit timeUnit) throws GetSequenceTimeoutException {
+    public long nextValue(long timeout, final TimeUnit timeUnit) throws GetSequenceTimeoutException {
+        if (sequences.length == 1) {
+            return sequences[0].nextValue(timeout, timeUnit);
+        }
+        //
         int start = count.incrementAndGet();
         if (start < 0) {
             synchronized (this) {
@@ -86,33 +87,51 @@ public class PollingGroupSequence implements GroupSequence {
         start = start % sequences.length;
         for (int i = start; i < sequences.length; i++) {
             try {
-                return sequences[i].nextValue(0, TimeUnit.MILLISECONDS);
+                return sequences[i].nextValue(0, TimeUnit.NANOSECONDS);
             } catch (GetSequenceTimeoutException e) {
                 continue;
             }
         }
         for (int i = 0; i < start; i++) {
             try {
-                return sequences[i].nextValue(0, TimeUnit.MILLISECONDS);
+                return sequences[i].nextValue(0, TimeUnit.NANOSECONDS);
             } catch (GetSequenceTimeoutException e) {
                 continue;
             }
         }
-        synchronized (this) {
+        long now = System.nanoTime();
+        try {
+            if (lock.tryLock(timeout, timeUnit) == false) {
+                throw new GetSequenceTimeoutException(timeout + " " + timeUnit);
+            }
+        } catch (InterruptedException e) {
+            throw new SequenceException(e);
+        }
+        try {
+            long tempTimeout = timeUnit.toNanos(timeout) - (System.nanoTime() - now);
+            if (tempTimeout < 0) {
+                tempTimeout = 0;
+            }
+            final long nanTimeout = tempTimeout;
             for (int i = start; i < sequences.length; i++) {
                 try {
-                    return sequences[i].nextValue(0, TimeUnit.MILLISECONDS);
+                    return sequences[i].nextValue(0, TimeUnit.NANOSECONDS);
                 } catch (GetSequenceTimeoutException e) {
                     continue;
                 }
             }
             for (int i = 0; i < start; i++) {
                 try {
-                    return sequences[i].nextValue(0, TimeUnit.MILLISECONDS);
+                    return sequences[i].nextValue(0, TimeUnit.NANOSECONDS);
                 } catch (GetSequenceTimeoutException e) {
                     continue;
                 }
             }
+            //
+            ExecutorService executorService = new ThreadPoolExecutor(this.sequences.length, this.sequences.length, 0L,
+                                                                     TimeUnit.MILLISECONDS,
+                                                                     new LinkedBlockingQueue<Runnable>(),
+                                                                     new InnerThreadFactory());
             ExecutorCompletionService executorCompletionService = new ExecutorCompletionService(executorService);
             for (int i = 0; i < sequences.length; i++) {
                 final Sequence sequence = sequences[i];
@@ -120,22 +139,23 @@ public class PollingGroupSequence implements GroupSequence {
 
                     @Override
                     public Long call() throws Exception {
-                        return sequence.nextValue(timeout, timeUnit);
+                        return sequence.nextValue(nanTimeout, TimeUnit.NANOSECONDS);
                     }
                 });
             }
             try {
                 // only get the first
                 Future<Long> future = executorCompletionService.take();
+                // some ids may lost
+                executorService.shutdownNow();
                 return future.get();
             } catch (InterruptedException e) {
                 throw new SequenceException(e);
             } catch (ExecutionException e) {
                 throw new SequenceException(e);
-            } finally {
-                // some ids may lost
-                executorService.shutdownNow();
             }
+        } finally {
+            lock.unlock();
         }
     }
 
