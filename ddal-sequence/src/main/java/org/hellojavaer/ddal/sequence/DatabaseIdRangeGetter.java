@@ -13,13 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddal.sequence.db;
+package org.hellojavaer.ddal.sequence;
 
-import org.hellojavaer.ddal.sequence.IdGetter;
-import org.hellojavaer.ddal.sequence.IdRange;
 import org.hellojavaer.ddal.sequence.exception.IllegalIdRangeException;
 import org.hellojavaer.ddal.sequence.exception.NoAvailableIdRangeFoundException;
-import org.hellojavaer.ddal.sequence.utils.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,7 +61,7 @@ import java.util.ConcurrentModificationException;
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 04/01/2017.
  */
-public class DatabaseIdGetter implements IdGetter {
+public class DatabaseIdRangeGetter implements IdRangeGetter {
 
     private Logger          logger               = LoggerFactory.getLogger(this.getClass());
 
@@ -112,29 +109,29 @@ public class DatabaseIdGetter implements IdGetter {
     private volatile String targetUpdateSql;
     private boolean         initialized          = false;
 
-    public DatabaseIdGetter() {
+    public DatabaseIdRangeGetter() {
     }
 
-    public DatabaseIdGetter(DataSource dataSource, String scName) {
+    public DatabaseIdRangeGetter(DataSource dataSource, String scName) {
         this.dataSource = dataSource;
         this.scName = scName;
         init();
     }
 
-    public DatabaseIdGetter(DataSource dataSource, String scName, String tbName) {
+    public DatabaseIdRangeGetter(DataSource dataSource, String scName, String tbName) {
         this.dataSource = dataSource;
         this.scName = scName;
         this.tbName = tbName;
         init();
     }
 
-    public DatabaseIdGetter(Connection connection, String scName) {
+    public DatabaseIdRangeGetter(Connection connection, String scName) {
         this.connection = connection;
         this.scName = scName;
         init();
     }
 
-    public DatabaseIdGetter(Connection connection, String scName, String tbName) {
+    public DatabaseIdRangeGetter(Connection connection, String scName, String tbName) {
         this.connection = connection;
         this.scName = scName;
         this.tbName = tbName;

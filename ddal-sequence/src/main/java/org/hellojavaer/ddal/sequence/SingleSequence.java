@@ -19,7 +19,6 @@ import org.hellojavaer.ddal.sequence.exception.GetSequenceTimeoutException;
 import org.hellojavaer.ddal.sequence.exception.IllegalIdRangeException;
 import org.hellojavaer.ddal.sequence.exception.NoAvailableIdRangeFoundException;
 import org.hellojavaer.ddal.sequence.exception.SequenceException;
-import org.hellojavaer.ddal.sequence.utils.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,7 +43,7 @@ public class SingleSequence implements Sequence {
     private int              step;                                                                    // 单节点步长
     private int              cacheNSteps;                                                             // 缓存队列大小
     private int              initTimeout;
-    private IdGetter         idGetter;
+    private IdRangeGetter    idRangeGetter;
     private ExceptionHandler exceptionHandler;
     private int              delayRetryBaseLine;
 
@@ -52,24 +51,24 @@ public class SingleSequence implements Sequence {
     private boolean          initialized                   = false;
 
     public SingleSequence(String schemaName, String tableName, int step, int cacheNSteps, int initTimeout,
-                          IdGetter idGetter) {
-        this(schemaName, tableName, step, cacheNSteps, initTimeout, idGetter, null, DEFAULT_DELAY_RETRY_BASE_LINE);
+                          IdRangeGetter idRangeGetter) {
+        this(schemaName, tableName, step, cacheNSteps, initTimeout, idRangeGetter, null, DEFAULT_DELAY_RETRY_BASE_LINE);
     }
 
     public SingleSequence(String schemaName, String tableName, int step, int cacheNSteps, int initTimeout,
-                          IdGetter idGetter, ExceptionHandler exceptionHandler) {
-        this(schemaName, tableName, step, cacheNSteps, initTimeout, idGetter, exceptionHandler,
+                          IdRangeGetter idRangeGetter, ExceptionHandler exceptionHandler) {
+        this(schemaName, tableName, step, cacheNSteps, initTimeout, idRangeGetter, exceptionHandler,
              DEFAULT_DELAY_RETRY_BASE_LINE);
     }
 
     public SingleSequence(String schemaName, String tableName, int step, int cacheNSteps, int initTimeout,
-                          IdGetter idGetter, ExceptionHandler exceptionHandler, int delayRetryBaseLine) {
+                          IdRangeGetter idRangeGetter, ExceptionHandler exceptionHandler, int delayRetryBaseLine) {
         this.schemaName = schemaName;
         this.tableName = tableName;
         this.step = step;
         this.cacheNSteps = cacheNSteps;
         this.initTimeout = initTimeout;
-        this.idGetter = idGetter;
+        this.idRangeGetter = idRangeGetter;
         this.exceptionHandler = exceptionHandler;
         this.delayRetryBaseLine = delayRetryBaseLine;
     }
@@ -83,14 +82,14 @@ public class SingleSequence implements Sequence {
                     Assert.isTrue(step > 0, "'step' must be greater than 0");
                     Assert.isTrue(cacheNSteps > 0, "'cacheNSteps' must be greater than 0");
                     Assert.isTrue(initTimeout > 0, "'initTimeout' must be greater than 0");
-                    Assert.notNull(idGetter, "'idGetter' can't be null'");
+                    Assert.notNull(idRangeGetter, "'idRangeGetter' can't be null'");
                     Assert.isTrue(delayRetryBaseLine > 0, "'delayRetryBaseLine' must be greater than 0");
                     try {
                         this.idCache = new IdCache(step, cacheNSteps, initTimeout, exceptionHandler, delayRetryBaseLine) {
 
                             @Override
                             public IdRange getIdRange() throws Exception {
-                                IdRange idRange = getIdGetter().get(getSchemaName(), getTableName(), getStep());
+                                IdRange idRange = getIdRangeGetter().get(getSchemaName(), getTableName(), getStep());
                                 if (idRange == null) {
                                     throw new NoAvailableIdRangeFoundException(
                                                                                "No available id rang was found for schemaName:'"
@@ -171,12 +170,12 @@ public class SingleSequence implements Sequence {
         this.initTimeout = initTimeout;
     }
 
-    public IdGetter getIdGetter() {
-        return idGetter;
+    public IdRangeGetter getIdRangeGetter() {
+        return idRangeGetter;
     }
 
-    public void setIdGetter(IdGetter idGetter) {
-        this.idGetter = idGetter;
+    public void setIdRangeGetter(IdRangeGetter idRangeGetter) {
+        this.idRangeGetter = idRangeGetter;
     }
 
     public ExceptionHandler getExceptionHandler() {
