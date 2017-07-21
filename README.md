@@ -7,6 +7,9 @@ DDAL(Distributed Data Access Layer) is a simple solution to access database shar
 
 DDAL is licensed under **Apache Software License, Version 2.0**.
 
+## Qick start
+
+See [ddal-demos](https://github.com/hellojavaer/ddal-demos/)
 
 ## Summary
 
@@ -18,13 +21,18 @@ After sql routing, datasource routing will use the schemas returned by sql routi
 
 
 ## News
+- version 1.0.0.M4 released.
 - version 1.0.0.M3 released.
 - version 1.0.0.M2 released.
 - version 1.0.0.M1 released.
 
 ### [Release Notes](https://github.com/hellojavaer/ddal/releases)
 
-## Extensions in the latest version 1.0.0.M3
+## Extensions in the latest version 1.0.0.M4
+- add ddal-bom
+- implement PollingGroupSequence
+
+## Extensions in the version 1.0.0.M3
 
 - provide a easier way for scanning table query
 
@@ -53,7 +61,7 @@ rule.setTbRouteRule("{#tbName}_{#format('%04d', #sdValue % 8)}");
 
 - [Documentation Home](https://github.com/hellojavaer/ddal/wiki)
 - [Frequently Asked Questions](https://github.com/hellojavaer/ddal/wiki/faq)
-- [Get some demos](https://github.com/hellojavaer/ddal-demos/)
+
 
 ## Download
 
