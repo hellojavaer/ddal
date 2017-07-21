@@ -47,7 +47,7 @@ public class SingleSequence implements Sequence {
     private ExceptionHandler exceptionHandler;
     private Integer          delayRetryBaseLine            = DEFAULT_DELAY_RETRY_BASE_LINE;
 
-    private IdCache          idCache;
+    private volatile IdCache idCache;
     private boolean          initialized                   = false;
 
     public SingleSequence() {
