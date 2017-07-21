@@ -13,6 +13,9 @@
     <name>ddal-bom</name>
     <url>https://github.com/hellojavaer/ddal</url>
 
+    <properties>
+        <gpg.skip>true</gpg.skip>
+    </properties>
     <developers>
         <developer>
             <id>hellojavaer</id>
@@ -46,6 +49,27 @@
             <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
         </repository>
     </distributionManagement>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <configuration>
+                    <skip>${gpg.skip}</skip>
+                </configuration>
+                <version>1.5</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
     <dependencyManagement>
         <dependencies>
