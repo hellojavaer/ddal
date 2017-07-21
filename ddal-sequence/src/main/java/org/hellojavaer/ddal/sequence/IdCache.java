@@ -82,7 +82,7 @@ public abstract class IdCache {
                 AtomicInteger retryCount = new AtomicInteger(0);
                 while (true) {
                     if (Thread.interrupted()) {
-                        logger.error("[" + Thread.currentThread().getName() + " interrupted]");
+                        logger.error("[" + Thread.currentThread().getName() + " was interrupted]");
                         break;
                     }
                     //
