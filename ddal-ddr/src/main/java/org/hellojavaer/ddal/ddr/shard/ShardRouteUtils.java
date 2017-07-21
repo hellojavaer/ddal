@@ -84,7 +84,12 @@ public class ShardRouteUtils {
         if (routeInfos == null || routeInfos.isEmpty()) {
             return Collections.EMPTY_MAP;
         }
-        Map<String, Set<RouteInfo>> map = new LinkedHashMap<>();
+        Map<String, Set<RouteInfo>> map = null;
+        if (routeInfos instanceof LinkedHashSet) {
+            map = new LinkedHashMap();
+        } else {
+            map = new HashMap<>();
+        }
         for (RouteInfo routeInfo : routeInfos) {
             Set<RouteInfo> set = map.get(routeInfo.getScName());
             if (set == null) {
