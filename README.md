@@ -1,5 +1,8 @@
 # DDAL
 
+[![Build Status](https://travis-ci.org/hellojavaer/ddal.svg?branch=master)](https://travis-ci.org/hellojavaer/ddal)
+[![Codecov](https://codecov.io/gh/hellojavaer/ddal/branch/master/graph/badge.svg)](https://codecov.io/gh/hellojavaer/ddal/branch/master)
+
 DDAL(Distributed Data Access Layer) is a simple solution to access database shard.
 
 
