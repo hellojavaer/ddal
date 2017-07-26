@@ -29,6 +29,7 @@
             <name>Kaiming Zou</name>
             <email>hellojavaer@gmail.com</email>
             <roles>
+                <role>owner</role>
                 <role>developer</role>
             </roles>
             <timezone>8</timezone>
