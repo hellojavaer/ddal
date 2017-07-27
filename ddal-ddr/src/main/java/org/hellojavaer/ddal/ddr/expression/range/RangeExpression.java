@@ -83,7 +83,7 @@ public class RangeExpression {
                     return range(str, startIndex, itemVisitor, sb, index);
                 } else if (ch == ']') {
                     throw new RangeExpressionException(str, index, ch,
-                                                       "expect closed expression. eg: [0,0~99,a-z,A-Z]'");
+                                                       "expect closed expression. eg: [0,0~99,a~z,A~Z]'");
                 } else {// 普通字符
                     if (sb != null) {
                         sb.append(ch);
@@ -112,7 +112,7 @@ public class RangeExpression {
         }
         if (nextStart == -1) {
             throw new RangeExpressionException(str, str.length(), (char) 0,
-                                               "expect closed expression. eg: [0,0~99,a-z,A-Z]'");
+                                               "expect closed expression. eg: [0,0~99,a~z,A~Z]'");
         }
         // 获取前缀
         String rangPrefix = null;
@@ -133,7 +133,7 @@ public class RangeExpression {
         int xpos = 0;// ~ 位置
         for (int i = index + 1;; i++) {
             if (i >= str.length()) {
-                throw new RangeExpressionException(str, i, (char) 0, "expect closed expression. eg: [0,0~99,a-z,A-Z]'");
+                throw new RangeExpressionException(str, i, (char) 0, "expect closed expression. eg: [0,0~99,a~z,A~Z]'");
             }
             char ch1 = str.charAt(i);
             if (escape1) {
@@ -198,7 +198,7 @@ public class RangeExpression {
                 } else if (status_temp == 2 || status_temp == 4) {
                     rangStart = str.charAt(i - 1);
                 } else {// ~
-                    throw new RangeExpressionException(str, i, ch1, "expect closed expression. eg: [0,0~99,a-z,A-Z]'");
+                    throw new RangeExpressionException(str, i, ch1, "expect closed expression. eg: [0,0~99,a~z,A~Z]'");
                 }
                 xpos = i;
                 range = true;
@@ -206,13 +206,13 @@ public class RangeExpression {
             } else if (ch1 == ',' || ch1 == ']') {// 结束符 key_word
                 if (range && xpos + 1 == i) {
                     throw new RangeExpressionException(str, i, ch1,
-                                                       "start expression and end expression don't match. eg: [089,0~99,a-z,A-Z]'");
+                                                       "start expression and end expression don't match. eg: [089,0~99,a~z,A~Z]'");
                 }
                 int epos = 0;// 返回下一个开始位置
                 if (status1 != 0) {// ~
                     if (status0 != status1) {
                         throw new RangeExpressionException(str, i, ch1,
-                                                           "start expression and end expression don't match. eg: [089,0~99,a-z,A-Z]'");
+                                                           "start expression and end expression don't match. eg: [089,0~99,a~z,A~Z]'");
                     } else {// 区间表达式
                         if (status1 == 1) {// 数字
                             int s = ((Integer) rangStart).intValue();
