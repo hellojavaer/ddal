@@ -35,18 +35,18 @@ public class BaseTestShardParser {
      * 构造数据模型
      * @return
      */
-    protected SimpleShardParser buildParserForId() {
+    protected SimpleShardParser buildShardParser() {
         SimpleShardParser parser = new SimpleShardParser();
         SimpleShardRouter shardRouter = new SimpleShardRouter();
         List<SimpleShardRouteRuleBinding> bindings = new ArrayList<SimpleShardRouteRuleBinding>();
         // 定义规则
         SpelShardRouteRule numRule = new SpelShardRouteRule();
-        numRule.setScRouteRule("{#scName}_{#format('%02d', #sdValue % 8)}");
-        numRule.setTbRouteRule("{#tbName}_{#format('%04d', #sdValue % 128)}");
+        numRule.setScRouteRule("{scName}_{format('%02d', sdValue % 8)}");
+        numRule.setTbRouteRule("{tbName}_{format('%04d', sdValue % 128)}");
 
         SpelShardRouteRule strRule = new SpelShardRouteRule();
-        strRule.setScRouteRule("{#scName}_{#format('%02d', #sdValue.hashCode() % 8)}");
-        strRule.setTbRouteRule("{#tbName}_{#format('%04d', #sdValue.hashCode() % 128)}");
+        strRule.setScRouteRule("{scName}_{format('%02d', sdValue.hashCode() % 8)}");
+        strRule.setTbRouteRule("{tbName}_{format('%04d', sdValue.hashCode() % 128)}");
 
         // 用户表
         SimpleShardRouteRuleBinding user = new SimpleShardRouteRuleBinding();
@@ -85,13 +85,13 @@ public class BaseTestShardParser {
         bindings.add(item_1);
 
         // 用户副表
-        // SimpleShardingRouteRuleBinding user_back = new SimpleShardingRouteRuleBinding();
-        // user_back.setScName("db_back");
-        // user_back.setTbName("user");
-        // user_back.setSdKey("name");
-        // user_back.setSdValues("[1~128]");
-        // user_back.setRule(numRule);
-        // bindings.add(user_back);
+        SimpleShardRouteRuleBinding user_back = new SimpleShardRouteRuleBinding();
+        user_back.setScName("db_back");
+        user_back.setTbName("user");
+        user_back.setSdKey("name");
+        user_back.setSdValues("[1~128]");
+        user_back.setRule(strRule);
+        bindings.add(user_back);
 
         shardRouter.setRouteRuleBindings(bindings);
         parser.setShardRouter(shardRouter);

@@ -24,15 +24,14 @@ import org.hellojavaer.ddal.ddr.shard.annotation.ShardRoute;
 import org.hellojavaer.ddal.ddr.utils.DDRStringUtils;
 import org.springframework.core.DefaultParameterNameDiscoverer;
 import org.springframework.core.ParameterNameDiscoverer;
-import org.springframework.expression.EvaluationContext;
-import org.springframework.expression.Expression;
-import org.springframework.expression.ExpressionParser;
-import org.springframework.expression.ParserContext;
+import org.springframework.expression.*;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.ReflectivePropertyAccessor;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -134,7 +133,7 @@ public class EnableShardRouteAnnotation {
         if (expression == null) {
             return null;
         }
-        EvaluationContext context = new StandardEvaluationContext();
+        EvaluationContext context = buildEvaluationContext();
         if (args != null && args.length > 0) {
             for (int i = 0; i < args.length; i++) {
                 if (parameterNames != null && parameterNames.length > i) {
@@ -186,18 +185,61 @@ public class EnableShardRouteAnnotation {
         }
     }
 
-    private static ParserContext PARSER_CONTEXT = new ParserContext() {
+    //
+    private static EvaluationContext buildEvaluationContext() {
+        StandardEvaluationContext context = new StandardEvaluationContext(rootObject) {
 
-                                                    public boolean isTemplate() {
-                                                        return false;
-                                                    }
+            @Override
+            public List<PropertyAccessor> getPropertyAccessors() {
+                return propertyAccessors;
+            }
+        };
+        return context;
+    }
 
-                                                    public String getExpressionPrefix() {
-                                                        return null;
-                                                    }
+    private static final TypedValue             rootObject        = new TypedValue(null);
 
-                                                    public String getExpressionSuffix() {
-                                                        return null;
-                                                    }
-                                                };
+    private static final List<PropertyAccessor> propertyAccessors = new ArrayList<PropertyAccessor>(1);
+
+    private static final ParserContext          PARSER_CONTEXT    = new ParserContext() {
+
+                                                                      public boolean isTemplate() {
+                                                                          return true;
+                                                                      }
+
+                                                                      public String getExpressionPrefix() {
+                                                                          return "{";
+                                                                      }
+
+                                                                      public String getExpressionSuffix() {
+                                                                          return "}";
+                                                                      }
+                                                                  };
+
+    static {
+        propertyAccessors.add(new ReflectivePropertyAccessor());
+        propertyAccessors.add(new PropertyAccessor() {
+
+            public Class<?>[] getSpecificTargetClasses() {
+                return null;
+            }
+
+            public boolean canRead(EvaluationContext context, Object target, String name) throws AccessException {
+                return true;
+            }
+
+            public TypedValue read(EvaluationContext context, Object target, String name) throws AccessException {
+                return new TypedValue(context.lookupVariable(name));
+            }
+
+            public boolean canWrite(EvaluationContext context, Object target, String name) throws AccessException {
+                return false;
+            }
+
+            public void write(EvaluationContext context, Object target, String name, Object newValue)
+                                                                                                     throws AccessException {
+
+            }
+        });
+    }
 }
