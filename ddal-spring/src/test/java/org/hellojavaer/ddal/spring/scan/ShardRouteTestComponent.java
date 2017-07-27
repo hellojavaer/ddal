@@ -27,9 +27,16 @@ import org.springframework.util.Assert;
 @Component
 public class ShardRouteTestComponent {
 
-    @ShardRoute(scName = "user,shop", sdValue = "{#$0}")
-    public void route(Long id) {
+    @ShardRoute(scName = "user,shop", sdValue = "{$0}")
+    public void routeWithId(Long id) {
         Assert.isTrue(ShardRouteContext.getRouteInfo("user") == id);
         Assert.isTrue(ShardRouteContext.getRouteInfo("shop") == id);
     }
+
+    @ShardRoute(scName = "user,shop", sdValue = "{$0.id}")
+    public void routeWithEntity(UserEntity userEntity) {
+        Assert.isTrue(ShardRouteContext.getRouteInfo("user") == userEntity.getId());
+        Assert.isTrue(ShardRouteContext.getRouteInfo("shop") == userEntity.getId());
+    }
+
 }

@@ -163,7 +163,7 @@ public class ShardContextUtilsTest extends BaseTestShardParser {
         for (int i = 0; i < 128; i++) {
             list.add((long) i);
         }
-        SimpleShardParser shardParser = this.buildParserForId();
+        SimpleShardParser shardParser = this.buildShardParser();
 
         Map<RouteInfo, List<Long>> map = ShardRouteUtils.groupSdValuesByRouteInfo(shardParser.getShardRouter(), "db",
                                                                                   "user", list);

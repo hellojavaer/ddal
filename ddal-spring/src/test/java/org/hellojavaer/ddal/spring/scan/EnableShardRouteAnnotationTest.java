@@ -33,9 +33,18 @@ public class EnableShardRouteAnnotationTest {
     private ShardRouteTestComponent shardRouteTestComponent;
 
     @Test
-    public void test() {
+    public void test01() {
         for (int i = 0; i < 100; i++) {
-            shardRouteTestComponent.route((long) i);
+            shardRouteTestComponent.routeWithId((long) i);
+        }
+    }
+
+    @Test
+    public void test02() {
+        for (long i = 0; i < 100; i++) {
+            UserEntity userEntity = new UserEntity();
+            userEntity.setId(i);
+            shardRouteTestComponent.routeWithEntity(userEntity);
         }
     }
 
