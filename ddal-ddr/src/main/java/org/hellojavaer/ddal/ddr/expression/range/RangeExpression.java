@@ -28,7 +28,15 @@ public class RangeExpression {
         }
     }
 
-    private static int parse(String str, String prefix, int startIndex, RangeItemVisitor itemVisitor) {
+    private static int parse(String str, Object prefix, int startIndex, RangeItemVisitor itemVisitor) {
+        if (startIndex >= str.length()) {
+            if (prefix == null) {
+                itemVisitor.visit("");
+            } else {
+                itemVisitor.visit(prefix);
+            }
+            return startIndex;
+        }
         boolean escape = false;
         StringBuilder sb = null;
         if (prefix != null) {
@@ -194,7 +202,7 @@ public class RangeExpression {
                 }
                 xpos = i;
                 range = true;
-                continue;// //
+                continue;//
             } else if (ch1 == ',' || ch1 == ']') {// 结束符 key_word
                 if (range && xpos + 1 == i) {
                     throw new RangeExpressionException(str, i, ch1,
@@ -211,11 +219,19 @@ public class RangeExpression {
                             int e = Integer.parseInt(str.substring(xpos + 1, i));
                             if (s <= e) {
                                 for (int k = s; k <= e; k++) {
-                                    epos = parse(str, rangPrefix + k, nextStart, itemVisitor);
+                                    if (rangPrefix == null || rangPrefix.length() == 0) {
+                                        epos = parse(str, k, nextStart, itemVisitor);
+                                    } else {
+                                        epos = parse(str, rangPrefix + k, nextStart, itemVisitor);
+                                    }
                                 }
                             } else {
                                 for (int k = s; k >= e; k--) {
-                                    epos = parse(str, rangPrefix + k, nextStart, itemVisitor);
+                                    if (rangPrefix == null || rangPrefix.length() == 0) {
+                                        epos = parse(str, k, nextStart, itemVisitor);
+                                    } else {
+                                        epos = parse(str, rangPrefix + k, nextStart, itemVisitor);
+                                    }
                                 }
                             }
                         } else {// 大小或小写单字母
@@ -223,11 +239,19 @@ public class RangeExpression {
                             char e = str.charAt(i - 1);
                             if (s <= e) {
                                 for (int k = s; k <= e; k++) {
-                                    epos = parse(str, rangPrefix + (char) k, nextStart, itemVisitor);
+                                    if (rangPrefix == null || rangPrefix.length() == 0) {
+                                        epos = parse(str, (char) k, nextStart, itemVisitor);
+                                    } else {
+                                        epos = parse(str, rangPrefix + (char) k, nextStart, itemVisitor);
+                                    }
                                 }
                             } else {
                                 for (int k = s; k >= e; k--) {
-                                    epos = parse(str, rangPrefix + (char) k, nextStart, itemVisitor);
+                                    if (rangPrefix == null || rangPrefix.length() == 0) {
+                                        epos = parse(str, (char) k, nextStart, itemVisitor);
+                                    } else {
+                                        epos = parse(str, rangPrefix + (char) k, nextStart, itemVisitor);
+                                    }
                                 }
                             }
                         }

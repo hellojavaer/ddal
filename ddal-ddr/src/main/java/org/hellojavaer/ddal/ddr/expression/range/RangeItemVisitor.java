@@ -21,5 +21,5 @@ package org.hellojavaer.ddal.ddr.expression.range;
  */
 public interface RangeItemVisitor {
 
-    void visit(String val);
+    void visit(Object val);
 }

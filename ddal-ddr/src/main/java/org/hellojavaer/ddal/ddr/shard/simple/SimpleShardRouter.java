@@ -84,7 +84,6 @@ public class SimpleShardRouter implements ShardRouter {
                 // can be null
                 final String sdKey = DDRStringUtils.toLowerCase(binding.getSdKey());
                 final String sdValues = DDRStringUtils.trimToNull(binding.getSdValues());
-                final String sdValueType = DDRStringUtils.trimToNull(binding.getSdValueType());
 
                 if (scName == null) {
                     throw new IllegalArgumentException("'scName' can't be empty");
@@ -105,22 +104,11 @@ public class SimpleShardRouter implements ShardRouter {
 
                 final Set<RouteInfo> routeInfos = new LinkedHashSet<RouteInfo>();
                 if (sdValues != null) {
-                    if (sdValueType == null) {
-                        throw new IllegalArgumentException("'sdValueType' can't be empty when 'sdValues' is set value");
-                    }
                     RangeExpression.parse(sdValues, new RangeItemVisitor() {
 
                         @Override
-                        public void visit(String val) {
-                            Object v = val;
-                            if (SimpleShardRouteRuleBinding.VALUE_TYPE_OF_NUMBER.equals(sdValueType)) {
-                                v = Long.valueOf(val);
-                            } else if (SimpleShardRouteRuleBinding.VALUE_TYPE_OF_STRING.equals(sdValueType)) {
-                                // ok
-                            } else {
-                                throw new IllegalArgumentException("Unknown 'sdValueType':" + sdValueType);
-                            }
-                            RouteInfo routeInfo = getRouteInfo(b0, scName, tbName, v);
+                        public void visit(Object val) {
+                            RouteInfo routeInfo = getRouteInfo(b0, scName, tbName, val);
                             routeInfos.add(routeInfo);
                         }
                     });

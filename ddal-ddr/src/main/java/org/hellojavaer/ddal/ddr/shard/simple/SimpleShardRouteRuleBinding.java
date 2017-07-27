@@ -26,17 +26,13 @@ import java.io.Serializable;
  */
 public class SimpleShardRouteRuleBinding implements ShardRouteRuleBinding, Serializable {
 
-    private static final long  serialVersionUID     = 0L;
+    private static final long serialVersionUID = 0L;
 
-    public static final String VALUE_TYPE_OF_NUMBER = "number";
-    public static final String VALUE_TYPE_OF_STRING = "string";
-
-    private String             scName;
-    private String             tbName;
-    private String             sdKey;
-    private ShardRouteRule     rule;
-    private String             sdValues;
-    private String             sdValueType          = VALUE_TYPE_OF_NUMBER;
+    private String            scName;
+    private String            tbName;
+    private String            sdKey;
+    private ShardRouteRule    rule;
+    private String            sdValues;
 
     @Override
     public String getScName() {
@@ -82,11 +78,4 @@ public class SimpleShardRouteRuleBinding implements ShardRouteRuleBinding, Seria
         this.sdValues = sdValues;
     }
 
-    public String getSdValueType() {
-        return sdValueType;
-    }
-
-    public void setSdValueType(String sdValueType) {
-        this.sdValueType = sdValueType;
-    }
 }
