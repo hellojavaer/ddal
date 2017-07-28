@@ -16,7 +16,8 @@
 package org.hellojavaer.ddal.ddr.expression.range;
 
 /**
- *
+ * 
+ * 
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 24/11/2016.
  */
 public class RangeExpression {
@@ -79,11 +80,10 @@ public class RangeExpression {
                         sb.append(str.substring(startIndex, index));
                     }
                     escape = true;
-                } else if (ch == '[') {// 区间开始符号 \\ 特殊字符 , [ ] \ ~ \s
+                } else if (ch == '[') {// 区间开始符号 \\ 特殊字符 , [ ] \ . \s
                     return range(str, startIndex, itemVisitor, sb, index);
                 } else if (ch == ']') {
-                    throw new RangeExpressionException(str, index, ch,
-                                                       "expect closed expression. eg: [0,0~99,a~z,A~Z]'");
+                    throw new RangeExpressionException(str, index, ch, "expect closed expression. eg: [0,0..99]'");
                 } else {// 普通字符
                     if (sb != null) {
                         sb.append(ch);
@@ -111,8 +111,7 @@ public class RangeExpression {
             }
         }
         if (nextStart == -1) {
-            throw new RangeExpressionException(str, str.length(), (char) 0,
-                                               "expect closed expression. eg: [0,0~99,a~z,A~Z]'");
+            throw new RangeExpressionException(str, str.length(), (char) 0, "expect closed expression. eg: [0,0..99]'");
         }
         // 获取前缀
         String rangPrefix = null;
@@ -130,20 +129,20 @@ public class RangeExpression {
         boolean escape1 = false;
         Object rangStart = null;
         StringBuilder sb1 = null;
-        int xpos = 0;// ~ 位置
+        int xpos = 0;// .. 位置
         for (int i = index + 1;; i++) {
             if (i >= str.length()) {
-                throw new RangeExpressionException(str, i, (char) 0, "expect closed expression. eg: [0,0~99,a~z,A~Z]'");
+                throw new RangeExpressionException(str, i, (char) 0, "expect closed expression. eg: [0,0..99]'");
             }
             char ch1 = str.charAt(i);
             if (escape1) {
-                if (ch1 == '\\' || ch1 == '[' || ch1 == ']' || ch1 == ',' || ch1 == '~') {
+                if (ch1 == '\\' || ch1 == '[' || ch1 == ']' || ch1 == ',' || ch1 == '.') {
                     sb1.append(ch1);
                 } else if (ch1 == 's') {
                     sb1.append(' ');
                 } else {
                     throw new RangeExpressionException(str, index, ch1,
-                                                       "at inner statement block, only character '\\', ',' , '[', ']', '~' and 's' can be escaped");
+                                                       "at inner statement block, only character '\\', ',' , '[', ']', '.' and 's' can be escaped");
                 }
                 escape1 = false;
                 continue;
@@ -173,32 +172,17 @@ public class RangeExpression {
                 } else if (status_temp != 1) {
                     status_temp = 6;
                 }
-            } else if (ch1 >= 'a' && ch1 <= 'z') {// 小写字母
-                if (status_temp == 0) {
-                    status_temp = 2;
-                } else if (status_temp == 2) {
-                    status_temp = 3;
-                } else {
-                    status_temp = 6;
-                }
-            } else if (ch1 >= 'A' && ch1 <= 'Z') {// 大写字母
-                if (status_temp == 0) {
-                    status_temp = 4;
-                } else if (status_temp == 4) {
-                    status_temp = 5;
-                } else {
-                    status_temp = 6;
-                }
-            } else if (ch1 == '~') {// support 1,2,4 key_word
+            } else if (ch1 == '.' && str.charAt(i + 1) == '.') {// support 1,2,4 key_word
+                i++;
                 if (range) {
                     throw new RangeExpressionException(str, i, ch1, ']');
                 }
                 if (status_temp == 1) {
-                    rangStart = Integer.parseInt(str.substring(elePos, i));
+                    rangStart = Integer.parseInt(str.substring(elePos, i - 1));
                 } else if (status_temp == 2 || status_temp == 4) {
                     rangStart = str.charAt(i - 1);
-                } else {// ~
-                    throw new RangeExpressionException(str, i, ch1, "expect closed expression. eg: [0,0~99,a~z,A~Z]'");
+                } else {// ..
+                    throw new RangeExpressionException(str, i, ch1, "expect closed expression. eg: [0,0..99]'");
                 }
                 xpos = i;
                 range = true;
@@ -206,64 +190,46 @@ public class RangeExpression {
             } else if (ch1 == ',' || ch1 == ']') {// 结束符 key_word
                 if (range && xpos + 1 == i) {
                     throw new RangeExpressionException(str, i, ch1,
-                                                       "start expression and end expression don't match. eg: [089,0~99,a~z,A~Z]'");
+                                                       "start expression and end expression don't match. eg: [089,0..99]'");
                 }
                 int epos = 0;// 返回下一个开始位置
-                if (status1 != 0) {// ~
+                if (status1 != 0) {// ..
                     if (status0 != status1) {
                         throw new RangeExpressionException(str, i, ch1,
-                                                           "start expression and end expression don't match. eg: [089,0~99,a~z,A~Z]'");
+                                                           "start expression and end expression don't match. eg: [089,0..99]'");
                     } else {// 区间表达式
-                        if (status1 == 1) {// 数字
-                            int s = ((Integer) rangStart).intValue();
-                            int e = Integer.parseInt(str.substring(xpos + 1, i));
-                            if (s <= e) {
-                                for (int k = s; k <= e; k++) {
-                                    if (rangPrefix == null || rangPrefix.length() == 0) {
-                                        epos = parse(str, k, nextStart, itemVisitor);
-                                    } else {
-                                        epos = parse(str, rangPrefix + k, nextStart, itemVisitor);
-                                    }
-                                }
-                            } else {
-                                for (int k = s; k >= e; k--) {
-                                    if (rangPrefix == null || rangPrefix.length() == 0) {
-                                        epos = parse(str, k, nextStart, itemVisitor);
-                                    } else {
-                                        epos = parse(str, rangPrefix + k, nextStart, itemVisitor);
-                                    }
+                        int s = ((Integer) rangStart).intValue();
+                        int e = Integer.parseInt(str.substring(xpos + 1, i));
+                        if (s <= e) {
+                            for (int k = s; k <= e; k++) {
+                                if (rangPrefix == null || rangPrefix.length() == 0) {
+                                    epos = parse(str, k, nextStart, itemVisitor);
+                                } else {
+                                    epos = parse(str, rangPrefix + k, nextStart, itemVisitor);
                                 }
                             }
-                        } else {// 大小或小写单字母
-                            char s = ((Character) rangStart).charValue();
-                            char e = str.charAt(i - 1);
-                            if (s <= e) {
-                                for (int k = s; k <= e; k++) {
-                                    if (rangPrefix == null || rangPrefix.length() == 0) {
-                                        epos = parse(str, (char) k, nextStart, itemVisitor);
-                                    } else {
-                                        epos = parse(str, rangPrefix + (char) k, nextStart, itemVisitor);
-                                    }
-                                }
-                            } else {
-                                for (int k = s; k >= e; k--) {
-                                    if (rangPrefix == null || rangPrefix.length() == 0) {
-                                        epos = parse(str, (char) k, nextStart, itemVisitor);
-                                    } else {
-                                        epos = parse(str, rangPrefix + (char) k, nextStart, itemVisitor);
-                                    }
+                        } else {
+                            for (int k = s; k >= e; k--) {
+                                if (rangPrefix == null || rangPrefix.length() == 0) {
+                                    epos = parse(str, k, nextStart, itemVisitor);
+                                } else {
+                                    epos = parse(str, rangPrefix + k, nextStart, itemVisitor);
                                 }
                             }
                         }
                     }
                 } else {// 单个表达式,支持特殊字符
-                    String prefix1 = null;
+                    String singleRange = null;// [1,2,3]
                     if (sb1 != null) {
-                        prefix1 = rangPrefix + sb1.toString();
+                        singleRange = sb1.toString();
                     } else {
-                        prefix1 = rangPrefix + str.substring(elePos, i);
+                        singleRange = str.substring(elePos, i);
                     }
-                    epos = parse(str, prefix1, nextStart, itemVisitor);
+                    if (rangPrefix == null || rangPrefix.length() == 0) {
+                        epos = parse(str, Integer.parseInt(singleRange), nextStart, itemVisitor);
+                    } else {
+                        epos = parse(str, rangPrefix + singleRange, nextStart, itemVisitor);
+                    }
                 }
                 // 重置标识位
                 range = false;
