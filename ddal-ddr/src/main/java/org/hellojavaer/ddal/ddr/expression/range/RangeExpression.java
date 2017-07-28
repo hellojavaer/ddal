@@ -22,17 +22,22 @@ package org.hellojavaer.ddal.ddr.expression.range;
  */
 public class RangeExpression {
 
+    private static final String NULL_STRING = new String("null");
+
     public static void parse(String str, RangeItemVisitor itemVisitor) {
         for (int startIndex = 0; startIndex <= str.length();) {
             startIndex = parse(str, null, startIndex, itemVisitor);
+            if (startIndex == -1) {
+                break;
+            }
             startIndex++;
         }
     }
 
     private static int parse(String str, Object prefix, int startIndex, RangeItemVisitor itemVisitor) {
         if (startIndex >= str.length()) {
-            if (prefix == null) {
-                itemVisitor.visit("");
+            if (NULL_STRING == prefix) {
+                itemVisitor.visit(null);
             } else {
                 itemVisitor.visit(prefix);
             }
@@ -122,9 +127,9 @@ public class RangeExpression {
         }
         int elePos = index + 1;// 最小描述符开始位置
         //
-        int status0 = 0;// 0:初始,1:数字,2:小写,3:多个小写,4:大写,5:多个大小,6:混合,7:正负号
-        int status1 = 0;//
-        int status_temp = 0;
+        int statusOfStart = 0;// 标识开始字符的状态 0:初始,1:数字,2:小写,3:多个小写,4:大写,5:多个大小,6:混合,7:正负号
+        int statusOfEnd = 0;// 标识结束字符的状态
+        int statusOfTemp = 0;
         boolean range = false;
         boolean escape1 = false;
         Object rangStart = null;
@@ -148,9 +153,9 @@ public class RangeExpression {
                 continue;
             }
             if (range) {
-                status_temp = status1;
+                statusOfTemp = statusOfEnd;
             } else {
-                status_temp = status0;
+                statusOfTemp = statusOfStart;
             }
             if (ch1 == '\\') {// 转义 key_word
                 if (sb1 == null) {
@@ -161,25 +166,25 @@ public class RangeExpression {
             } else if (ch1 == '[') {// key_word
                 throw new RangeExpressionException(str, index, ch1, "character '[' should be escaped");
             } else if (ch1 == '+' || ch1 == '-') {
-                if (status_temp == 0) {
-                    status_temp = 7;
+                if (statusOfTemp == 0) {
+                    statusOfTemp = 7;
                 } else {
-                    status_temp = 6;
+                    statusOfTemp = 6;
                 }
             } else if (ch1 >= '0' && ch1 <= '9') {// 数字
-                if (status_temp == 0 || status_temp == 7) {
-                    status_temp = 1;
-                } else if (status_temp != 1) {
-                    status_temp = 6;
+                if (statusOfTemp == 0 || statusOfTemp == 7) {
+                    statusOfTemp = 1;
+                } else if (statusOfTemp != 1) {
+                    statusOfTemp = 6;
                 }
             } else if (ch1 == '.' && str.charAt(i + 1) == '.') {// support 1,2,4 key_word
                 i++;
                 if (range) {
                     throw new RangeExpressionException(str, i, ch1, ']');
                 }
-                if (status_temp == 1) {
+                if (statusOfTemp == 1) {
                     rangStart = Integer.parseInt(str.substring(elePos, i - 1));
-                } else if (status_temp == 2 || status_temp == 4) {
+                } else if (statusOfTemp == 2 || statusOfTemp == 4) {
                     rangStart = str.charAt(i - 1);
                 } else {// ..
                     throw new RangeExpressionException(str, i, ch1, "expect closed expression. eg: [0,0..99]'");
@@ -193,8 +198,8 @@ public class RangeExpression {
                                                        "start expression and end expression don't match. eg: [089,0..99]'");
                 }
                 int epos = 0;// 返回下一个开始位置
-                if (status1 != 0) {// ..
-                    if (status0 != status1) {
+                if (statusOfEnd != 0) {// ..
+                    if (statusOfStart != statusOfEnd) {
                         throw new RangeExpressionException(str, i, ch1,
                                                            "start expression and end expression don't match. eg: [089,0..99]'");
                     } else {// 区间表达式
@@ -218,24 +223,61 @@ public class RangeExpression {
                             }
                         }
                     }
-                } else {// 单个表达式,支持特殊字符
-                    String singleRange = null;// [1,2,3]
+                } else {// 单个表达式:可以是一个数字或字符,例如:[1,23,'a','bc',"d",'']
+                    String singleRange = null;//
                     if (sb1 != null) {
                         singleRange = sb1.toString();
                     } else {
                         singleRange = str.substring(elePos, i);
                     }
-                    if (rangPrefix == null || rangPrefix.length() == 0) {
-                        epos = parse(str, Integer.parseInt(singleRange), nextStart, itemVisitor);
+                    if (singleRange.length() >= 2) {// 字符串至少需要2个字符
+                        char endChar = singleRange.charAt(singleRange.length() - 1);
+                        if (singleRange.charAt(0) == '\'') {
+                            if (endChar != '\'') {
+                                throw new RangeExpressionException(str, i, endChar, '\'');
+                            } else {
+                                epos = parse(str, rangPrefix + singleRange.substring(1, singleRange.length() - 1),
+                                             nextStart, itemVisitor);
+                            }
+                        } else if (singleRange.charAt(0) == '\"') {
+                            if (endChar != '\"') {
+                                throw new RangeExpressionException(str, i, endChar, '\"');
+                            } else {
+                                epos = parse(str, rangPrefix + singleRange.substring(1, singleRange.length() - 1),
+                                             nextStart, itemVisitor);
+                            }
+                        } else {
+                            if (rangPrefix == null || rangPrefix.length() == 0) {
+                                epos = parse(str, Integer.parseInt(singleRange), nextStart, itemVisitor);
+                            } else {
+                                epos = parse(str, rangPrefix + singleRange, nextStart, itemVisitor);
+                            }
+                        }
                     } else {
-                        epos = parse(str, rangPrefix + singleRange, nextStart, itemVisitor);
+                        if (singleRange.length() == 0) {
+                            if (ch1 == ']' && i == index + 1) {
+                                return -1;
+                            } else {
+                                if (rangPrefix == null || rangPrefix.length() == 0) {
+                                    epos = parse(str, NULL_STRING, nextStart, itemVisitor);
+                                } else {
+                                    epos = parse(str, rangPrefix + "null", nextStart, itemVisitor);
+                                }
+                            }
+                        } else {
+                            if (rangPrefix == null || rangPrefix.length() == 0) {
+                                epos = parse(str, Integer.parseInt(singleRange), nextStart, itemVisitor);
+                            } else {
+                                epos = parse(str, rangPrefix + singleRange, nextStart, itemVisitor);
+                            }
+                        }
                     }
                 }
                 // 重置标识位
                 range = false;
-                status_temp = 0;
-                status0 = 0;
-                status1 = 0;
+                statusOfTemp = 0;
+                statusOfStart = 0;
+                statusOfEnd = 0;
                 sb1 = null;
                 if (ch1 == ']') {// return
                     return epos;
@@ -243,15 +285,15 @@ public class RangeExpression {
                     elePos = i + 1;
                 }
             } else {
-                status0 = 6;
+                statusOfStart = 6;
                 if (sb1 != null) {
                     sb1.append(ch1);
                 }
             }
             if (range) {
-                status1 = status_temp;
+                statusOfEnd = statusOfTemp;
             } else {
-                status0 = status_temp;
+                statusOfStart = statusOfTemp;
             }
         }
     }
