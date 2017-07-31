@@ -22,8 +22,8 @@ package org.hellojavaer.ddal.ddr.expression.range;
 public class RangeExpressionException extends RuntimeException {
 
     public RangeExpressionException(String string, int index, char currentChar, String expectedChars) {
-        super("Unexpected character '" + (currentChar == 0 ? "null" : currentChar) + "' at index " + index
-              + ". Source string is " + string + ".Detail message is :" + expectedChars);
+        super("Unexpected " + (currentChar == 0 ? "end symbol" : "character '" + currentChar + "'") + " at index "
+              + index + ". Source string is " + string + " ,and detail message is :" + expectedChars);
     }
 
     public RangeExpressionException(String string, int index, char currentChar, char... expectedChars) {

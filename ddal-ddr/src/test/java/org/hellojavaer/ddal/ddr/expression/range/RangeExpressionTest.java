@@ -27,6 +27,9 @@ import java.util.List;
  */
 public class RangeExpressionTest {
 
+    /**
+     * 单个测试
+     */
     @Test
     public void test01() {
         List<String> expectedResult = new ArrayList<String>();
@@ -39,9 +42,8 @@ public class RangeExpressionTest {
         RangeExpression.parse("ab,,cd,\\\\\\[\\]\\,,", new RangeItemVisitor() {
 
             @Override
-            public void visit(String val) {
-                result.add(val);
-                // System.out.println(val);
+            public void visit(Object val) {
+                result.add((String) val);
             }
         });
         Assert.equals(result, expectedResult);
@@ -49,84 +51,73 @@ public class RangeExpressionTest {
 
     @Test
     public void test02() {
-        List<String> expectedResult = new ArrayList<String>();
-        for (int i = 'a'; i <= 'z'; i++) {
-            expectedResult.add(String.valueOf((char) i));
-        }
-        final List<String> result = new ArrayList<>();
-        RangeExpression.parse("[a~z]", new RangeItemVisitor() {
+        List<Object> expectedResult = new ArrayList<>();
+        expectedResult.add(1);
+        expectedResult.add(2);
+        expectedResult.add(3);
+        expectedResult.add("4");
+        expectedResult.add("5");
+        expectedResult.add("");
+        expectedResult.add(null);
+        final List<Object> result = new ArrayList<>();
+        RangeExpression.parse("[1..2,3,'4',\"5\",'',]", new RangeItemVisitor() {
 
             @Override
-            public void visit(String val) {
+            public void visit(Object val) {
                 result.add(val);
             }
         });
         Assert.equals(result, expectedResult);
-    }
 
-    @Test
-    public void test03() {
-        List<String> expectedResult = new ArrayList<String>();
-        for (int i = 'z'; i >= 'a'; i--) {
-            expectedResult.add(String.valueOf((char) i));
-        }
-        final List<String> result = new ArrayList<>();
-        RangeExpression.parse("[z~a]", new RangeItemVisitor() {
-
-            @Override
-            public void visit(String val) {
-                result.add(val);
-            }
-        });
-        Assert.equals(result, expectedResult);
-    }
-
-    @Test
-    public void test004() {
-        List<String> expectedResult = new ArrayList<String>();
-        for (int i = 'A'; i <= 'Z'; i++) {
-            expectedResult.add(String.valueOf((char) i));
-        }
-        final List<String> result = new ArrayList<>();
-        RangeExpression.parse("[A~Z]", new RangeItemVisitor() {
+        expectedResult = new ArrayList<>();
+        expectedResult.add("pre1");
+        expectedResult.add("pre2");
+        expectedResult.add("pre3");
+        expectedResult.add("pre4");
+        expectedResult.add("pre5");
+        expectedResult.add("pre");
+        expectedResult.add("prenull");
+        final List<Object> result2 = new ArrayList<>();
+        RangeExpression.parse("pre[1..2,3,'4',\"5\",'',]", new RangeItemVisitor() {
 
             @Override
-            public void visit(String val) {
-                result.add(val);
+            public void visit(Object val) {
+                result2.add(val);
             }
         });
-        Assert.equals(result, expectedResult);
-    }
+        Assert.equals(result2, expectedResult);
 
-    @Test
-    public void test05() {
-        List<String> expectedResult = new ArrayList<String>();
-        for (int i = 'Z'; i >= 'A'; i--) {
-            expectedResult.add(String.valueOf((char) i));
-        }
-        final List<String> result = new ArrayList<>();
-        RangeExpression.parse("[Z~A]", new RangeItemVisitor() {
+        expectedResult = new ArrayList<>();
+        expectedResult.add("1suf");
+        expectedResult.add("2suf");
+        expectedResult.add("3suf");
+        expectedResult.add("4suf");
+        expectedResult.add("5suf");
+        expectedResult.add("suf");
+        expectedResult.add("nullsuf");
+        final List<Object> result3 = new ArrayList<>();
+        RangeExpression.parse("[1..2,3,'4',\"5\",'',]suf", new RangeItemVisitor() {
 
             @Override
-            public void visit(String val) {
-                result.add(val);
+            public void visit(Object val) {
+                result3.add(val);
             }
         });
-        Assert.equals(result, expectedResult);
+        Assert.equals(result3, expectedResult);
     }
 
     @Test
     public void test06() {
-        List<String> expectedResult = new ArrayList<String>();
+        List<Integer> expectedResult = new ArrayList<>();
         for (int i = -99; i <= 99; i++) {
-            expectedResult.add(String.valueOf((int) i));
+            expectedResult.add(i);
         }
-        final List<String> result = new ArrayList<>();
-        RangeExpression.parse("[-99~99]", new RangeItemVisitor() {
+        final List<Integer> result = new ArrayList<>();
+        RangeExpression.parse("[-99..99]", new RangeItemVisitor() {
 
             @Override
-            public void visit(String val) {
-                result.add(val);
+            public void visit(Object val) {
+                result.add((Integer) val);
             }
         });
         Assert.equals(result, expectedResult);
@@ -134,16 +125,16 @@ public class RangeExpressionTest {
 
     @Test
     public void test07() {
-        List<String> expectedResult = new ArrayList<String>();
+        List<Integer> expectedResult = new ArrayList<Integer>();
         for (int i = 99; i >= -99; i--) {
-            expectedResult.add(String.valueOf((int) i));
+            expectedResult.add(i);
         }
-        final List<String> result = new ArrayList<>();
-        RangeExpression.parse("[99~-99]", new RangeItemVisitor() {
+        final List<Integer> result = new ArrayList<>();
+        RangeExpression.parse("[99..-99]", new RangeItemVisitor() {
 
             @Override
-            public void visit(String val) {
-                result.add(val);
+            public void visit(Object val) {
+                result.add((Integer) val);
             }
         });
         Assert.equals(result, expectedResult);
@@ -151,20 +142,16 @@ public class RangeExpressionTest {
 
     @Test
     public void test08() {
-        List<String> expectedResult = new ArrayList<String>();
-        expectedResult.add("a1b3c");
-        expectedResult.add("a1b4c");
-        expectedResult.add("a1b9c");
-        expectedResult.add("a2b3c");
-        expectedResult.add("a2b4c");
-        expectedResult.add("a2b9c");
-        final List<String> result = new ArrayList<>();
-        RangeExpression.parse("a[1~2]b[3~4,9]c", new RangeItemVisitor() {
+        List<Integer> expectedResult = new ArrayList<>();
+        for (int i = 1; i <= 13; i++) {
+            expectedResult.add(i);
+        }
+        final List<Integer> result = new ArrayList<>();
+        RangeExpression.parse("[1..5,6..10,11,12..13]", new RangeItemVisitor() {
 
             @Override
-            public void visit(String val) {
-                result.add(val);
-                // System.out.println(val);
+            public void visit(Object val) {
+                result.add((Integer) val);
             }
         });
         Assert.equals(result, expectedResult);
@@ -178,8 +165,8 @@ public class RangeExpressionTest {
         RangeExpression.parse("0", new RangeItemVisitor() {
 
             @Override
-            public void visit(String val) {
-                result.add(val);
+            public void visit(Object val) {
+                result.add((String) val);
                 // System.out.println(val);
             }
         });
@@ -187,35 +174,124 @@ public class RangeExpressionTest {
     }
 
     @Test
-    public void test10() {
+    public void test20() {
         List<String> expectedResult = new ArrayList<String>();
-        expectedResult.add("\\");
-        expectedResult.add("[]");
-        expectedResult.add("]");
-        expectedResult.add(",");
-        expectedResult.add("~");
-        expectedResult.add(" ");
+        expectedResult.add("13");
+        expectedResult.add("14");
+        expectedResult.add("19");
+        expectedResult.add("23");
+        expectedResult.add("24");
+        expectedResult.add("29");
         final List<String> result = new ArrayList<>();
-        RangeExpression.parse("[\\\\,\\[\\],\\],\\,,\\~,\\s]", new RangeItemVisitor() {
+        RangeExpression.parse("[1..2][3..4,9]", new RangeItemVisitor() {
 
             @Override
-            public void visit(String val) {
-                result.add(val);
-                //System.out.println(val);
+            public void visit(Object val) {
+                result.add((String) val);
+                // System.out.println(val);
             }
         });
         Assert.equals(result, expectedResult);
     }
 
     @Test
-    public void parse000() {
-        // RangeExpression.parse("hi !,I miss you so much. [1~3] day(s)", new RangeItemVisitor() {
-        //
-        // @Override
-        // public void visit(String val) {
-        // System.out.println(val);
-        // }
-        // });
+    public void test21() {
+        List<String> expectedResult = new ArrayList<String>();
+        expectedResult.add("a13");
+        expectedResult.add("a14");
+        expectedResult.add("a19");
+        expectedResult.add("a23");
+        expectedResult.add("a24");
+        expectedResult.add("a29");
+        final List<String> result = new ArrayList<>();
+        RangeExpression.parse("a[1..2][3..4,9]", new RangeItemVisitor() {
+
+            @Override
+            public void visit(Object val) {
+                result.add((String) val);
+                // System.out.println(val);
+            }
+        });
+        Assert.equals(result, expectedResult);
+    }
+
+    @Test
+    public void test22() {
+        List<String> expectedResult = new ArrayList<String>();
+        expectedResult.add("13c");
+        expectedResult.add("14c");
+        expectedResult.add("19c");
+        expectedResult.add("23c");
+        expectedResult.add("24c");
+        expectedResult.add("29c");
+        final List<String> result = new ArrayList<>();
+        RangeExpression.parse("[1..2][3..4,9]c", new RangeItemVisitor() {
+
+            @Override
+            public void visit(Object val) {
+                result.add((String) val);
+                // System.out.println(val);
+            }
+        });
+        Assert.equals(result, expectedResult);
+    }
+
+    @Test
+    public void test23() {
+        List<String> expectedResult = new ArrayList<String>();
+        expectedResult.add("1b3");
+        expectedResult.add("1b4");
+        expectedResult.add("1b9");
+        expectedResult.add("2b3");
+        expectedResult.add("2b4");
+        expectedResult.add("2b9");
+        final List<String> result = new ArrayList<>();
+        RangeExpression.parse("[1..2]b[3..4,9]", new RangeItemVisitor() {
+
+            @Override
+            public void visit(Object val) {
+                result.add((String) val);
+                // System.out.println(val);
+            }
+        });
+        Assert.equals(result, expectedResult);
+    }
+
+    @Test
+    public void test24() {
+        List<String> expectedResult = new ArrayList<String>();
+        expectedResult.add("a1b3c");
+        expectedResult.add("a1b4c");
+        expectedResult.add("a1b9c");
+        expectedResult.add("a2b3c");
+        expectedResult.add("a2b4c");
+        expectedResult.add("a2b9c");
+        final List<String> result = new ArrayList<>();
+        RangeExpression.parse("a[1..2]b[3..4,9]c", new RangeItemVisitor() {
+
+            @Override
+            public void visit(Object val) {
+                result.add((String) val);
+                // System.out.println(val);
+            }
+        });
+        Assert.equals(result, expectedResult);
+    }
+
+    @Test
+    public void errorTest00() {
+        try {
+            final List<String> result = new ArrayList<>();
+            RangeExpression.parse("[\\\\,\\[\\],\\],\\,,\\.,\\s]", new RangeItemVisitor() {
+
+                @Override
+                public void visit(Object val) {
+                    result.add((String) val);
+                }
+            });
+            throw new Error();
+        } catch (RuntimeException e) {
+        }
     }
 
     /**
@@ -227,8 +303,8 @@ public class RangeExpressionTest {
             RangeExpression.parse("ab\\a", new RangeItemVisitor() {
 
                 @Override
-                public void visit(String val) {
-                    //System.out.println(val);
+                public void visit(Object val) {
+                    // System.out.println(val);
                 }
             });
             throw new Error();
@@ -244,8 +320,40 @@ public class RangeExpressionTest {
         RangeExpression.parse("[]", new RangeItemVisitor() {
 
             @Override
-            public void visit(String val) {
-                //System.out.println(val);
+            public void visit(Object val) {
+                throw new Error();
+            }
+        });
+
+        RangeExpression.parse("ab[]", new RangeItemVisitor() {
+
+            @Override
+            public void visit(Object val) {
+                throw new Error();
+            }
+        });
+
+        RangeExpression.parse("[]cd", new RangeItemVisitor() {
+
+            @Override
+            public void visit(Object val) {
+                throw new Error();
+            }
+        });
+
+        RangeExpression.parse("ab[]cd", new RangeItemVisitor() {
+
+            @Override
+            public void visit(Object val) {
+                throw new Error();
+            }
+        });
+
+        RangeExpression.parse("[1..2]ab[]cd[3..4]", new RangeItemVisitor() {
+
+            @Override
+            public void visit(Object val) {
+                throw new Error();
             }
         });
     }
@@ -253,11 +361,11 @@ public class RangeExpressionTest {
     @Test
     public void errorTest03() {
         try {
-            RangeExpression.parse("t0[~]", new RangeItemVisitor() {
+            RangeExpression.parse("t0[1..2", new RangeItemVisitor() {
 
                 @Override
-                public void visit(String val) {
-                    //System.out.println(val);
+                public void visit(Object val) {
+                    // System.out.println(val);
                 }
             });
             throw new Error();
@@ -268,11 +376,11 @@ public class RangeExpressionTest {
     @Test
     public void errorTest04() {
         try {
-            RangeExpression.parse("t0[0~]", new RangeItemVisitor() {
+            RangeExpression.parse("t0[0..]", new RangeItemVisitor() {
 
                 @Override
-                public void visit(String val) {
-                    //System.out.println(val);
+                public void visit(Object val) {
+                    // System.out.println(val);
                 }
             });
             throw new Error();
@@ -284,11 +392,11 @@ public class RangeExpressionTest {
     @Test
     public void errorTest05() {
         try {
-            RangeExpression.parse("t00~9[", new RangeItemVisitor() {
+            RangeExpression.parse("t00..9[", new RangeItemVisitor() {
 
                 @Override
-                public void visit(String val) {
-                    //System.out.println(val);
+                public void visit(Object val) {
+                    // System.out.println(val);
                 }
             });
             throw new Error();
@@ -300,11 +408,11 @@ public class RangeExpressionTest {
     @Test
     public void errorTest06() {
         try {
-            RangeExpression.parse("t00~9]", new RangeItemVisitor() {
+            RangeExpression.parse("t00..9]", new RangeItemVisitor() {
 
                 @Override
-                public void visit(String val) {
-                    //System.out.println(val);
+                public void visit(Object val) {
+                    // System.out.println(val);
                 }
             });
             throw new Error();
@@ -315,11 +423,11 @@ public class RangeExpressionTest {
     @Test
     public void errorTest07() {
         try {
-            RangeExpression.parse("table_name_0[1~2~]", new RangeItemVisitor() {
+            RangeExpression.parse("table_name_0[1..2..]", new RangeItemVisitor() {
 
                 @Override
-                public void visit(String val) {
-                    //System.out.println(val);
+                public void visit(Object val) {
+                    // System.out.println(val);
                 }
             });
             throw new Error();
@@ -331,11 +439,11 @@ public class RangeExpressionTest {
     @Test
     public void errorTest08() {
         try {
-            RangeExpression.parse("t0[~1]", new RangeItemVisitor() {
+            RangeExpression.parse("t0[..1]", new RangeItemVisitor() {
 
                 @Override
-                public void visit(String val) {
-                    //System.out.println(val);
+                public void visit(Object val) {
+                    // System.out.println(val);
                 }
             });
             throw new Error();

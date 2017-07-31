@@ -35,8 +35,14 @@ public class Assert {
                                                + "] isn't equal to tar.size()[" + tar.size() + "]");
         }
         for (int i = 0; i < src.size(); i++) {
-            if (!src.get(i).equals(tar.get(i))) {
-                throw new IllegalArgumentException("[Assertion failed] - src is not equate to tar at index:" + i);
+            Object obj0 = src.get(i);
+            Object obj1 = tar.get(i);
+            if (obj0 == null && obj1 == null) {
+                return;
+            } else {
+                if (obj0 != null && !obj0.equals(obj1) && obj1 != null && !obj1.equals(obj0)) {
+                    throw new IllegalArgumentException("[Assertion failed] - src is not equate to tar at index:" + i);
+                }
             }
         }
     }

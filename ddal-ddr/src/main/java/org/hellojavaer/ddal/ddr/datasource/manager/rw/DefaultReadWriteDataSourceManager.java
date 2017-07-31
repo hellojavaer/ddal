@@ -533,12 +533,12 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
             if (schemasString == null) {
                 throw new IllegalArgumentException("scNames of 'writeOnlyDataSourceQueryCache' can't be empty");
             }
-            final List<String> schemas = new ArrayList<String>();
+            final List<String> schemas = new ArrayList<>();
             RangeExpression.parse(schemasString, new RangeItemVisitor() {
 
                 @Override
-                public void visit(String val) {
-                    schemas.add(val);
+                public void visit(Object val) {
+                    schemas.add(val.toString());
                 }
             });
             buildWriteOnlyDataSource(dataSourceMap, schemas, binding.getDataSource());
@@ -584,12 +584,12 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
             if (schemasString == null) {
                 throw new IllegalArgumentException("scNames of 'readOnlyDataSourceQueryCache' can't be empty");
             }
-            final List<String> schemas = new ArrayList<String>();
+            final List<String> schemas = new ArrayList<>();
             RangeExpression.parse(schemasString, new RangeItemVisitor() {
 
                 @Override
-                public void visit(String val) {
-                    schemas.add(val);
+                public void visit(Object val) {
+                    schemas.add(val.toString());
                 }
             });
             buildReadOnlyDataSource(readOnlyDataSourceIndexCacheOriginalValues, schemas, binding.getDataSources());
