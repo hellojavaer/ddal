@@ -15,7 +15,7 @@
  */
 package org.hellojavaer.ddal.ddr.datasource.jdbc;
 
-import org.hellojavaer.ddal.ddr.datasource.exception.CrossingDataSourceException;
+import org.hellojavaer.ddal.ddr.datasource.exception.CrossDataSourceException;
 import org.hellojavaer.ddal.ddr.datasource.exception.StatementInitializationException;
 import org.hellojavaer.ddal.ddr.datasource.exception.UninitializedStatusException;
 import org.hellojavaer.ddal.ddr.datasource.exception.UnsupportedPreparedStatementInvocationException;
@@ -198,13 +198,13 @@ public abstract class DDRPreparedStatementImpl extends DDRStatementImpl implemen
             this.sqlParsedResult = parsedResult;
             // 2. check if crossing datasource
             if (isCrossDataSource(parsedResult.getSchemas())) {
-                throw new CrossingDataSourceException("Current sql is using schemas:"
-                                                      + DDRJSONUtils.toJSONString(parsedResult.getSchemas())
-                                                      + ", but current datasource is bound on schemas:"
-                                                      + DDRJSONUtils.toJSONString(schemas)
-                                                      + ". Detail information: original sql is [" + sql
-                                                      + "] and jdbc parameter is "
-                                                      + DDRJSONUtils.toJSONString(jdbcParameter));
+                throw new CrossDataSourceException("Current sql is using schemas:"
+                                                   + DDRJSONUtils.toJSONString(parsedResult.getSchemas())
+                                                   + ", but current datasource is bound on schemas:"
+                                                   + DDRJSONUtils.toJSONString(schemas)
+                                                   + ". Detail information: original sql is [" + sql
+                                                   + "] and jdbc parameter is "
+                                                   + DDRJSONUtils.toJSONString(jdbcParameter));
             }
             // 3. init preparedStatement if not
             DataSourceParam param = new DataSourceParam();

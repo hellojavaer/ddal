@@ -19,25 +19,25 @@ package org.hellojavaer.ddal.ddr.datasource.exception;
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 13/12/2016.
  */
-public class CrossingDataSourceException extends DDRDataSourceException {
+public class CrossDataSourceException extends DDRDataSourceException {
 
-    public CrossingDataSourceException() {
+    public CrossDataSourceException() {
     }
 
-    public CrossingDataSourceException(String message) {
+    public CrossDataSourceException(String message) {
         super(message);
     }
 
-    public CrossingDataSourceException(String message, Throwable cause) {
+    public CrossDataSourceException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public CrossingDataSourceException(Throwable cause) {
+    public CrossDataSourceException(Throwable cause) {
         super(cause);
     }
 
-    public CrossingDataSourceException(String message, Throwable cause, boolean enableSuppression,
-                                       boolean writableStackTrace) {
+    public CrossDataSourceException(String message, Throwable cause, boolean enableSuppression,
+                                    boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 }
