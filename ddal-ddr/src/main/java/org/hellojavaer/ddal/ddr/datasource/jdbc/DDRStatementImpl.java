@@ -15,7 +15,7 @@
  */
 package org.hellojavaer.ddal.ddr.datasource.jdbc;
 
-import org.hellojavaer.ddal.ddr.datasource.exception.CrossingDataSourceException;
+import org.hellojavaer.ddal.ddr.datasource.exception.CrossDataSourceException;
 import org.hellojavaer.ddal.ddr.datasource.exception.StatementInitializationException;
 import org.hellojavaer.ddal.ddr.datasource.exception.UninitializedStatusException;
 import org.hellojavaer.ddal.ddr.datasource.jdbc.init.UninitializedStatementProcessor;
@@ -220,7 +220,7 @@ public abstract class DDRStatementImpl implements DDRStatement {
         }
         // 2. check if crossing datasource
         if (isCrossDataSource(parsedResult.getSchemas())) {
-            throw new CrossingDataSourceException("Sql '" + sql + "'");
+            throw new CrossDataSourceException("Sql '" + sql + "'");
         }
         if (statement == null) {
             DataSourceParam param = new DataSourceParam();

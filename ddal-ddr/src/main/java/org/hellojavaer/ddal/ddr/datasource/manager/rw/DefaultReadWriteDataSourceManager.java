@@ -16,7 +16,7 @@
 package org.hellojavaer.ddal.ddr.datasource.manager.rw;
 
 import org.hellojavaer.ddal.ddr.datasource.WeightedDataSource;
-import org.hellojavaer.ddal.ddr.datasource.exception.CrossingDataSourceException;
+import org.hellojavaer.ddal.ddr.datasource.exception.CrossDataSourceException;
 import org.hellojavaer.ddal.ddr.datasource.exception.DataSourceNotFoundException;
 import org.hellojavaer.ddal.ddr.datasource.jdbc.DataSourceWrapper;
 import org.hellojavaer.ddal.ddr.datasource.manager.DataSourceParam;
@@ -776,7 +776,7 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
                         }
                     } else {
                         if (!weightedDataSourceWrapper.getDataSourceWrapper().getSchemas().contains(scName)) {
-                            throw new CrossingDataSourceException(
+                            throw new CrossDataSourceException(
                                                                   "For parameter "
                                                                           + param
                                                                           + ", scName:'"
@@ -812,9 +812,9 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
                         }
                     } else {
                         if (!dataSourceWrapper.getSchemas().contains(scName)) {
-                            throw new CrossingDataSourceException("For parameter " + param + ", scName:'" + scName
-                                                                  + "' is not in 'writeOnlyDataSource' binding '"
-                                                                  + dataSourceWrapper.toString() + "'");
+                            throw new CrossDataSourceException("For parameter " + param + ", scName:'" + scName
+                                                               + "' is not in 'writeOnlyDataSource' binding '"
+                                                               + dataSourceWrapper.toString() + "'");
                         }
                     }
                 }

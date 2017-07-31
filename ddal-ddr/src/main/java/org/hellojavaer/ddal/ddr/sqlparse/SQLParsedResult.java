@@ -15,7 +15,7 @@
  */
 package org.hellojavaer.ddal.ddr.sqlparse;
 
-import org.hellojavaer.ddal.ddr.datasource.exception.CrossingPreparedStatementException;
+import org.hellojavaer.ddal.ddr.datasource.exception.CrossPreparedStatementException;
 import org.hellojavaer.ddal.ddr.utils.DDRToStringBuilder;
 
 import java.util.Map;
@@ -46,7 +46,7 @@ public class SQLParsedResult {
         this.schemas = schemas;
     }
 
-    public void checkIfCrossPreparedStatement(Map<Object, Object> jdbcParam) throws CrossingPreparedStatementException {
+    public void checkIfCrossPreparedStatement(Map<Object, Object> jdbcParam) throws CrossPreparedStatementException {
 
     }
 
