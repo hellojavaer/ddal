@@ -274,177 +274,157 @@ public class RangeExpressionParserTest {
         Assert.equals(result, expectedResult);
     }
 
-    // @Test
-    // public void errorTest00() {
-    // try {
-    // final List<String> result = new ArrayList<>();
-    // RangeExpression.parse("[\\\\,\\[\\],\\],\\,,\\.,\\s]", new RangeItemVisitor() {
-    //
-    // @Override
-    // public void visit(Object val) {
-    // result.add((String) val);
-    // }
-    // });
-    // throw new Error();
-    // } catch (RuntimeException e) {
-    // }
-    // }
-    //
-    // /**
-    // * illegal escape
-    // */
-    // @Test
-    // public void errorTest01() {
-    // try {
-    // RangeExpression.parse("ab\\a", new RangeItemVisitor() {
-    //
-    // @Override
-    // public void visit(Object val) {
-    // // System.out.println(val);
-    // }
-    // });
-    // throw new Error();
-    // } catch (RangeExpressionException e) {
-    // }
-    // }
-    //
-    // /**
-    // * illegal escape
-    // */
-    // @Test
-    // public void errorTest02() {
-    // RangeExpression.parse("[]", new RangeItemVisitor() {
-    //
-    // @Override
-    // public void visit(Object val) {
-    // throw new Error();
-    // }
-    // });
-    //
-    // RangeExpression.parse("ab[]", new RangeItemVisitor() {
-    //
-    // @Override
-    // public void visit(Object val) {
-    // throw new Error();
-    // }
-    // });
-    //
-    // RangeExpression.parse("[]cd", new RangeItemVisitor() {
-    //
-    // @Override
-    // public void visit(Object val) {
-    // throw new Error();
-    // }
-    // });
-    //
-    // RangeExpression.parse("ab[]cd", new RangeItemVisitor() {
-    //
-    // @Override
-    // public void visit(Object val) {
-    // throw new Error();
-    // }
-    // });
-    //
-    // RangeExpression.parse("[1..2]ab[]cd[3..4]", new RangeItemVisitor() {
-    //
-    // @Override
-    // public void visit(Object val) {
-    // throw new Error();
-    // }
-    // });
-    // }
-    //
-    // @Test
-    // public void errorTest03() {
-    // try {
-    // RangeExpression.parse("t0[1..2", new RangeItemVisitor() {
-    //
-    // @Override
-    // public void visit(Object val) {
-    // // System.out.println(val);
-    // }
-    // });
-    // throw new Error();
-    // } catch (RangeExpressionException e) {
-    // }
-    // }
-    //
-    // @Test
-    // public void errorTest04() {
-    // try {
-    // RangeExpression.parse("t0[0..]", new RangeItemVisitor() {
-    //
-    // @Override
-    // public void visit(Object val) {
-    // // System.out.println(val);
-    // }
-    // });
-    // throw new Error();
-    // } catch (RangeExpressionException e) {
-    //
-    // }
-    // }
-    //
-    // @Test
-    // public void errorTest05() {
-    // try {
-    // RangeExpression.parse("t00..9[", new RangeItemVisitor() {
-    //
-    // @Override
-    // public void visit(Object val) {
-    // // System.out.println(val);
-    // }
-    // });
-    // throw new Error();
-    // } catch (RangeExpressionException e) {
-    //
-    // }
-    // }
-    //
-    // @Test
-    // public void errorTest06() {
-    // try {
-    // RangeExpression.parse("t00..9]", new RangeItemVisitor() {
-    //
-    // @Override
-    // public void visit(Object val) {
-    // // System.out.println(val);
-    // }
-    // });
-    // throw new Error();
-    // } catch (RangeExpressionException e) {
-    // }
-    // }
-    //
-    // @Test
-    // public void errorTest07() {
-    // try {
-    // RangeExpression.parse("table_name_0[1..2..]", new RangeItemVisitor() {
-    //
-    // @Override
-    // public void visit(Object val) {
-    // // System.out.println(val);
-    // }
-    // });
-    // throw new Error();
-    // } catch (RangeExpressionException e) {
-    //
-    // }
-    // }
-    //
-    // @Test
-    // public void errorTest08() {
-    // try {
-    // RangeExpression.parse("t0[..1]", new RangeItemVisitor() {
-    //
-    // @Override
-    // public void visit(Object val) {
-    // // System.out.println(val);
-    // }
-    // });
-    // throw new Error();
-    // } catch (RangeExpressionException e) {
-    // }
-    // }
+    @Test
+    public void errorTest00() {
+        try {
+            final List<String> result = new ArrayList<>();
+            new RangeExpressionParser("[\\\\,\\[\\],\\],\\,,\\.,\\s]").visit(new RangeExpressionItemVisitor() {
+
+                @Override
+                public void visit(Object val) {
+                    result.add((String) val);
+                }
+            });
+            throw new Error();
+        } catch (RuntimeException e) {
+        }
+    }
+
+    /**
+    * illegal escape
+    */
+    @Test
+    public void errorTest02() {
+        new RangeExpressionParser("[]").visit(new RangeExpressionItemVisitor() {
+
+            @Override
+            public void visit(Object val) {
+                throw new Error();
+            }
+        });
+
+        new RangeExpressionParser("ab[]").visit(new RangeExpressionItemVisitor() {
+
+            @Override
+            public void visit(Object val) {
+                throw new Error();
+            }
+        });
+
+        new RangeExpressionParser("[]cd").visit(new RangeExpressionItemVisitor() {
+
+            @Override
+            public void visit(Object val) {
+                throw new Error();
+            }
+        });
+
+        new RangeExpressionParser("ab[]cd").visit(new RangeExpressionItemVisitor() {
+
+            @Override
+            public void visit(Object val) {
+                throw new Error();
+            }
+        });
+
+        new RangeExpressionParser("[1..2]ab[]cd[3..4]").visit(new RangeExpressionItemVisitor() {
+
+            @Override
+            public void visit(Object val) {
+                throw new Error();
+            }
+        });
+    }
+
+    @Test
+    public void errorTest03() {
+        try {
+            new RangeExpressionParser("t0[1..2").visit(new RangeExpressionItemVisitor() {
+
+                @Override
+                public void visit(Object val) {
+                    // System.out.println(val);
+                }
+            });
+            throw new Error();
+        } catch (RangeExpressionException e) {
+        }
+    }
+
+    @Test
+    public void errorTest04() {
+        try {
+            new RangeExpressionParser("t0[0..]").visit(new RangeExpressionItemVisitor() {
+
+                @Override
+                public void visit(Object val) {
+                    // System.out.println(val);
+                }
+            });
+            throw new Error();
+        } catch (RangeExpressionException e) {
+
+        }
+    }
+
+    @Test
+    public void errorTest05() {
+        try {
+            new RangeExpressionParser("t00..9[").visit(new RangeExpressionItemVisitor() {
+
+                @Override
+                public void visit(Object val) {
+                    System.out.println(val);
+                }
+            });
+            throw new Error();
+        } catch (RangeExpressionException e) {
+        }
+    }
+
+    @Test
+    public void errorTest06() {
+        try {
+            new RangeExpressionParser("t00..9]").visit(new RangeExpressionItemVisitor() {
+
+                @Override
+                public void visit(Object val) {
+                }
+            });
+            throw new Error();
+        } catch (RangeExpressionException e) {
+        }
+    }
+
+    @Test
+    public void errorTest07() {
+        try {
+            new RangeExpressionParser("table_name_0[1..2..]").visit(new RangeExpressionItemVisitor() {
+
+                @Override
+                public void visit(Object val) {
+                    // System.out.println(val);
+                }
+            });
+            throw new Error();
+        } catch (RangeExpressionException e) {
+
+        }
+    }
+
+    @Test
+    public void errorTest08() {
+        try {
+            new RangeExpressionParser("t0[..1]").visit(new RangeExpressionItemVisitor() {
+
+                @Override
+                public void visit(Object val) {
+                    // System.out.println(val);
+                }
+            });
+            throw new Error();
+        } catch (RangeExpressionException e) {
+        }
+    }
 
 }

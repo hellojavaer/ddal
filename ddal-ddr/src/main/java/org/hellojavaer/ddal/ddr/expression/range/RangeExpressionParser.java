@@ -163,12 +163,12 @@ public class RangeExpressionParser {
         }
     }
 
-    // Expression -> SplicedRange "," Expression | ∈
+    // Expression -> (SplicedRange "," )(Expression | ∈)
     private void eatExpression() {
         List segments = new ArrayList();
         eatSplicedRange(segments);
         list.add(segments);
-        if (tokenizer.hasMoreTokens()) {
+        if (tokenizer.hasMoreTokens()) {// ∈
             tokenizer.peekToken(0, TokenKind.COMMA);
             tokenizer.nextToken();
             eatExpression();
@@ -178,7 +178,7 @@ public class RangeExpressionParser {
     // SplicedRange -> (<PLAIN_STR> | "[" Range "]")(SplicedRange | ∈)
     private void eatSplicedRange(List segments) {
         Token token = tokenizer.peekToken(0);
-        if (token == null) {
+        if (token == null) {// ∈
             return;
         }
         switch (token.getKind()) {
@@ -193,13 +193,13 @@ public class RangeExpressionParser {
                     empty = true;
                 } else {
                     segments.add(list);
-                    tokenizer.peekToken(0, TokenKind.RSQUARE);
                 }
+                tokenizer.peekToken(0, TokenKind.RSQUARE);
                 break;
             default:
                 return;
         }
-        if (tokenizer.hasMoreTokens()) {
+        if (tokenizer.hasMoreTokens()) {// ∈
             tokenizer.nextToken();
             eatSplicedRange(segments);
         }
@@ -209,17 +209,20 @@ public class RangeExpressionParser {
     private void eatRange(List list) {
         Token token0 = tokenizer.peekToken(0);
         Token token1 = tokenizer.peekToken(1);
+        if (token0 == null) {// ∈
+            return;
+        }
         if (token1 != null && token1.getKind() == TokenKind.TO) {
-            if (token0 != null && token0.getKind() == TokenKind.LITERAL_INT) {
+            if (token0.getKind() == TokenKind.LITERAL_INT) {
                 Token token2 = tokenizer.nextToken(2, TokenKind.LITERAL_INT);
                 InnerRange range = new InnerRange(true, Integer.parseInt(token0.getData()),
                                                   Integer.parseInt(token2.getData()));
                 list.add(range);
-            } else if (token0 != null && token0.getKind() == TokenKind.LITERAL_LOWER_CHAR) {
+            } else if (token0.getKind() == TokenKind.LITERAL_LOWER_CHAR) {
                 Token token2 = tokenizer.nextToken(2, TokenKind.LITERAL_LOWER_CHAR);
                 InnerRange range = new InnerRange(false, token0.getData().charAt(0), token2.getData().charAt(0));
                 list.add(range);
-            } else if (token0 != null && token0.getKind() == TokenKind.LITERAL_UPPER_CHAR) {
+            } else if (token0.getKind() == TokenKind.LITERAL_UPPER_CHAR) {
                 Token token2 = tokenizer.nextToken(2, TokenKind.LITERAL_UPPER_CHAR);
                 InnerRange range = new InnerRange(false, token0.getData().charAt(0), token2.getData().charAt(0));
                 list.add(range);
