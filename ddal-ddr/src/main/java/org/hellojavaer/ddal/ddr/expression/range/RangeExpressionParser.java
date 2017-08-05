@@ -68,7 +68,7 @@ public class RangeExpressionParser {
 
     public RangeExpressionParser(String expression) {
         this.tokenizer = new Tokenizer(expression);
-        eatExpression0();
+        eatExpression();
     }
 
     public void visit(RangeItemVisitor itemVisitor) {
@@ -84,32 +84,38 @@ public class RangeExpressionParser {
             return;
         }
         if (segments.size() == 1) {
-            Object item = segments.get(0);
-            if (item instanceof InnerRange) {
-                InnerRange range = (InnerRange) item;
-                if (range.isIntegerRange()) {
-                    if (range.getBegin() <= range.getEnd()) {
-                        for (int i = range.getBegin(); i <= range.getEnd(); i++) {
-                            itemVisitor.visit(i);
+            Object obj = segments.get(0);
+            if (obj instanceof List) {
+                for (Object item : (List) obj) {
+                    if (item instanceof InnerRange) {
+                        InnerRange range = (InnerRange) item;
+                        if (range.isIntegerRange()) {
+                            if (range.getBegin() <= range.getEnd()) {
+                                for (int i = range.getBegin(); i <= range.getEnd(); i++) {
+                                    itemVisitor.visit(i);
+                                }
+                            } else {
+                                for (int i = range.getBegin(); i >= range.getEnd(); i--) {
+                                    itemVisitor.visit(i);
+                                }
+                            }
+                        } else {
+                            if (range.getBegin() <= range.getEnd()) {
+                                for (int i = range.getBegin(); i <= range.getEnd(); i++) {
+                                    itemVisitor.visit(String.valueOf((char) i));
+                                }
+                            } else {
+                                for (int i = range.getBegin(); i >= range.getEnd(); i--) {
+                                    itemVisitor.visit(String.valueOf((char) i));
+                                }
+                            }
                         }
                     } else {
-                        for (int i = range.getBegin(); i >= range.getEnd(); i--) {
-                            itemVisitor.visit(i);
-                        }
-                    }
-                } else {
-                    if (range.getBegin() <= range.getEnd()) {
-                        for (int i = range.getBegin(); i <= range.getEnd(); i++) {
-                            itemVisitor.visit(String.valueOf((char) i));
-                        }
-                    } else {
-                        for (int i = range.getBegin(); i >= range.getEnd(); i--) {
-                            itemVisitor.visit(String.valueOf((char) i));
-                        }
+                        itemVisitor.visit(item);
                     }
                 }
             } else {
-                itemVisitor.visit(item);
+                itemVisitor.visit(obj);
             }
             return;
         } else {
@@ -157,20 +163,20 @@ public class RangeExpressionParser {
         }
     }
 
-    // S -> R,S
-    private void eatExpression0() {
+    // Expression -> SplicedRange ',' Expression
+    private void eatExpression() {
         List segments = new ArrayList();
-        eatExpression(segments);
+        eatSplicedRange(segments);
         list.add(segments);
         if (tokenizer.hasMoreTokens()) {
             tokenizer.peekToken(0, TokenKind.COMMA);
             tokenizer.nextToken();
-            eatExpression0();
+            eatExpression();
         }
     }
 
-    // S -> (<PLAIN_STR> | "[" Range "]")(S | e)
-    private void eatExpression(List segments) {
+    // SplicedRange -> (<PLAIN_STR> | "[" Range "]")(SplicedRange | e)
+    private void eatSplicedRange(List segments) {
         Token token = tokenizer.peekToken(0);
         if (token == null) {
             return;
@@ -195,7 +201,7 @@ public class RangeExpressionParser {
         }
         if (tokenizer.hasMoreTokens()) {
             tokenizer.nextToken();
-            eatExpression(segments);
+            eatSplicedRange(segments);
         }
     }
 
@@ -218,7 +224,8 @@ public class RangeExpressionParser {
                 InnerRange range = new InnerRange(false, token0.getData().charAt(0), token2.getData().charAt(0));
                 list.add(range);
             } else {
-                throw null;
+                tokenizer.peekToken(0, TokenKind.LITERAL_INT, TokenKind.LITERAL_LOWER_CHAR,
+                                    TokenKind.LITERAL_UPPER_CHAR);
             }
         } else if (token0.getKind() == TokenKind.LITERAL_INT) {
             list.add(Integer.parseInt(token0.getData()));

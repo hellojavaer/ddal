@@ -61,6 +61,12 @@ class Tokenizer {
                     case ']':
                         throw null;
                     case ',':
+                        if (tokens.size() > 0) {
+                            Token preToken = tokens.get(tokens.size() - 1);
+                            if (preToken != null && preToken.getKind() == TokenKind.COMMA) {
+                                tokens.add(new Token(TokenKind.LITERAL_STRING, "", pos - 1, pos));
+                            }
+                        }
                         tokens.add(new Token(TokenKind.COMMA, pos, pos + 1));
                         break;
                     default:
@@ -82,6 +88,12 @@ class Tokenizer {
                     case '[':
                         throw null;
                     case ']':// 区块
+                        if (tokens.size() > 0) {
+                            Token preToken = tokens.get(tokens.size() - 1);
+                            if (preToken != null && preToken.getKind() == TokenKind.COMMA) {
+                                tokens.add(new Token(TokenKind.LITERAL_STRING, "", pos - 1, pos));
+                            }
+                        }
                         tokens.add(new Token(TokenKind.RSQUARE, pos, pos + 1));
                         block = false;
                         break;
@@ -103,6 +115,16 @@ class Tokenizer {
                     case '"':
                         pushString(true);
                         break;
+                    case '+':
+                    case '-':
+                        pos++;
+                        ch = expression.charAt(pos);
+                        if (isDisit(ch)) {
+                            pushNum(true);
+                        } else {
+                            throw null;
+                        }
+                        break;
                     case '0':// 数字
                     case '1':
                     case '2':
@@ -113,7 +135,7 @@ class Tokenizer {
                     case '7':
                     case '8':
                     case '9':
-                        pushNum();
+                        pushNum(false);
                         break;
                     default:
                         throw null;
@@ -165,21 +187,30 @@ class Tokenizer {
         throw null;
     }
 
-    private void pushNum() {
+    private void pushNum(boolean signed) {
         for (int i = pos; i < expression.length(); i++) {
             char ch = expression.charAt(i);
             if ((FLAGS[ch] & IS_DIGIT) == 0) {
                 if (ch == '.' && i + 1 < i + expression.length() && expression.charAt(i + 1) != '.') {
                     for (int j = i + 1; j < expression.length(); j++) {
                         ch = expression.charAt(j);
-                        if ((FLAGS[ch] & IS_DIGIT) == 0) {
-                            tokens.add(new Token(TokenKind.LITERAL_DOUBLE, expression.substring(pos, j), pos, j));
+                        if (!isDisit(ch)) {
+                            if (signed == false) {
+                                tokens.add(new Token(TokenKind.LITERAL_DOUBLE, expression.substring(pos, j), pos, j));
+                            } else {
+                                tokens.add(new Token(TokenKind.LITERAL_DOUBLE, expression.substring(pos - 1, j),
+                                                     pos - 1, j));
+                            }
                             pos = j - 1;
                             return;
                         }
                     }
                 } else {
-                    tokens.add(new Token(TokenKind.LITERAL_INT, expression.substring(pos, i), pos, i));
+                    if (signed == false) {
+                        tokens.add(new Token(TokenKind.LITERAL_INT, expression.substring(pos, i), pos, i));
+                    } else {
+                        tokens.add(new Token(TokenKind.LITERAL_INT, expression.substring(pos - 1, i), pos - 1, i));
+                    }
                     pos = i - 1;
                     return;
                 }
@@ -188,10 +219,14 @@ class Tokenizer {
         throw null;
     }
 
+    private boolean isDisit(char ch) {
+        return (FLAGS[ch] & IS_DIGIT) == 1;
+    }
+
     public Token peekToken(int nextPos, TokenKind... expectedTokenKinds) {
         int pos = nextPos + index;
         Token token = null;
-        if (pos < tokens.size()) {
+        if (pos >= 0 && pos < tokens.size()) {
             token = tokens.get(pos);
         }
         assertEquals(token, expectedTokenKinds);
