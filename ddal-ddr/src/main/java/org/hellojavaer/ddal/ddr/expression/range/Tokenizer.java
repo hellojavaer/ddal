@@ -53,27 +53,29 @@ class Tokenizer {
         for (; pos < expression.length(); pos++) {
             char ch = expression.charAt(pos);
             if (block == false) {
-                if (ch == '[') {
-                    block = true;
-                } else if (ch == ']') {
-                    throw null;
-                } else {
-                    int begin = pos;
-                    int end = begin;
-                    for (; end < expression.length(); end++) {
-                        char temp = expression.charAt(end);
-                        if (temp == '[') {
-                            block = true;
-                            break;
-                        } else if (temp == ']') {
-                            throw null;
+                switch (ch) {
+                    case '[':
+                        block = true;
+                        tokens.add(new Token(TokenKind.LSQUARE, pos, pos + 1));
+                        break;
+                    case ']':
+                        throw null;
+                    case ',':
+                        tokens.add(new Token(TokenKind.COMMA, pos, pos + 1));
+                        break;
+                    default:
+                        int begin = pos;
+                        int end = begin;
+                        for (; end < expression.length(); end++) {
+                            char temp = expression.charAt(end);
+                            if (temp == '[' || temp == ']' || temp == ',') {
+                                break;
+                            }
                         }
-                    }
-                    pos = end;
-                    tokens.add(new Token(TokenKind.LITERAL_STRING, expression.substring(begin, end), begin, end));
-                }
-                if (block == true) {
-                    tokens.add(new Token(TokenKind.LSQUARE, pos, pos + 1));
+                        tokens.add(new Token(TokenKind.LITERAL_STRING, expression.substring(begin, end).trim(), begin,
+                                             end));
+                        pos = end - 1;
+                        break;
                 }
             } else {
                 switch (ch) {

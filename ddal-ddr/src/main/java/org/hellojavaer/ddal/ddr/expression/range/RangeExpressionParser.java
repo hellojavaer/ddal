@@ -25,9 +25,9 @@ import java.util.List;
  */
 public class RangeExpressionParser {
 
-    private Tokenizer tokenizer = null;
-    private List      segments  = new ArrayList<>();
-    private boolean   empty     = false;
+    private Tokenizer  tokenizer = null;
+    private List<List> list      = new ArrayList<>();
+    private boolean    empty     = false;
 
     private class InnerRange {
 
@@ -68,10 +68,18 @@ public class RangeExpressionParser {
 
     public RangeExpressionParser(String expression) {
         this.tokenizer = new Tokenizer(expression);
-        eatExpression();
+        eatExpression0();
     }
 
     public void visit(RangeItemVisitor itemVisitor) {
+        if (list != null) {
+            for (List segments : list) {
+                visit0(segments, itemVisitor);
+            }
+        }
+    }
+
+    private void visit0(List segments, RangeItemVisitor itemVisitor) {
         if (segments == null || segments.isEmpty() || empty) {
             return;
         }
@@ -105,11 +113,11 @@ public class RangeExpressionParser {
             }
             return;
         } else {
-            recvInvoke("", 0, itemVisitor);
+            recvInvoke(segments, "", 0, itemVisitor);
         }
     }
 
-    private void recvInvoke(String prefix, int index, RangeItemVisitor itemVisitor) {
+    private void recvInvoke(List segments, String prefix, int index, RangeItemVisitor itemVisitor) {
         if (index == segments.size()) {
             itemVisitor.visit(prefix);
         } else {
@@ -121,36 +129,48 @@ public class RangeExpressionParser {
                         if (range.isIntegerRange()) {
                             if (range.getBegin() <= range.getEnd()) {
                                 for (int i = range.getBegin(); i <= range.getEnd(); i++) {
-                                    recvInvoke(prefix + i, index + 1, itemVisitor);
+                                    recvInvoke(segments, prefix + i, index + 1, itemVisitor);
                                 }
                             } else {
                                 for (int i = range.getBegin(); i >= range.getEnd(); i--) {
-                                    recvInvoke(prefix + i, index + 1, itemVisitor);
+                                    recvInvoke(segments, prefix + i, index + 1, itemVisitor);
                                 }
                             }
                         } else {
                             if (range.getBegin() <= range.getEnd()) {
                                 for (int i = range.getBegin(); i <= range.getEnd(); i++) {
-                                    recvInvoke(prefix + ((char) i), index + 1, itemVisitor);
+                                    recvInvoke(segments, prefix + ((char) i), index + 1, itemVisitor);
                                 }
                             } else {
                                 for (int i = range.getBegin(); i >= range.getEnd(); i--) {
-                                    recvInvoke(prefix + ((char) i), index + 1, itemVisitor);
+                                    recvInvoke(segments, prefix + ((char) i), index + 1, itemVisitor);
                                 }
                             }
                         }
                     } else {
-                        recvInvoke(prefix + item, index + 1, itemVisitor);
+                        recvInvoke(segments, prefix + item, index + 1, itemVisitor);
                     }
                 }
             } else {
-                recvInvoke(prefix + obj, index + 1, itemVisitor);
+                recvInvoke(segments, prefix + obj, index + 1, itemVisitor);
             }
         }
     }
 
+    // S -> R,S
+    private void eatExpression0() {
+        List segments = new ArrayList();
+        eatExpression(segments);
+        list.add(segments);
+        if (tokenizer.hasMoreTokens()) {
+            tokenizer.peekToken(0, TokenKind.COMMA);
+            tokenizer.nextToken();
+            eatExpression0();
+        }
+    }
+
     // S -> (<PLAIN_STR> | "[" Range "]")(S | e)
-    private void eatExpression() {
+    private void eatExpression(List segments) {
         Token token = tokenizer.peekToken(0);
         if (token == null) {
             return;
@@ -171,11 +191,11 @@ public class RangeExpressionParser {
                 }
                 break;
             default:
-                throw null;
+                return;
         }
         if (tokenizer.hasMoreTokens()) {
             tokenizer.nextToken();
-            eatExpression();
+            eatExpression(segments);
         }
     }
 
