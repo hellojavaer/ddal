@@ -15,8 +15,8 @@
  */
 package org.hellojavaer.ddal.ddr.shard.simple;
 
-import org.hellojavaer.ddal.ddr.expression.range.RangeExpression;
-import org.hellojavaer.ddal.ddr.expression.range.RangeItemVisitor;
+import org.hellojavaer.ddal.ddr.expression.range.RangeExpressionParser;
+import org.hellojavaer.ddal.ddr.expression.range.RangeExpressionItemVisitor;
 import org.hellojavaer.ddal.ddr.shard.*;
 import org.hellojavaer.ddal.ddr.shard.exception.*;
 import org.hellojavaer.ddal.ddr.utils.DDRStringUtils;
@@ -104,7 +104,7 @@ public class SimpleShardRouter implements ShardRouter {
 
                 final Set<RouteInfo> routeInfos = new LinkedHashSet<RouteInfo>();
                 if (sdValues != null) {
-                    RangeExpression.parse(sdValues, new RangeItemVisitor() {
+                    new RangeExpressionParser(sdValues).visit(new RangeExpressionItemVisitor() {
 
                         @Override
                         public void visit(Object val) {

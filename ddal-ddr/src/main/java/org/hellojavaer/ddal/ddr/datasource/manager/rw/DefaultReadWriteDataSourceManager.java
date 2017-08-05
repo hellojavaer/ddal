@@ -25,8 +25,8 @@ import org.hellojavaer.ddal.ddr.datasource.manager.rw.monitor.ReadOnlyDataSource
 import org.hellojavaer.ddal.ddr.datasource.manager.rw.monitor.WriterMethodInvokeResult;
 import org.hellojavaer.ddal.ddr.datasource.security.metadata.DefaultMetaDataChecker;
 import org.hellojavaer.ddal.ddr.datasource.security.metadata.MetaDataChecker;
-import org.hellojavaer.ddal.ddr.expression.range.RangeExpression;
-import org.hellojavaer.ddal.ddr.expression.range.RangeItemVisitor;
+import org.hellojavaer.ddal.ddr.expression.range.RangeExpressionParser;
+import org.hellojavaer.ddal.ddr.expression.range.RangeExpressionItemVisitor;
 import org.hellojavaer.ddal.ddr.lb.random.WeightItem;
 import org.hellojavaer.ddal.ddr.lb.random.WeightedRandom;
 import org.hellojavaer.ddal.ddr.shard.RouteInfo;
@@ -534,7 +534,7 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
                 throw new IllegalArgumentException("scNames of 'writeOnlyDataSourceQueryCache' can't be empty");
             }
             final List<String> schemas = new ArrayList<>();
-            RangeExpression.parse(schemasString, new RangeItemVisitor() {
+            new RangeExpressionParser(schemasString).visit(new RangeExpressionItemVisitor() {
 
                 @Override
                 public void visit(Object val) {
@@ -585,7 +585,7 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
                 throw new IllegalArgumentException("scNames of 'readOnlyDataSourceQueryCache' can't be empty");
             }
             final List<String> schemas = new ArrayList<>();
-            RangeExpression.parse(schemasString, new RangeItemVisitor() {
+            new RangeExpressionParser(schemasString).visit(new RangeExpressionItemVisitor() {
 
                 @Override
                 public void visit(Object val) {
@@ -777,13 +777,13 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
                     } else {
                         if (!weightedDataSourceWrapper.getDataSourceWrapper().getSchemas().contains(scName)) {
                             throw new CrossDataSourceException(
-                                                                  "For parameter "
-                                                                          + param
-                                                                          + ", scName:'"
-                                                                          + scName
-                                                                          + "' is not in 'readOnlyDataSource' binding '"
-                                                                          + weightedDataSourceWrapper.getDataSourceWrapper().toString()
-                                                                          + "'");
+                                                               "For parameter "
+                                                                       + param
+                                                                       + ", scName:'"
+                                                                       + scName
+                                                                       + "' is not in 'readOnlyDataSource' binding '"
+                                                                       + weightedDataSourceWrapper.getDataSourceWrapper().toString()
+                                                                       + "'");
                         }
                     }
                 }

@@ -19,7 +19,7 @@ package org.hellojavaer.ddal.ddr.expression.range;
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 29/11/2016.
  */
-public interface RangeItemVisitor {
+public interface RangeExpressionItemVisitor {
 
     void visit(Object val);
 }

@@ -31,7 +31,7 @@ public class RangeExpressionParser {
 
     private class InnerRange {
 
-        private boolean integerRange; // 0:int,1:char
+        private boolean integerRange;
         private int     begin;
         private int     end;
 
@@ -71,7 +71,7 @@ public class RangeExpressionParser {
         eatExpression();
     }
 
-    public void visit(RangeItemVisitor itemVisitor) {
+    public void visit(RangeExpressionItemVisitor itemVisitor) {
         if (list != null) {
             for (List segments : list) {
                 visit0(segments, itemVisitor);
@@ -79,7 +79,7 @@ public class RangeExpressionParser {
         }
     }
 
-    private void visit0(List segments, RangeItemVisitor itemVisitor) {
+    private void visit0(List segments, RangeExpressionItemVisitor itemVisitor) {
         if (segments == null || segments.isEmpty() || empty) {
             return;
         }
@@ -123,7 +123,7 @@ public class RangeExpressionParser {
         }
     }
 
-    private void recvInvoke(List segments, String prefix, int index, RangeItemVisitor itemVisitor) {
+    private void recvInvoke(List segments, String prefix, int index, RangeExpressionItemVisitor itemVisitor) {
         if (index == segments.size()) {
             itemVisitor.visit(prefix);
         } else {
@@ -163,7 +163,7 @@ public class RangeExpressionParser {
         }
     }
 
-    // Expression -> SplicedRange ',' Expression
+    // Expression -> SplicedRange "," Expression | ∈
     private void eatExpression() {
         List segments = new ArrayList();
         eatSplicedRange(segments);
@@ -175,7 +175,7 @@ public class RangeExpressionParser {
         }
     }
 
-    // SplicedRange -> (<PLAIN_STR> | "[" Range "]")(SplicedRange | e)
+    // SplicedRange -> (<PLAIN_STR> | "[" Range "]")(SplicedRange | ∈)
     private void eatSplicedRange(List segments) {
         Token token = tokenizer.peekToken(0);
         if (token == null) {
@@ -205,7 +205,7 @@ public class RangeExpressionParser {
         }
     }
 
-    // Range -> ((LOOKAHEAD(2) <INT><TO><INT>|<INT>|<DOUBLE>|<STR>)) "," Range | e
+    // Range -> ((LOOKAHEAD(2) <INT><TO><INT>|<INT>|<DOUBLE>|<STR>)) "," Range | ∈
     private void eatRange(List list) {
         Token token0 = tokenizer.peekToken(0);
         Token token1 = tokenizer.peekToken(1);
