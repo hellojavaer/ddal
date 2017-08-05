@@ -22,17 +22,17 @@ import java.io.Serializable;
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 04/01/2017.
  */
-public class IdRange implements Serializable {
+public class SequenceRange implements Serializable {
 
     private static final long serialVersionUID = 0L;
 
     private long              beginValue;
     private long              endValue;
 
-    public IdRange() {
+    public SequenceRange() {
     }
 
-    public IdRange(long beginValue, long endValue) {
+    public SequenceRange(long beginValue, long endValue) {
         this.beginValue = beginValue;
         this.endValue = endValue;
     }

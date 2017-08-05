@@ -15,8 +15,8 @@
  */
 package org.hellojavaer.ddal.sequence;
 
-import org.hellojavaer.ddal.sequence.exception.IllegalIdRangeException;
-import org.hellojavaer.ddal.sequence.exception.NoAvailableIdRangeFoundException;
+import org.hellojavaer.ddal.sequence.exception.IllegalSequenceRangeException;
+import org.hellojavaer.ddal.sequence.exception.NoAvailableSequenceRangeFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,7 +61,7 @@ import java.util.ConcurrentModificationException;
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 04/01/2017.
  */
-public class DatabaseIdRangeGetter implements IdRangeGetter {
+public class DatabaseSequenceRangeGetter implements SequenceRangeGetter {
 
     private Logger          logger               = LoggerFactory.getLogger(this.getClass());
 
@@ -109,29 +109,29 @@ public class DatabaseIdRangeGetter implements IdRangeGetter {
     private volatile String targetUpdateSql;
     private boolean         initialized          = false;
 
-    public DatabaseIdRangeGetter() {
+    public DatabaseSequenceRangeGetter() {
     }
 
-    public DatabaseIdRangeGetter(DataSource dataSource, String scName) {
+    public DatabaseSequenceRangeGetter(DataSource dataSource, String scName) {
         this.dataSource = dataSource;
         this.scName = scName;
         init();
     }
 
-    public DatabaseIdRangeGetter(DataSource dataSource, String scName, String tbName) {
+    public DatabaseSequenceRangeGetter(DataSource dataSource, String scName, String tbName) {
         this.dataSource = dataSource;
         this.scName = scName;
         this.tbName = tbName;
         init();
     }
 
-    public DatabaseIdRangeGetter(Connection connection, String scName) {
+    public DatabaseSequenceRangeGetter(Connection connection, String scName) {
         this.connection = connection;
         this.scName = scName;
         init();
     }
 
-    public DatabaseIdRangeGetter(Connection connection, String scName, String tbName) {
+    public DatabaseSequenceRangeGetter(Connection connection, String scName, String tbName) {
         this.connection = connection;
         this.scName = scName;
         this.tbName = tbName;
@@ -189,10 +189,10 @@ public class DatabaseIdRangeGetter implements IdRangeGetter {
     }
 
     @Override
-    public IdRange get(String schemaName, String tableName, int step) throws Exception {
+    public SequenceRange get(String schemaName, String tableName, int step) throws Exception {
         init();
         int rows = 0;
-        IdRange idRange = null;
+        SequenceRange idRange = null;
         Connection connection = this.connection;
         PreparedStatement selectStatement = null;
         PreparedStatement updateStatement = null;
@@ -231,8 +231,8 @@ public class DatabaseIdRangeGetter implements IdRangeGetter {
                 }
                 version = ((Number) selectResult.getLong(6)).longValue();
             } else {
-                throw new NoAvailableIdRangeFoundException("No available id rang was found for schemaName:'"
-                                                           + schemaName + "', tableName:'" + tableName + "'");
+                throw new NoAvailableSequenceRangeFoundException("No available id rang was found for schemaName:'"
+                                                                 + schemaName + "', tableName:'" + tableName + "'");
             }
             // 数据库步长优先
             if (dbStep != null && dbStep > 0) {
@@ -269,7 +269,7 @@ public class DatabaseIdRangeGetter implements IdRangeGetter {
             }
             if (rows > 0) {
                 if (dirtyRow) {// 兼容异常数据
-                    throw new IllegalIdRangeException(
+                    throw new IllegalSequenceRangeException(
                                                       String.format("Illegal id range {id:%s, nextValue:%s, endValue:%s, version:%s, deleted:0}",
                                                                     id, nextValue, endValue, version));
                 }
@@ -284,7 +284,7 @@ public class DatabaseIdRangeGetter implements IdRangeGetter {
                                     endValue, version, id, idRangeBegin, idRangeEnd);
                     }
                 }
-                return new IdRange(idRangeBegin, idRangeEnd);
+                return new SequenceRange(idRangeBegin, idRangeEnd);
             } else {
                 throw new ConcurrentModificationException();
             }

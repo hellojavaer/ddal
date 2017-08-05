@@ -15,8 +15,8 @@
  */
 package org.hellojavaer.ddal.sequence;
 
-import org.hellojavaer.ddal.sequence.exception.IllegalIdRangeException;
-import org.hellojavaer.ddal.sequence.exception.NoAvailableIdRangeFoundException;
+import org.hellojavaer.ddal.sequence.exception.IllegalSequenceRangeException;
+import org.hellojavaer.ddal.sequence.exception.NoAvailableSequenceRangeFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +30,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 04/01/2017.
  */
-public abstract class IdCache {
+public abstract class SequenceCache {
 
     private Logger              logger         = LoggerFactory.getLogger(this.getClass());
     private SummedBlockingQueue summedBlockingQueue;
@@ -44,8 +44,8 @@ public abstract class IdCache {
     private AtomicBoolean       inited         = new AtomicBoolean(false);
     private CountDownLatch      countDownLatch = new CountDownLatch(1);
 
-    public IdCache(int step, int cacheNSteps, int initTimeout, ExceptionHandler exceptionHandler,
-                   int delayRetryBaseLine) throws InterruptedException, TimeoutException {
+    public SequenceCache(int step, int cacheNSteps, int initTimeout, ExceptionHandler exceptionHandler,
+                         int delayRetryBaseLine) throws InterruptedException, TimeoutException {
         if (step <= 0) {
             throw new IllegalArgumentException("step must be greater than 0");
         }
@@ -73,7 +73,7 @@ public abstract class IdCache {
     private static AtomicInteger threadCount = new AtomicInteger(0);
 
     private void startProducer() {
-        new Thread(IdCache.class.getSimpleName() + "-" + threadCount.getAndIncrement()) {
+        new Thread(SequenceCache.class.getSimpleName() + "-" + threadCount.getAndIncrement()) {
 
             @Override
             public void run() {
@@ -87,19 +87,19 @@ public abstract class IdCache {
                     }
                     //
                     try {
-                        IdRange range = getIdRange();
+                        SequenceRange range = getIdRange();
                         if (range == null) {
-                            throw new NoAvailableIdRangeFoundException("No available id range was found");
+                            throw new NoAvailableSequenceRangeFoundException("No available id range was found");
                         }
                         if (range.getBeginValue() > range.getEndValue()) {
-                            throw new IllegalIdRangeException("Illegal id range " + range);
+                            throw new IllegalSequenceRangeException("Illegal id range " + range);
                         }
                         int c = (int) ((range.getEndValue() - range.getBeginValue() + step) / step);
                         long beginValue = range.getBeginValue();
                         for (int i = 0; i < c; i++) {
                             long endValue = beginValue + step - 1;
                             endValue = endValue > range.getEndValue() ? range.getEndValue() : endValue;
-                            summedBlockingQueue.put(new IdRange(beginValue, endValue));
+                            summedBlockingQueue.put(new SequenceRange(beginValue, endValue));
                             beginValue += step;
                             //
                             if (inited.get() == false && summedBlockingQueue.remainingSum() <= 0) {
@@ -114,9 +114,9 @@ public abstract class IdCache {
                                 continue;
                             }
                         }
-                        if (e instanceof IllegalIdRangeException) {
+                        if (e instanceof IllegalSequenceRangeException) {
                             logger.error("[GetIdRange] " + e.getMessage());
-                        } else if (e instanceof NoAvailableIdRangeFoundException) {
+                        } else if (e instanceof NoAvailableSequenceRangeFoundException) {
                             logger.error("[GetIdRange] " + e.getMessage());
                         } else {
                             logger.error("[GetIdRange]", e);
@@ -137,5 +137,5 @@ public abstract class IdCache {
         }.start();
     }
 
-    public abstract IdRange getIdRange() throws Exception;
+    public abstract SequenceRange getIdRange() throws Exception;
 }

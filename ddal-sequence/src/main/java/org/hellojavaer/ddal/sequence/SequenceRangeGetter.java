@@ -19,8 +19,8 @@ package org.hellojavaer.ddal.sequence;
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 04/01/2017.
  */
-public interface IdRangeGetter {
+public interface SequenceRangeGetter {
 
-    IdRange get(String schemaName, String tableName, int step) throws Exception;
+    SequenceRange get(String schemaName, String tableName, int step) throws Exception;
 
 }

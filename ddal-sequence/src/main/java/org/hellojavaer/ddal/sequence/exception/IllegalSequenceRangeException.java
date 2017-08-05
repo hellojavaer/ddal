@@ -19,25 +19,25 @@ package org.hellojavaer.ddal.sequence.exception;
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 23/06/2017.
  */
-public class NoAvailableIdRangeFoundException extends SequenceException {
+public class IllegalSequenceRangeException extends SequenceException {
 
-    public NoAvailableIdRangeFoundException() {
+    public IllegalSequenceRangeException() {
     }
 
-    public NoAvailableIdRangeFoundException(String message) {
+    public IllegalSequenceRangeException(String message) {
         super(message);
     }
 
-    public NoAvailableIdRangeFoundException(String message, Throwable cause) {
+    public IllegalSequenceRangeException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public NoAvailableIdRangeFoundException(Throwable cause) {
+    public IllegalSequenceRangeException(Throwable cause) {
         super(cause);
     }
 
-    public NoAvailableIdRangeFoundException(String message, Throwable cause, boolean enableSuppression,
-                                            boolean writableStackTrace) {
+    public IllegalSequenceRangeException(String message, Throwable cause, boolean enableSuppression,
+                                         boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 }

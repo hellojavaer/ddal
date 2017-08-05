@@ -34,39 +34,39 @@ class SummedBlockingQueue {
 
     static class Node {
 
-        InnerIdRange item;
-        Node         next;
+        InnerSequenceRange item;
+        Node               next;
 
-        Node(InnerIdRange x) {
+        Node(InnerSequenceRange x) {
             item = x;
         }
     }
 
-    private final AtomicInteger             countForCapacity = new AtomicInteger(0);
-    private transient Node                  head;
-    private transient Node                  last;
-    private final ReentrantLock             takeLock         = new ReentrantLock();
-    private final Condition                 notEmpty         = takeLock.newCondition();
-    private final ReentrantLock             putLock          = new ReentrantLock();
-    private final Condition                 notFull          = putLock.newCondition();
+    private final AtomicInteger                   countForCapacity = new AtomicInteger(0);
+    private transient Node                        head;
+    private transient Node                        last;
+    private final ReentrantLock                   takeLock         = new ReentrantLock();
+    private final Condition                       notEmpty         = takeLock.newCondition();
+    private final ReentrantLock                   putLock          = new ReentrantLock();
+    private final Condition                       notFull          = putLock.newCondition();
 
-    private final long                      sum;
-    private final AtomicLong                countForSum      = new AtomicLong(0);
+    private final long                            sum;
+    private final AtomicLong                      countForSum      = new AtomicLong(0);
 
-    private final ThreadLocal<InnerIdRange> threadLocal      = new ThreadLocal();
+    private final ThreadLocal<InnerSequenceRange> threadLocal      = new ThreadLocal();
 
     public SummedBlockingQueue(long sum) {
         this.sum = sum;
         last = head = new Node(null);
     }
 
-    static class InnerIdRange {
+    static class InnerSequenceRange {
 
         private final long       beginValue;
         private final long       endValue;
         private final AtomicLong counter;
 
-        public InnerIdRange(long beginValue, long endValue) {
+        public InnerSequenceRange(long beginValue, long endValue) {
             this.beginValue = beginValue;
             this.endValue = endValue;
             this.counter = new AtomicLong(beginValue);
@@ -85,11 +85,11 @@ class SummedBlockingQueue {
         }
     }
 
-    public void put(IdRange idRange) throws InterruptedException {
+    public void put(SequenceRange idRange) throws InterruptedException {
         if (idRange.getEndValue() < idRange.getBeginValue()) {
             throw new IllegalArgumentException("end value must be greater than or equal to begin value");
         }
-        Node node = new Node(new InnerIdRange(idRange.getBeginValue(), idRange.getEndValue()));
+        Node node = new Node(new InnerSequenceRange(idRange.getBeginValue(), idRange.getEndValue()));
         final ReentrantLock putLock = this.putLock;
         final AtomicInteger count = this.countForCapacity;
         putLock.lockInterruptibly();
@@ -114,10 +114,10 @@ class SummedBlockingQueue {
         if (timeout < 0) {
             throw new IllegalArgumentException("'timeout' must be greater then or equal to 0");
         }
-        if(unit == null){
+        if (unit == null) {
             throw new IllegalArgumentException("'unit' can't be null");
         }
-        InnerIdRange idRange = threadLocal.get();
+        InnerSequenceRange idRange = threadLocal.get();
         if (idRange != null) {
             long id = idRange.getCounter().getAndIncrement();
             if (id <= idRange.getEndValue()) {
@@ -144,7 +144,7 @@ class SummedBlockingQueue {
         long nanoTimeout = unit.toNanos(timeout);
         while (true) {
             long now = System.nanoTime();
-            InnerIdRange idRange = get(nanoTimeout);
+            InnerSequenceRange idRange = get(nanoTimeout);
             if (idRange == null) {
                 throw new TimeoutException(timeout + " " + unit);
             } else {
@@ -171,11 +171,11 @@ class SummedBlockingQueue {
         }
     }
 
-    private InnerIdRange get(long nanoTimeout) throws InterruptedException {
+    private InnerSequenceRange get(long nanoTimeout) throws InterruptedException {
         final AtomicInteger count = this.countForCapacity;
         final ReentrantLock takeLock = this.takeLock;
         takeLock.lockInterruptibly();
-        InnerIdRange x = null;
+        InnerSequenceRange x = null;
         try {
             while (count.get() == 0) {
                 long now = System.nanoTime();
