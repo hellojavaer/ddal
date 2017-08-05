@@ -102,11 +102,13 @@ class Tokenizer {
                         break;
                     case '.':// 区间
                         pos++;
-                        ch = expression.charAt(pos);
-                        if (ch == '.') {
-                            tokens.add(new Token(TokenKind.TO, pos, pos + 2));
-                        } else {
-                            throw new RangeExpressionException(expression, pos, "Expecte character '.'");
+                        if (pos < expression.length()) {
+                            ch = expression.charAt(pos);
+                            if (ch == '.') {
+                                tokens.add(new Token(TokenKind.TO, pos, pos + 2));
+                            } else {
+                                throw new RangeExpressionException(expression, pos, "Expecte character '.'");
+                            }
                         }
                         break;
                     case '\'':// 字符
@@ -118,11 +120,13 @@ class Tokenizer {
                     case '+':// 带符号数字
                     case '-':
                         pos++;
-                        ch = expression.charAt(pos);
-                        if (isDisit(ch)) {
-                            pushNum(true);
-                        } else {
-                            throw new RangeExpressionException(expression, pos, "Expecte digist");
+                        if (pos < expression.length()) {
+                            ch = expression.charAt(pos);
+                            if (isDisit(ch)) {
+                                pushNum(true);
+                            } else {
+                                throw new RangeExpressionException(expression, pos, "Expecte digist");
+                            }
                         }
                         break;
                     case '0':// 无符号数字
@@ -265,7 +269,7 @@ class Tokenizer {
                                                                                 + buildString(expectedTokenKinds));
         } else {
             throw new RangeExpressionException(expression, expression.length(), "Current token is null, expecte "
-                                                                                    + buildString(expectedTokenKinds));
+                                                                                + buildString(expectedTokenKinds));
         }
     }
 
