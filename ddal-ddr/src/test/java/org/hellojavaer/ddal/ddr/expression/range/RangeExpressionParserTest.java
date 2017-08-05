@@ -25,7 +25,7 @@ import java.util.List;
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 29/11/2016.
  */
-public class RangeExpressionTest {
+public class RangeExpressionParserTest {
 
     /**
      * 单个测试

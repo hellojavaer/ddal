@@ -50,7 +50,7 @@ class Token {
         this.endPos = endPos;
     }
 
-    public Token(TokenKind tokenKind,String  data, int startPos, int endPos) {
+    public Token(TokenKind tokenKind, String data, int startPos, int endPos) {
         this(tokenKind, startPos, endPos);
         this.data = data;
     }
@@ -73,6 +73,14 @@ class Token {
         s.append("]");
         s.append("(").append(this.startPos).append(",").append(this.endPos).append(")");
         return s.toString();
+    }
+
+    public int getStartPos() {
+        return startPos;
+    }
+
+    public int getEndPos() {
+        return endPos;
     }
 
 }

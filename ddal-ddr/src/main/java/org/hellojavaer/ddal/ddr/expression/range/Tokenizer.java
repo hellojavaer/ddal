@@ -59,7 +59,7 @@ class Tokenizer {
                         tokens.add(new Token(TokenKind.LSQUARE, pos, pos + 1));
                         break;
                     case ']':
-                        throw null;
+                        throw new RangeExpressionException(expression, pos, "Unexpected character ']'");
                     case ',':
                         if (tokens.size() > 0) {
                             Token preToken = tokens.get(tokens.size() - 1);
@@ -86,7 +86,7 @@ class Tokenizer {
             } else {
                 switch (ch) {
                     case '[':
-                        throw null;
+                        throw new RangeExpressionException(expression, pos, "Unexpected character '['");
                     case ']':// 区块
                         if (tokens.size() > 0) {
                             Token preToken = tokens.get(tokens.size() - 1);
@@ -106,7 +106,7 @@ class Tokenizer {
                         if (ch == '.') {
                             tokens.add(new Token(TokenKind.TO, pos, pos + 2));
                         } else {
-                            throw null;
+                            throw new RangeExpressionException(expression, pos, "Expecte character '.'");
                         }
                         break;
                     case '\'':// 字符
@@ -115,17 +115,17 @@ class Tokenizer {
                     case '"':
                         pushString(true);
                         break;
-                    case '+':
+                    case '+':// 带符号数字
                     case '-':
                         pos++;
                         ch = expression.charAt(pos);
                         if (isDisit(ch)) {
                             pushNum(true);
                         } else {
-                            throw null;
+                            throw new RangeExpressionException(expression, pos, "Expecte digist");
                         }
                         break;
-                    case '0':// 数字
+                    case '0':// 无符号数字
                     case '1':
                     case '2':
                     case '3':
@@ -138,7 +138,7 @@ class Tokenizer {
                         pushNum(false);
                         break;
                     default:
-                        throw null;
+                        throw new RangeExpressionException(expression, pos, "Unexpected character '" + ch + "'");
                 }
             }
         }
@@ -184,7 +184,11 @@ class Tokenizer {
                 }
             }
         }
-        throw null;
+        if (isDoubleuotes) {
+            throw new RangeExpressionException(expression, pos, "Cannot find terminating \" for string");
+        } else {
+            throw new RangeExpressionException(expression, pos, "Cannot find terminating ' for string");
+        }
     }
 
     private void pushNum(boolean signed) {
@@ -216,7 +220,6 @@ class Tokenizer {
                 }
             }
         }
-        throw null;
     }
 
     private boolean isDisit(char ch) {
@@ -257,10 +260,30 @@ class Tokenizer {
                     return;
                 }
             }
-            throw null;
+            throw new RangeExpressionException(expression, token.getStartPos(), "Current token kind is "
+                                                                                + token.getKind() + ", expecte "
+                                                                                + buildString(expectedTokenKinds));
         } else {
-            throw null;
+            throw new RangeExpressionException(expression, expression.length(), "Current token is null, expecte "
+                                                                                    + buildString(expectedTokenKinds));
         }
+    }
+
+    private String buildString(Object... objects) {
+        if (objects == null) {
+            return null;
+        } else {
+            StringBuilder sb = new StringBuilder();
+            sb.append('[');
+            for (Object obj : objects) {
+                sb.append(obj);
+                sb.append(',');
+            }
+            sb.deleteCharAt(sb.length() - 1);
+            sb.append(']');
+            return sb.toString();
+        }
+
     }
 
     public boolean hasMoreTokens() {
