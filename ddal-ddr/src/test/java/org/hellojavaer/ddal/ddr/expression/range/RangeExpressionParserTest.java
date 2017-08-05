@@ -290,9 +290,6 @@ public class RangeExpressionParserTest {
         }
     }
 
-    /**
-    * illegal escape
-    */
     @Test
     public void errorTest02() {
         new RangeExpressionParser("[]").visit(new RangeExpressionItemVisitor() {
@@ -343,7 +340,7 @@ public class RangeExpressionParserTest {
 
                 @Override
                 public void visit(Object val) {
-                    // System.out.println(val);
+                    throw new Error();
                 }
             });
             throw new Error();
@@ -358,7 +355,7 @@ public class RangeExpressionParserTest {
 
                 @Override
                 public void visit(Object val) {
-                    // System.out.println(val);
+                    throw new Error();
                 }
             });
             throw new Error();
@@ -374,7 +371,7 @@ public class RangeExpressionParserTest {
 
                 @Override
                 public void visit(Object val) {
-                    System.out.println(val);
+                    throw new Error();
                 }
             });
             throw new Error();
@@ -389,6 +386,7 @@ public class RangeExpressionParserTest {
 
                 @Override
                 public void visit(Object val) {
+                    throw new Error();
                 }
             });
             throw new Error();
@@ -403,7 +401,7 @@ public class RangeExpressionParserTest {
 
                 @Override
                 public void visit(Object val) {
-                    // System.out.println(val);
+                    throw new Error();
                 }
             });
             throw new Error();
@@ -419,7 +417,7 @@ public class RangeExpressionParserTest {
 
                 @Override
                 public void visit(Object val) {
-                    // System.out.println(val);
+                    throw new Error();
                 }
             });
             throw new Error();
