@@ -3,4 +3,4 @@ jdk:
   - openjdk7
 
 after_success:
-  - codecov
+  - mvn clean cobertura:cobertura coveralls:report

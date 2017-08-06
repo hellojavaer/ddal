@@ -234,7 +234,8 @@ public class RangeExpressionParser {
             list.add(Integer.parseInt(token0.getData()));
         } else if (token0.getKind() == TokenKind.LITERAL_DOUBLE) {
             list.add(Double.parseDouble(token0.getData()));
-        } else if (token0.getKind() == TokenKind.LITERAL_STRING) {
+        } else if (token0.getKind() == TokenKind.LITERAL_STRING || token0.getKind() == TokenKind.LITERAL_LOWER_CHAR
+                   || token0.getKind() == TokenKind.LITERAL_UPPER_CHAR) {
             list.add(token0.getData());
         } else {
             return;

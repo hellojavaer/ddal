@@ -27,9 +27,22 @@ import java.util.List;
  */
 public class RangeExpressionParserTest {
 
-    /**
-     * 单个测试
-     */
+    @Test
+    public void test00() {
+        List<String> expectedResult = new ArrayList<String>();
+        expectedResult.add("0");
+        final List<String> result = new ArrayList<>();
+        new RangeExpressionParser("0").visit(new RangeExpressionItemVisitor() {
+
+            @Override
+            public void visit(Object val) {
+                result.add((String) val);
+            }
+        });
+        Assert.equals(result, expectedResult);
+    }
+
+    //
     @Test
     public void test01() {
         List<String> expectedResult = new ArrayList<String>();
@@ -102,38 +115,36 @@ public class RangeExpressionParserTest {
         Assert.equals(result3, expectedResult);
     }
 
+    // number test
     @Test
-    public void test06() {
+    public void test07() {
         List<Integer> expectedResult = new ArrayList<>();
         for (int i = -99; i <= 99; i++) {
             expectedResult.add(i);
         }
-        final List<Integer> result = new ArrayList<>();
+        final List<Integer> result0 = new ArrayList<>();
         new RangeExpressionParser("[-99..99]").visit(new RangeExpressionItemVisitor() {
 
             @Override
             public void visit(Object val) {
-                result.add((Integer) val);
+                result0.add((Integer) val);
             }
         });
-        Assert.equals(result, expectedResult);
-    }
+        Assert.equals(result0, expectedResult);
 
-    @Test
-    public void test07() {
-        List<Integer> expectedResult = new ArrayList<Integer>();
+        expectedResult = new ArrayList<Integer>();
         for (int i = 99; i >= -99; i--) {
             expectedResult.add(i);
         }
-        final List<Integer> result = new ArrayList<>();
+        final List<Integer> result1 = new ArrayList<>();
         new RangeExpressionParser("[99..-99]").visit(new RangeExpressionItemVisitor() {
 
             @Override
             public void visit(Object val) {
-                result.add((Integer) val);
+                result1.add((Integer) val);
             }
         });
-        Assert.equals(result, expectedResult);
+        Assert.equals(result1, expectedResult);
     }
 
     @Test
@@ -153,17 +164,99 @@ public class RangeExpressionParserTest {
         Assert.equals(result, expectedResult);
     }
 
+    // single char test
     @Test
     public void test09() {
         List<String> expectedResult = new ArrayList<String>();
-        expectedResult.add("0");
+        expectedResult.add("a");
+        expectedResult.add("b");
+        expectedResult.add("cd");
+        expectedResult.add("ef");
+
         final List<String> result = new ArrayList<>();
-        new RangeExpressionParser("0").visit(new RangeExpressionItemVisitor() {
+        new RangeExpressionParser("['a',\"b\",\"cd\",'ef']").visit(new RangeExpressionItemVisitor() {
 
             @Override
             public void visit(Object val) {
                 result.add((String) val);
-                // System.out.println(val);
+            }
+        });
+        Assert.equals(result, expectedResult);
+
+        //
+        expectedResult = new ArrayList<String>();
+        for (int i = 'a'; i <= 'z'; i++) {
+            expectedResult.add(String.valueOf((char) i));
+        }
+        final List<String> result0 = new ArrayList<>();
+        new RangeExpressionParser("['a'..'z']").visit(new RangeExpressionItemVisitor() {
+
+            @Override
+            public void visit(Object val) {
+                result0.add((String) val);
+            }
+        });
+        Assert.equals(result0, expectedResult);
+
+        //
+        expectedResult = new ArrayList<String>();
+        for (int i = 'z'; i >= 'a'; i--) {
+            expectedResult.add(String.valueOf((char) i));
+        }
+        final List<String> result1 = new ArrayList<>();
+        new RangeExpressionParser("[\"z\"..'a']").visit(new RangeExpressionItemVisitor() {
+
+            @Override
+            public void visit(Object val) {
+                result1.add((String) val);
+            }
+        });
+        Assert.equals(result1, expectedResult);
+
+        //
+        expectedResult = new ArrayList<String>();
+        for (int i = 'A'; i <= 'Z'; i++) {
+            expectedResult.add(String.valueOf((char) i));
+        }
+        final List<String> result2 = new ArrayList<>();
+        new RangeExpressionParser("['A'..\"Z\"]").visit(new RangeExpressionItemVisitor() {
+
+            @Override
+            public void visit(Object val) {
+                result2.add((String) val);
+            }
+        });
+        Assert.equals(result2, expectedResult);
+
+        expectedResult = new ArrayList<String>();
+        for (int i = 'Z'; i >= 'A'; i--) {
+            expectedResult.add(String.valueOf((char) i));
+        }
+        final List<String> result3 = new ArrayList<>();
+        new RangeExpressionParser("[\"Z\"..\"A\"]").visit(new RangeExpressionItemVisitor() {
+
+            @Override
+            public void visit(Object val) {
+                result3.add((String) val);
+            }
+        });
+        Assert.equals(result3, expectedResult);
+    }
+
+    // double test
+    @Test
+    public void test10() {
+        List<Object> expectedResult = new ArrayList<>();
+        expectedResult.add(1.);
+        expectedResult.add(2.3);
+        expectedResult.add(4);
+
+        final List<Object> result = new ArrayList<>();
+        new RangeExpressionParser("[1.,2.3,4]").visit(new RangeExpressionItemVisitor() {
+
+            @Override
+            public void visit(Object val) {
+                result.add(val);
             }
         });
         Assert.equals(result, expectedResult);
@@ -256,14 +349,16 @@ public class RangeExpressionParserTest {
     @Test
     public void test24() {
         List<String> expectedResult = new ArrayList<String>();
-        expectedResult.add("a1b3c");
-        expectedResult.add("a1b4c");
-        expectedResult.add("a1b9c");
-        expectedResult.add("a2b3c");
-        expectedResult.add("a2b4c");
-        expectedResult.add("a2b9c");
+        expectedResult.add("a1b3e");
+        expectedResult.add("a1b4e");
+        expectedResult.add("a1bce");
+        expectedResult.add("a1bde");
+        expectedResult.add("a2b3e");
+        expectedResult.add("a2b4e");
+        expectedResult.add("a2bce");
+        expectedResult.add("a2bde");
         final List<String> result = new ArrayList<>();
-        new RangeExpressionParser("a[1..2]b[3..4,9]c").visit(new RangeExpressionItemVisitor() {
+        new RangeExpressionParser("a[1..2]b[3..4,'c'..'d']e").visit(new RangeExpressionItemVisitor() {
 
             @Override
             public void visit(Object val) {
