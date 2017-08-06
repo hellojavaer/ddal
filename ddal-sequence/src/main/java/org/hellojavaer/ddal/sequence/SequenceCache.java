@@ -87,7 +87,7 @@ public abstract class SequenceCache {
                     }
                     //
                     try {
-                        SequenceRange range = getIdRange();
+                        SequenceRange range = getSequenceRange();
                         if (range == null) {
                             throw new NoAvailableSequenceRangeFoundException("No available id range was found");
                         }
@@ -115,17 +115,17 @@ public abstract class SequenceCache {
                             }
                         }
                         if (e instanceof IllegalSequenceRangeException) {
-                            logger.error("[GetIdRange] " + e.getMessage());
+                            logger.error("[GetSequenceRange] " + e.getMessage());
                         } else if (e instanceof NoAvailableSequenceRangeFoundException) {
-                            logger.error("[GetIdRange] " + e.getMessage());
+                            logger.error("[GetSequenceRange] " + e.getMessage());
                         } else {
-                            logger.error("[GetIdRange]", e);
+                            logger.error("[GetSequenceRange]", e);
                         }
                         if (retryCount.get() >= delayRetryBaseLine) {
                             try {
                                 Thread.sleep(sleepTimes[(int) (retryCount.get() - delayRetryBaseLine)]);
                             } catch (InterruptedException e1) {
-                                logger.error("[GetIdRange]", e1);
+                                logger.error("[GetSequenceRange]", e1);
                             }
                         }
                         if (retryCount.get() < endCount) {
@@ -137,5 +137,5 @@ public abstract class SequenceCache {
         }.start();
     }
 
-    public abstract SequenceRange getIdRange() throws Exception;
+    public abstract SequenceRange getSequenceRange() throws Exception;
 }
