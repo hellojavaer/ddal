@@ -349,14 +349,16 @@ public class RangeExpressionParserTest {
     @Test
     public void test24() {
         List<String> expectedResult = new ArrayList<String>();
-        expectedResult.add("a1b3c");
-        expectedResult.add("a1b4c");
-        expectedResult.add("a1b9c");
-        expectedResult.add("a2b3c");
-        expectedResult.add("a2b4c");
-        expectedResult.add("a2b9c");
+        expectedResult.add("a1b3e");
+        expectedResult.add("a1b4e");
+        expectedResult.add("a1bce");
+        expectedResult.add("a1bde");
+        expectedResult.add("a2b3e");
+        expectedResult.add("a2b4e");
+        expectedResult.add("a2bce");
+        expectedResult.add("a2bde");
         final List<String> result = new ArrayList<>();
-        new RangeExpressionParser("a[1..2]b[3..4,9]c").visit(new RangeExpressionItemVisitor() {
+        new RangeExpressionParser("a[1..2]b[3..4,'c'..'d']e").visit(new RangeExpressionItemVisitor() {
 
             @Override
             public void visit(Object val) {
