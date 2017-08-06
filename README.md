@@ -85,7 +85,7 @@ for (RouteInfo routeInfo : routeInfos) {
 
 ## Extensions in the version 1.0.0.M2
 
-- provide a more simple way to configure route rule
+- provide a simpler way to configure route rule
 
 ```
 SpelShardRouteRule rule = new SpelShardRouteRule();
