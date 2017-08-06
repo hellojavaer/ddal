@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2017 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddal.sequence;
+package org.hellojavaer.ddal.ddr.expression.range;
 
 /**
  *
- * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 04/01/2017.
+ * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 29/11/2016.
  */
-public interface IdRangeGetter {
+public interface RangeExpressionItemVisitor {
 
-    IdRange get(String schemaName, String tableName, int step) throws Exception;
-
+    void visit(Object val);
 }

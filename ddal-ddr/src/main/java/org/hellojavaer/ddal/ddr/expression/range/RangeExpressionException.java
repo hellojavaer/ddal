@@ -21,40 +21,21 @@ package org.hellojavaer.ddal.ddr.expression.range;
  */
 public class RangeExpressionException extends RuntimeException {
 
-    public RangeExpressionException(String string, int index, char currentChar, String expectedChars) {
-        super("Unexpected " + (currentChar == 0 ? "end symbol" : "character '" + currentChar + "'") + " at index "
-              + index + ". Source string is " + string + " ,and detail message is :" + expectedChars);
+    public RangeExpressionException(String expression, int pos, String msg) {
+        super(build(expression, pos, msg));
     }
 
-    public RangeExpressionException(String string, int index, char currentChar, char... expectedChars) {
-        super(build(string, index, currentChar, expectedChars));
-    }
-
-    private static String build(String string, int index, char currentChar, char... expectedChars) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Unexpected character '");
-        if (currentChar == 0) {
-            sb.append("null");
-        } else {
-            sb.append(currentChar);
+    private static String build(String expression, int position, String msg) {
+        StringBuilder output = new StringBuilder();
+        output.append("Expression '");
+        output.append(expression);
+        output.append("'");
+        if (position != -1) {
+            output.append(" @ ");
+            output.append(position);
         }
-        sb.append("' at index ");
-        sb.append(index);
-        sb.append(", expect ");
-        if (expectedChars == null) {
-            sb.append("null");
-        } else {
-            sb.append("'");
-            int i = 0;
-            for (; i < expectedChars.length - 1; i++) {
-                sb.append(expectedChars[i]);
-                sb.append(',');
-            }
-            sb.append(expectedChars[i]);
-            sb.append("'");
-        }
-        sb.append(". Source string is ");
-        sb.append(string);
-        return sb.toString();
+        output.append(": ");
+        output.append(msg);
+        return output.toString();
     }
 }

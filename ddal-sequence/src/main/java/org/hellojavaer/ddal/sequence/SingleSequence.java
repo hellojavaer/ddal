@@ -16,8 +16,8 @@
 package org.hellojavaer.ddal.sequence;
 
 import org.hellojavaer.ddal.sequence.exception.GetSequenceTimeoutException;
-import org.hellojavaer.ddal.sequence.exception.IllegalIdRangeException;
-import org.hellojavaer.ddal.sequence.exception.NoAvailableIdRangeFoundException;
+import org.hellojavaer.ddal.sequence.exception.IllegalSequenceRangeException;
+import org.hellojavaer.ddal.sequence.exception.NoAvailableSequenceRangeFoundException;
 import org.hellojavaer.ddal.sequence.exception.SequenceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,34 +38,34 @@ public class SingleSequence implements Sequence {
 
     private static final int DEFAULT_DELAY_RETRY_BASE_LINE = 4;
 
-    private String           schemaName;
-    private String           tableName;
-    private Integer          step;                                                                    // 单节点步长
-    private Integer          cacheNSteps;                                                             // 缓存队列大小
-    private Integer          initTimeout;
-    private IdRangeGetter    idRangeGetter;
-    private ExceptionHandler exceptionHandler;
+    private String              schemaName;
+    private String              tableName;
+    private Integer             step;                                                                    // 单节点步长
+    private Integer             cacheNSteps;                                                             // 缓存队列大小
+    private Integer             initTimeout;
+    private SequenceRangeGetter idRangeGetter;
+    private ExceptionHandler    exceptionHandler;
     private Integer          delayRetryBaseLine            = DEFAULT_DELAY_RETRY_BASE_LINE;
 
-    private volatile IdCache idCache;
+    private volatile SequenceCache idCache;
     private boolean          initialized                   = false;
 
     public SingleSequence() {
     }
 
     public SingleSequence(String schemaName, String tableName, Integer step, Integer cacheNSteps, Integer initTimeout,
-                          IdRangeGetter idRangeGetter) {
+                          SequenceRangeGetter idRangeGetter) {
         this(schemaName, tableName, step, cacheNSteps, initTimeout, idRangeGetter, null, DEFAULT_DELAY_RETRY_BASE_LINE);
     }
 
     public SingleSequence(String schemaName, String tableName, Integer step, Integer cacheNSteps, Integer initTimeout,
-                          IdRangeGetter idRangeGetter, ExceptionHandler exceptionHandler) {
+                          SequenceRangeGetter idRangeGetter, ExceptionHandler exceptionHandler) {
         this(schemaName, tableName, step, cacheNSteps, initTimeout, idRangeGetter, exceptionHandler,
              DEFAULT_DELAY_RETRY_BASE_LINE);
     }
 
     public SingleSequence(String schemaName, String tableName, Integer step, Integer cacheNSteps, Integer initTimeout,
-                          IdRangeGetter idRangeGetter, ExceptionHandler exceptionHandler, Integer delayRetryBaseLine) {
+                          SequenceRangeGetter idRangeGetter, ExceptionHandler exceptionHandler, Integer delayRetryBaseLine) {
         this.schemaName = schemaName;
         this.tableName = tableName;
         this.step = step;
@@ -93,22 +93,22 @@ public class SingleSequence implements Sequence {
                     Assert.notNull(delayRetryBaseLine, "'delayRetryBaseLine' can't be null'");
                     Assert.isTrue(delayRetryBaseLine > 0, "'delayRetryBaseLine' must be greater than 0");
                     try {
-                        this.idCache = new IdCache(step, cacheNSteps, initTimeout, exceptionHandler, delayRetryBaseLine) {
+                        this.idCache = new SequenceCache(step, cacheNSteps, initTimeout, exceptionHandler, delayRetryBaseLine) {
 
                             @Override
-                            public IdRange getIdRange() throws Exception {
-                                IdRange idRange = getIdRangeGetter().get(getSchemaName(), getTableName(), getStep());
+                            public SequenceRange getIdRange() throws Exception {
+                                SequenceRange idRange = getIdRangeGetter().get(getSchemaName(), getTableName(), getStep());
                                 if (idRange == null) {
-                                    throw new NoAvailableIdRangeFoundException(
+                                    throw new NoAvailableSequenceRangeFoundException(
                                                                                "No available id rang was found for schemaName:'"
                                                                                        + getSchemaName()
                                                                                        + "', tableName:'"
                                                                                        + getTableName() + "'");
                                 }
                                 if (idRange.getBeginValue() > idRange.getEndValue()) {
-                                    throw new IllegalIdRangeException("Illegal id range " + idRange
-                                                                      + " for schemaName:'" + getSchemaName()
-                                                                      + "', tableName:'" + getTableName() + "'");
+                                    throw new IllegalSequenceRangeException("Illegal id range " + idRange
+                                                                            + " for schemaName:'" + getSchemaName()
+                                                                            + "', tableName:'" + getTableName() + "'");
                                 }
                                 return idRange;
                             }
@@ -178,11 +178,11 @@ public class SingleSequence implements Sequence {
         this.initTimeout = initTimeout;
     }
 
-    public IdRangeGetter getIdRangeGetter() {
+    public SequenceRangeGetter getIdRangeGetter() {
         return idRangeGetter;
     }
 
-    public void setIdRangeGetter(IdRangeGetter idRangeGetter) {
+    public void setIdRangeGetter(SequenceRangeGetter idRangeGetter) {
         this.idRangeGetter = idRangeGetter;
     }
 
