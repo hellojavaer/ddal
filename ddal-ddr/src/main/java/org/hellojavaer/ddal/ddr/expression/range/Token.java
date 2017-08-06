@@ -52,7 +52,7 @@ class Token {
     public String toString() {
         StringBuilder s = new StringBuilder();
         s.append("[").append(this.kind.toString());
-        if (this.kind.hasPayload()) {
+        if (this.data != null) {
             s.append(":").append(this.data);
         }
         s.append("]");
