@@ -39,7 +39,7 @@ enum TokenKind {
 
     TO("..");
 
-    final String tokenString;
+    private final String tokenString;
 
     private TokenKind(String tokenString) {
         this.tokenString = tokenString;
