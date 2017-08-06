@@ -48,7 +48,7 @@ rule.setTbRouteRule("{tbName}_{format('%04d', sdValue % 8)}");
 "1,2,3"  => 1,2,3
 "[1..3]" => 1,2,3
 "[0..1][0..1]" => 00,01,10,11
-"['A'..'B','X']" => A,B,X
+"['A'..'C','X']" => A,B,C,X
 "Hi![' Allen',' Bob']" => Hi! Allen,Hi! Bob
 ``` 
 
