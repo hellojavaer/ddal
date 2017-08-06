@@ -56,7 +56,7 @@ rule.setTbRouteRule("{tbName}_{format('%04d', sdValue % 8)}");
 - add ddal-bom
 
 ```
-<!-- add this dependency in dependencyManagement -->
+<!-- add the following dependency into your dependencyManagement -->
 <dependency>
     <groupId>org.hellojavaer.ddal</groupId>
     <artifactId>ddal-bom</artifactId>
