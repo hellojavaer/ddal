@@ -30,28 +30,44 @@ public class RangeExpressionParserTest {
     @Test
     public void test00() {
         List<String> expectedResult = new ArrayList<String>();
-        expectedResult.add("0");
+        expectedResult.add("");
         final List<String> result = new ArrayList<>();
+        new RangeExpressionParser("").visit(new RangeExpressionItemVisitor() {
+
+            @Override
+            public void visit(Object val) {
+                result.add((String) val);
+            }
+        });
+        Assert.equals(result, expectedResult);
+
+        expectedResult = new ArrayList<String>();
+        expectedResult.add("0");
+        final List<String> result1 = new ArrayList<>();
         new RangeExpressionParser("0").visit(new RangeExpressionItemVisitor() {
 
             @Override
             public void visit(Object val) {
-                result.add((String) val);
+                result1.add((String) val);
             }
         });
-        Assert.equals(result, expectedResult);
+        Assert.equals(result1, expectedResult);
     }
 
-    //
+    // 普通逗号拼接
     @Test
     public void test01() {
         List<String> expectedResult = new ArrayList<String>();
+        expectedResult.add("");
         expectedResult.add("ab");
         expectedResult.add("");
         expectedResult.add("cd");
         expectedResult.add("");
+        expectedResult.add("e f");
+        expectedResult.add("\\hijk");
+        expectedResult.add("");
         final List<String> result = new ArrayList<>();
-        new RangeExpressionParser("ab,,cd,  ").visit(new RangeExpressionItemVisitor() {
+        new RangeExpressionParser(",ab,,cd,  , e f , \\hijk ,").visit(new RangeExpressionItemVisitor() {
 
             @Override
             public void visit(Object val) {
@@ -61,63 +77,9 @@ public class RangeExpressionParserTest {
         Assert.equals(result, expectedResult);
     }
 
+    // 数字区间测试
     @Test
     public void test02() {
-        List<Object> expectedResult = new ArrayList<>();
-        expectedResult.add(1);
-        expectedResult.add(2);
-        expectedResult.add(3);
-        expectedResult.add("4");
-        expectedResult.add("5");
-        expectedResult.add("");
-        final List<Object> result = new ArrayList<>();
-        new RangeExpressionParser("[1..2,3,'4',\"5\",'']").visit(new RangeExpressionItemVisitor() {
-
-            @Override
-            public void visit(Object val) {
-                result.add(val);
-            }
-        });
-        Assert.equals(result, expectedResult);
-
-        expectedResult = new ArrayList<>();
-        expectedResult.add("pre1");
-        expectedResult.add("pre2");
-        expectedResult.add("pre3");
-        expectedResult.add("pre4");
-        expectedResult.add("pre5");
-        expectedResult.add("pre");
-        final List<Object> result2 = new ArrayList<>();
-        new RangeExpressionParser("pre[1..2,3,'4',\"5\",'']").visit(new RangeExpressionItemVisitor() {
-
-            @Override
-            public void visit(Object val) {
-                result2.add(val);
-            }
-        });
-        Assert.equals(result2, expectedResult);
-
-        expectedResult = new ArrayList<>();
-        expectedResult.add("1suf");
-        expectedResult.add("2suf");
-        expectedResult.add("3suf");
-        expectedResult.add("4suf");
-        expectedResult.add("5suf");
-        expectedResult.add("suf");
-        final List<Object> result3 = new ArrayList<>();
-        new RangeExpressionParser("[1..2,3,'4',\"5\",'']suf").visit(new RangeExpressionItemVisitor() {
-
-            @Override
-            public void visit(Object val) {
-                result3.add(val);
-            }
-        });
-        Assert.equals(result3, expectedResult);
-    }
-
-    // number test
-    @Test
-    public void test07() {
         List<Integer> expectedResult = new ArrayList<>();
         for (int i = -99; i <= 99; i++) {
             expectedResult.add(i);
@@ -147,26 +109,9 @@ public class RangeExpressionParserTest {
         Assert.equals(result1, expectedResult);
     }
 
+    // 字符区间测试
     @Test
-    public void test08() {
-        List<Integer> expectedResult = new ArrayList<>();
-        for (int i = 1; i <= 13; i++) {
-            expectedResult.add(i);
-        }
-        final List<Integer> result = new ArrayList<>();
-        new RangeExpressionParser("[1..5,6..10,11,12..13]").visit(new RangeExpressionItemVisitor() {
-
-            @Override
-            public void visit(Object val) {
-                result.add((Integer) val);
-            }
-        });
-        Assert.equals(result, expectedResult);
-    }
-
-    // single char test
-    @Test
-    public void test09() {
+    public void test03() {
         List<String> expectedResult = new ArrayList<String>();
         expectedResult.add("a");
         expectedResult.add("b");
@@ -243,9 +188,9 @@ public class RangeExpressionParserTest {
         Assert.equals(result3, expectedResult);
     }
 
-    // double test
+    // double 测试
     @Test
-    public void test10() {
+    public void test04() {
         List<Object> expectedResult = new ArrayList<>();
         expectedResult.add(1.);
         expectedResult.add(2.3);
@@ -262,8 +207,35 @@ public class RangeExpressionParserTest {
         Assert.equals(result, expectedResult);
     }
 
+    // 区间内组合测试
     @Test
-    public void test20() {
+    public void test05() {
+        List<Object> expectedResult = new ArrayList<>();
+        expectedResult.add("\'");
+        expectedResult.add("\"");
+        expectedResult.add(1);
+        expectedResult.add(2);
+        expectedResult.add("3");
+        expectedResult.add("a");
+        expectedResult.add("b");
+        expectedResult.add("c");
+        expectedResult.add("d");
+        expectedResult.add("ef\\");
+        expectedResult.add("gh");
+        final List<Object> result = new ArrayList<>();
+        new RangeExpressionParser("['\\'',\"\\\"\",1..2,'3','a'..'b',\"c\"..\"d\",'\\ef\\\\',\"\\gh\"]").visit(new RangeExpressionItemVisitor() {
+
+            @Override
+            public void visit(Object val) {
+                result.add(val);
+            }
+        });
+        Assert.equals(result, expectedResult);
+    }
+
+    // 区间外组合测试
+    @Test
+    public void test06() {
         List<String> expectedResult = new ArrayList<String>();
         expectedResult.add("13");
         expectedResult.add("14");
@@ -284,7 +256,7 @@ public class RangeExpressionParserTest {
     }
 
     @Test
-    public void test21() {
+    public void test07() {
         List<String> expectedResult = new ArrayList<String>();
         expectedResult.add("a13");
         expectedResult.add("a14");
@@ -305,7 +277,7 @@ public class RangeExpressionParserTest {
     }
 
     @Test
-    public void test22() {
+    public void test08() {
         List<String> expectedResult = new ArrayList<String>();
         expectedResult.add("13c");
         expectedResult.add("14c");
@@ -326,7 +298,7 @@ public class RangeExpressionParserTest {
     }
 
     @Test
-    public void test23() {
+    public void test09() {
         List<String> expectedResult = new ArrayList<String>();
         expectedResult.add("1b3");
         expectedResult.add("1b4");
@@ -347,7 +319,7 @@ public class RangeExpressionParserTest {
     }
 
     @Test
-    public void test24() {
+    public void test10() {
         List<String> expectedResult = new ArrayList<String>();
         expectedResult.add("a1b3e");
         expectedResult.add("a1b4e");

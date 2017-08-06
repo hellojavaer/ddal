@@ -24,16 +24,17 @@ import java.util.List;
  */
 class Tokenizer {
 
-    private List<Token>       tokens         = new ArrayList<>();
-    private int               index          = 0;
-    private int               pos            = 0;
+    private static final String BLANK_STRING   = "";
+    private List<Token>         tokens         = new ArrayList<>();
+    private int                 index          = 0;
+    private int                 pos            = 0;
 
-    private String            expression;
+    private String              expression;
 
-    private static final byte FLAGS[]        = new byte[256];
-    private static final byte IS_DIGIT       = 0x01;
-    private static final byte IS_LOWER_ALPHA = 0x02;
-    private static final byte IS_UPPER_ALPHA = 0x04;
+    private static final byte   FLAGS[]        = new byte[256];
+    private static final byte   IS_DIGIT       = 0x01;
+    private static final byte   IS_LOWER_ALPHA = 0x02;
+    private static final byte   IS_UPPER_ALPHA = 0x04;
 
     static {
         for (int ch = '0'; ch <= '9'; ch++) {
@@ -48,6 +49,9 @@ class Tokenizer {
     }
 
     public Tokenizer(String expression) {
+        if (expression == null) {
+            return;
+        }
         this.expression = expression;
         boolean block = false;
         for (; pos < expression.length(); pos++) {
@@ -64,8 +68,10 @@ class Tokenizer {
                         if (tokens.size() > 0) {
                             Token preToken = tokens.get(tokens.size() - 1);
                             if (preToken != null && preToken.getKind() == TokenKind.COMMA) {
-                                tokens.add(new Token(TokenKind.LITERAL_STRING, "", pos - 1, pos));
+                                tokens.add(new Token(TokenKind.LITERAL_STRING, BLANK_STRING, pos - 1, pos - 1));
                             }
+                        } else {
+                            tokens.add(new Token(TokenKind.LITERAL_STRING, BLANK_STRING, pos, pos));
                         }
                         tokens.add(new Token(TokenKind.COMMA, pos, pos + 1));
                         break;
@@ -88,12 +94,6 @@ class Tokenizer {
                     case '[':
                         throw new RangeExpressionException(expression, pos, "Unexpected character '['");
                     case ']':// 区块
-                        if (tokens.size() > 0) {
-                            Token preToken = tokens.get(tokens.size() - 1);
-                            if (preToken != null && preToken.getKind() == TokenKind.COMMA) {
-                                tokens.add(new Token(TokenKind.LITERAL_STRING, "", pos - 1, pos));
-                            }
-                        }
                         tokens.add(new Token(TokenKind.RSQUARE, pos, pos + 1));
                         block = false;
                         break;
@@ -146,28 +146,42 @@ class Tokenizer {
                 }
             }
         }
+        if (tokens.size() > 0) {
+            if (block == false) {
+                Token preToken = tokens.get(tokens.size() - 1);
+                if (preToken != null && preToken.getKind() == TokenKind.COMMA) {
+                    tokens.add(new Token(TokenKind.LITERAL_STRING, BLANK_STRING, pos - 1, pos - 1));
+                }
+            }
+        } else {
+            tokens.add(new Token(TokenKind.LITERAL_STRING, BLANK_STRING, 0, 0));
+        }
     }
 
     private void pushString(boolean isDoubleuotes) {
         boolean escape = false;
+        StringBuilder sb = null;
         for (int i = pos + 1; i < expression.length(); i++) {
             char ch = expression.charAt(i);
-            StringBuilder sb = null;
             if (escape) {
                 escape = false;
                 if (sb == null) {
                     sb = new StringBuilder();
-                } else {
-                    sb.append(ch);
                 }
+                sb.append(ch);
             } else {
                 boolean terminal = false;
                 if (ch == '\\') {
                     escape = true;
+                    continue;
                 } else if (isDoubleuotes && ch == '"') {
                     terminal = true;
                 } else if (!isDoubleuotes && ch == '\'') {
                     terminal = true;
+                } else {
+                    if (sb != null) {
+                        sb.append(ch);
+                    }
                 }
                 if (terminal) {
                     String str;
