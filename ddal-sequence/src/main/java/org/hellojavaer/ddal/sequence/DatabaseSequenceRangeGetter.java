@@ -27,7 +27,7 @@ import java.sql.ResultSet;
 import java.util.ConcurrentModificationException;
 
 /**
- *  <p>Id Range</p>
+ *  <p>Sequence Range</p>
  *
  *  Design model:
  *
@@ -56,8 +56,8 @@ import java.util.ConcurrentModificationException;
  *  |      [id] [id]  [id]   [id]  [id] [id]
  * _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
  *
- *  Between master and client,there can be multiple followers. Id Range is firstly allocated by master.
- *  The lower layer request id range to the higher layer and then allocate id range to its lower.
+ *  Between master and client,there can be multiple followers. Sequence range is firstly allocated by master.
+ *  The lower layer request sequence range to the higher layer and then allocate sequence range to its lower.
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 04/01/2017.
  */
@@ -278,7 +278,7 @@ public class DatabaseSequenceRangeGetter implements SequenceRangeGetter {
                 }
                 if (deleted == 1) {
                     if (logger.isInfoEnabled()) {
-                        logger.info("Id range for schemaName:{},tableName:{} is used up. More detail information is step:{},"
+                        logger.info("Sequence range for schemaName:{},tableName:{} is used up. More detail information is step:{},"
                                             + "endValue:{},version:{},id:{} and actually allocated range is '{} ~ {}'",
                                     schemaName, tableName, step,//
                                     endValue, version, id, rangeBegin, rangeEnd);

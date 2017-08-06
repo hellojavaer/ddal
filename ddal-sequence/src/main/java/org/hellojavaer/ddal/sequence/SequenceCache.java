@@ -89,10 +89,10 @@ public abstract class SequenceCache {
                     try {
                         SequenceRange range = getSequenceRange();
                         if (range == null) {
-                            throw new NoAvailableSequenceRangeFoundException("No available id range was found");
+                            throw new NoAvailableSequenceRangeFoundException("No available sequence range was found");
                         }
                         if (range.getBeginValue() > range.getEndValue()) {
-                            throw new IllegalSequenceRangeException("Illegal id range " + range);
+                            throw new IllegalSequenceRangeException("Illegal sequence range " + range);
                         }
                         int c = (int) ((range.getEndValue() - range.getBeginValue() + step) / step);
                         long beginValue = range.getBeginValue();
