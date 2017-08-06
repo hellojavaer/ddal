@@ -39,13 +39,10 @@ enum TokenKind {
 
     TO("..");
 
-    final char[]          tokenChars;
-
-    final private boolean hasPayload; // is there more to this token than simply the kind
+    private final String tokenString;
 
     private TokenKind(String tokenString) {
-        this.tokenChars = tokenString.toCharArray();
-        this.hasPayload = (this.tokenChars.length == 0);
+        this.tokenString = tokenString;
     }
 
     private TokenKind() {
@@ -54,15 +51,6 @@ enum TokenKind {
 
     @Override
     public String toString() {
-        return (name() + (this.tokenChars.length != 0 ? "(" + new String(this.tokenChars) + ")" : ""));
+        return (name() + (this.tokenString.length() != 0 ? "(" + this.tokenString + ")" : ""));
     }
-
-    public boolean hasPayload() {
-        return this.hasPayload;
-    }
-
-    public int getLength() {
-        return this.tokenChars.length;
-    }
-
 }
