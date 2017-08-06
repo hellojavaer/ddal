@@ -176,9 +176,9 @@ class Tokenizer {
                     } else {
                         str = sb.toString();
                     }
-                    if (str.length() == 1 && (FLAGS[str.charAt(0)] & IS_LOWER_ALPHA) == 1) {
+                    if (str.length() == 1 && (FLAGS[str.charAt(0)] & IS_LOWER_ALPHA) != 0) {
                         tokens.add(new Token(TokenKind.LITERAL_LOWER_CHAR, str, pos + 1, i));
-                    } else if (str.length() == 1 && (FLAGS[str.charAt(0)] & IS_UPPER_ALPHA) == 1) {
+                    } else if (str.length() == 1 && (FLAGS[str.charAt(0)] & IS_UPPER_ALPHA) != 0) {
                         tokens.add(new Token(TokenKind.LITERAL_UPPER_CHAR, str, pos + 1, i));
                     } else {
                         tokens.add(new Token(TokenKind.LITERAL_STRING, str, pos + 1, i));
