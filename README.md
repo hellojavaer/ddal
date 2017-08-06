@@ -24,13 +24,33 @@ In DataSourceManager, one datasource is associated with multiple schemas, DataSo
 After sql routing, datasource routing will use the schemas returned by sql routing to choose which datasource will be returned. ReadWriteDataSourceManager requires at least one schema to choose datasource from confirmations and SingleDataSourceManager doesn't have this limiting. Meanwhile if you are trying to use two schemas which are not contained in the same datasource(Note! the same datasource doesn't mean the physical concept but a logic concept),'CrossingDataSourceException' will be thrown. In a transaction, only one datasource can be bound in one transaction, If you need to access two datasources in a invocation you can create a new transaction for the second datasource.
 
 
-## News
-- version 1.0.0.M4 released.
-- version 1.0.0.M3 released.
-- version 1.0.0.M2 released.
-- version 1.0.0.M1 released.
-
 ### [Release Notes](https://github.com/hellojavaer/ddal/releases)
+
+## Extensions in the latest version 1.0.0.M5
+
+- 1. make route rule simpler
+
+```
+// old
+SpelShardRouteRule rule = new SpelShardRouteRule();
+rule.setScRouteRule("{#scName}_{#format('%02d', #sdValue % 4)}");
+rule.setTbRouteRule("{#tbName}_{#format('%04d', #sdValue % 8)}");
+
+// new
+SpelShardRouteRule rule = new SpelShardRouteRule();
+rule.setScRouteRule("{scName}_{format('%02d', sdValue % 4)}");
+rule.setTbRouteRule("{tbName}_{format('%04d', sdValue % 8)}");
+```
+
+- 2. optimize range expression parser
+
+```
+"1,2,3"  => 1,2,3
+"[1..3]" => 1,2,3
+"[0..1][0..1]" => 00,01,10,11
+"['A'..'B','X']" => A,B,X
+"Hi![' Allen',' Bob']" => Hi !Allen,Hi! Bob
+``` 
 
 ## Extensions in the latest version 1.0.0.M4
 - add ddal-bom
