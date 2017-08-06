@@ -192,7 +192,7 @@ public class DatabaseSequenceRangeGetter implements SequenceRangeGetter {
     public SequenceRange get(String schemaName, String tableName, int step) throws Exception {
         init();
         int rows = 0;
-        SequenceRange idRange = null;
+        SequenceRange sequenceRange = null;
         Connection connection = this.connection;
         PreparedStatement selectStatement = null;
         PreparedStatement updateStatement = null;
@@ -231,17 +231,17 @@ public class DatabaseSequenceRangeGetter implements SequenceRangeGetter {
                 }
                 version = ((Number) selectResult.getLong(6)).longValue();
             } else {
-                throw new NoAvailableSequenceRangeFoundException("No available id rang was found for schemaName:'"
+                throw new NoAvailableSequenceRangeFoundException("No available sequence rang was found for schemaName:'"
                                                                  + schemaName + "', tableName:'" + tableName + "'");
             }
             // 数据库步长优先
             if (dbStep != null && dbStep > 0) {
                 step = dbStep;
             }
-            long idRangeBegin = nextValue;
-            long idRangeEnd = nextValue + step - 1;
-            if (endValue != null && idRangeEnd > endValue) {
-                idRangeEnd = endValue;
+            long rangeBegin = nextValue;
+            long rangeEnd = nextValue + step - 1;
+            if (endValue != null && rangeEnd > endValue) {
+                rangeEnd = endValue;
             }
             updateStatement = connection.prepareStatement(targetUpdateSql);
             boolean dirtyRow = false;
@@ -270,21 +270,21 @@ public class DatabaseSequenceRangeGetter implements SequenceRangeGetter {
             if (rows > 0) {
                 if (dirtyRow) {// 兼容异常数据
                     throw new IllegalSequenceRangeException(
-                                                      String.format("Illegal id range {id:%s, nextValue:%s, endValue:%s, version:%s, deleted:0}",
+                                                      String.format("Illegal sequence range {id:%s, nextValue:%s, endValue:%s, version:%s, deleted:0}",
                                                                     id, nextValue, endValue, version));
                 }
                 if (logger.isInfoEnabled()) {
-                    logger.info("[Get_Range]: " + idRange);
+                    logger.info("[Get_Range]: " + sequenceRange);
                 }
                 if (deleted == 1) {
                     if (logger.isInfoEnabled()) {
                         logger.info("Id range for schemaName:{},tableName:{} is used up. More detail information is step:{},"
                                             + "endValue:{},version:{},id:{} and actually allocated range is '{} ~ {}'",
                                     schemaName, tableName, step,//
-                                    endValue, version, id, idRangeBegin, idRangeEnd);
+                                    endValue, version, id, rangeBegin, rangeEnd);
                     }
                 }
-                return new SequenceRange(idRangeBegin, idRangeEnd);
+                return new SequenceRange(rangeBegin, rangeEnd);
             } else {
                 throw new ConcurrentModificationException();
             }

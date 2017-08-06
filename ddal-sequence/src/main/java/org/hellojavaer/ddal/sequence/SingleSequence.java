@@ -34,44 +34,46 @@ import java.util.concurrent.TimeoutException;
  */
 public class SingleSequence implements Sequence {
 
-    private Logger           logger                        = LoggerFactory.getLogger(this.getClass());
+    private Logger                 logger                        = LoggerFactory.getLogger(this.getClass());
 
-    private static final int DEFAULT_DELAY_RETRY_BASE_LINE = 4;
+    private static final int       DEFAULT_DELAY_RETRY_BASE_LINE = 4;
 
-    private String              schemaName;
-    private String              tableName;
-    private Integer             step;                                                                    // 单节点步长
-    private Integer             cacheNSteps;                                                             // 缓存队列大小
-    private Integer             initTimeout;
-    private SequenceRangeGetter idRangeGetter;
-    private ExceptionHandler    exceptionHandler;
-    private Integer          delayRetryBaseLine            = DEFAULT_DELAY_RETRY_BASE_LINE;
+    private String                 schemaName;
+    private String                 tableName;
+    private Integer                step;                                                                    // 单节点步长
+    private Integer                cacheNSteps;                                                             // 缓存队列大小
+    private Integer                initTimeout;
+    private SequenceRangeGetter    sequenceRangeGetter;
+    private ExceptionHandler       exceptionHandler;
+    private Integer                delayRetryBaseLine            = DEFAULT_DELAY_RETRY_BASE_LINE;
 
-    private volatile SequenceCache idCache;
-    private boolean          initialized                   = false;
+    private volatile SequenceCache sequenceCache;
+    private boolean                initialized                   = false;
 
     public SingleSequence() {
     }
 
     public SingleSequence(String schemaName, String tableName, Integer step, Integer cacheNSteps, Integer initTimeout,
-                          SequenceRangeGetter idRangeGetter) {
-        this(schemaName, tableName, step, cacheNSteps, initTimeout, idRangeGetter, null, DEFAULT_DELAY_RETRY_BASE_LINE);
-    }
-
-    public SingleSequence(String schemaName, String tableName, Integer step, Integer cacheNSteps, Integer initTimeout,
-                          SequenceRangeGetter idRangeGetter, ExceptionHandler exceptionHandler) {
-        this(schemaName, tableName, step, cacheNSteps, initTimeout, idRangeGetter, exceptionHandler,
+                          SequenceRangeGetter sequenceRangeGetter) {
+        this(schemaName, tableName, step, cacheNSteps, initTimeout, sequenceRangeGetter, null,
              DEFAULT_DELAY_RETRY_BASE_LINE);
     }
 
     public SingleSequence(String schemaName, String tableName, Integer step, Integer cacheNSteps, Integer initTimeout,
-                          SequenceRangeGetter idRangeGetter, ExceptionHandler exceptionHandler, Integer delayRetryBaseLine) {
+                          SequenceRangeGetter sequenceRangeGetter, ExceptionHandler exceptionHandler) {
+        this(schemaName, tableName, step, cacheNSteps, initTimeout, sequenceRangeGetter, exceptionHandler,
+             DEFAULT_DELAY_RETRY_BASE_LINE);
+    }
+
+    public SingleSequence(String schemaName, String tableName, Integer step, Integer cacheNSteps, Integer initTimeout,
+                          SequenceRangeGetter sequenceRangeGetter, ExceptionHandler exceptionHandler,
+                          Integer delayRetryBaseLine) {
         this.schemaName = schemaName;
         this.tableName = tableName;
         this.step = step;
         this.cacheNSteps = cacheNSteps;
         this.initTimeout = initTimeout;
-        this.idRangeGetter = idRangeGetter;
+        this.sequenceRangeGetter = sequenceRangeGetter;
         this.exceptionHandler = exceptionHandler;
         this.delayRetryBaseLine = delayRetryBaseLine;
         init();
@@ -89,28 +91,30 @@ public class SingleSequence implements Sequence {
                     Assert.isTrue(cacheNSteps > 0, "'cacheNSteps' must be greater than 0");
                     Assert.notNull(initTimeout, "'initTimeout' can't be null'");
                     Assert.isTrue(initTimeout > 0, "'initTimeout' must be greater than 0");
-                    Assert.notNull(idRangeGetter, "'idRangeGetter' can't be null'");
+                    Assert.notNull(sequenceRangeGetter, "'sequenceRangeGetter' can't be null'");
                     Assert.notNull(delayRetryBaseLine, "'delayRetryBaseLine' can't be null'");
                     Assert.isTrue(delayRetryBaseLine > 0, "'delayRetryBaseLine' must be greater than 0");
                     try {
-                        this.idCache = new SequenceCache(step, cacheNSteps, initTimeout, exceptionHandler, delayRetryBaseLine) {
+                        this.sequenceCache = new SequenceCache(step, cacheNSteps, initTimeout, exceptionHandler,
+                                                               delayRetryBaseLine) {
 
                             @Override
-                            public SequenceRange getIdRange() throws Exception {
-                                SequenceRange idRange = getIdRangeGetter().get(getSchemaName(), getTableName(), getStep());
-                                if (idRange == null) {
+                            public SequenceRange getSequenceRange() throws Exception {
+                                SequenceRange sequenceRange = getSequenceRangeGetter().get(getSchemaName(), getTableName(),
+                                                                                     getStep());
+                                if (sequenceRange == null) {
                                     throw new NoAvailableSequenceRangeFoundException(
-                                                                               "No available id rang was found for schemaName:'"
-                                                                                       + getSchemaName()
-                                                                                       + "', tableName:'"
-                                                                                       + getTableName() + "'");
+                                                                                     "No available sequence rang was found for schemaName:'"
+                                                                                             + getSchemaName()
+                                                                                             + "', tableName:'"
+                                                                                             + getTableName() + "'");
                                 }
-                                if (idRange.getBeginValue() > idRange.getEndValue()) {
-                                    throw new IllegalSequenceRangeException("Illegal id range " + idRange
+                                if (sequenceRange.getBeginValue() > sequenceRange.getEndValue()) {
+                                    throw new IllegalSequenceRangeException("Illegal sequence range " + sequenceRange
                                                                             + " for schemaName:'" + getSchemaName()
                                                                             + "', tableName:'" + getTableName() + "'");
                                 }
-                                return idRange;
+                                return sequenceRange;
                             }
                         };
                     } catch (InterruptedException e) {
@@ -128,7 +132,7 @@ public class SingleSequence implements Sequence {
     public long nextValue(long timeout, TimeUnit timeUnit) throws GetSequenceTimeoutException {
         try {
             init();
-            return idCache.get(timeout, timeUnit);
+            return sequenceCache.get(timeout, timeUnit);
         } catch (TimeoutException e1) {
             throw new GetSequenceTimeoutException(e1);
         } catch (SequenceException e0) {
@@ -178,12 +182,12 @@ public class SingleSequence implements Sequence {
         this.initTimeout = initTimeout;
     }
 
-    public SequenceRangeGetter getIdRangeGetter() {
-        return idRangeGetter;
+    public SequenceRangeGetter getSequenceRangeGetter() {
+        return sequenceRangeGetter;
     }
 
-    public void setIdRangeGetter(SequenceRangeGetter idRangeGetter) {
-        this.idRangeGetter = idRangeGetter;
+    public void setSequenceRangeGetter(SequenceRangeGetter sequenceRangeGetter) {
+        this.sequenceRangeGetter = sequenceRangeGetter;
     }
 
     public ExceptionHandler getExceptionHandler() {
