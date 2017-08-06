@@ -54,6 +54,18 @@ rule.setTbRouteRule("{tbName}_{format('%04d', sdValue % 8)}");
 
 ## Extensions in the latest version 1.0.0.M4
 - add ddal-bom
+
+```
+<!-- add this dependency in dependencyManagement -->
+<dependency>
+    <groupId>org.hellojavaer.ddal</groupId>
+    <artifactId>ddal-bom</artifactId>
+    <version>1.0.0.M5</version>
+    <type>pom</type>
+    <scope>import</scope>
+</dependency>
+```
+
 - implement PollingGroupSequence
 
 ## Extensions in the version 1.0.0.M3
