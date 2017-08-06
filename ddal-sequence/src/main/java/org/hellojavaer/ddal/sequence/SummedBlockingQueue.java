@@ -85,11 +85,11 @@ class SummedBlockingQueue {
         }
     }
 
-    public void put(SequenceRange idRange) throws InterruptedException {
-        if (idRange.getEndValue() < idRange.getBeginValue()) {
+    public void put(SequenceRange sequenceRange) throws InterruptedException {
+        if (sequenceRange.getEndValue() < sequenceRange.getBeginValue()) {
             throw new IllegalArgumentException("end value must be greater than or equal to begin value");
         }
-        Node node = new Node(new InnerSequenceRange(idRange.getBeginValue(), idRange.getEndValue()));
+        Node node = new Node(new InnerSequenceRange(sequenceRange.getBeginValue(), sequenceRange.getEndValue()));
         final ReentrantLock putLock = this.putLock;
         final AtomicInteger count = this.countForCapacity;
         putLock.lockInterruptibly();
@@ -100,7 +100,7 @@ class SummedBlockingQueue {
             }
             enqueue(node);
             c = count.incrementAndGet();
-            long s = countForSum.addAndGet(idRange.getEndValue() - idRange.getBeginValue() + 1);
+            long s = countForSum.addAndGet(sequenceRange.getEndValue() - sequenceRange.getBeginValue() + 1);
             if (s < sum) {
                 notFull.signal();
             }
@@ -117,21 +117,21 @@ class SummedBlockingQueue {
         if (unit == null) {
             throw new IllegalArgumentException("'unit' can't be null");
         }
-        InnerSequenceRange idRange = threadLocal.get();
-        if (idRange != null) {
-            long id = idRange.getCounter().getAndIncrement();
-            if (id <= idRange.getEndValue()) {
+        InnerSequenceRange range = threadLocal.get();
+        if (range != null) {
+            long id = range.getCounter().getAndIncrement();
+            if (id <= range.getEndValue()) {
                 long c = countForSum.decrementAndGet();
                 if (c == sum - 1) {
                     signalNotFull();
                 }
-                if (id == idRange.getEndValue()) {
-                    remove(idRange);
+                if (id == range.getEndValue()) {
+                    remove(range);
                     threadLocal.set(null);
                 }
                 return id;
             } else {
-                remove(idRange);
+                remove(range);
                 threadLocal.set(null);
                 return recursiveGetFromQueue(timeout, unit);
             }
@@ -144,24 +144,24 @@ class SummedBlockingQueue {
         long nanoTimeout = unit.toNanos(timeout);
         while (true) {
             long now = System.nanoTime();
-            InnerSequenceRange idRange = get(nanoTimeout);
-            if (idRange == null) {
+            InnerSequenceRange sequenceRange = get(nanoTimeout);
+            if (sequenceRange == null) {
                 throw new TimeoutException(timeout + " " + unit);
             } else {
-                long id = idRange.getCounter().getAndIncrement();
-                if (id <= idRange.getEndValue()) {
+                long id = sequenceRange.getCounter().getAndIncrement();
+                if (id <= sequenceRange.getEndValue()) {
                     long c = countForSum.decrementAndGet();
                     if (c == sum - 1) {
                         signalNotFull();
                     }
-                    if (id == idRange.getEndValue()) {
-                        remove(idRange);
+                    if (id == sequenceRange.getEndValue()) {
+                        remove(sequenceRange);
                     } else {
-                        threadLocal.set(idRange);
+                        threadLocal.set(sequenceRange);
                     }
                     return id;
                 } else {
-                    remove(idRange);
+                    remove(sequenceRange);
                     nanoTimeout -= System.nanoTime() - now;
                     if (nanoTimeout <= 0) {
                         throw new TimeoutException(timeout + " " + unit);
