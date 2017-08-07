@@ -52,7 +52,7 @@ rule.setTbRouteRule("{tbName}_{format('%04d', sdValue % 8)}");
 "Hi![' Allen',' Bob']" => Hi! Allen,Hi! Bob
 ``` 
 
-## Extensions in the latest version 1.0.0.M4
+## Extensions in version 1.0.0.M4
 - add ddal-bom
 
 ```
@@ -68,7 +68,7 @@ rule.setTbRouteRule("{tbName}_{format('%04d', sdValue % 8)}");
 
 - implement PollingGroupSequence
 
-## Extensions in the version 1.0.0.M3
+## Extensions in version 1.0.0.M3
 
 - provide a easier way for scanning table query
 
@@ -83,7 +83,7 @@ for (RouteInfo routeInfo : routeInfos) {
 }
 ```
 
-## Extensions in the version 1.0.0.M2
+## Extensions in version 1.0.0.M2
 
 - provide a simpler way to configure route rule
 
