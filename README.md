@@ -53,7 +53,7 @@ rule.setTbRouteRule("{tbName}_{format('%04d', sdValue % 8)}");
 ``` 
 
 ## Extensions in version 1.0.0.M4
-- add ddal-bom
+- implement ddal-bom
 
 ```
 <!-- add the following dependency into your dependencyManagement -->
