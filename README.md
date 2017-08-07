@@ -71,7 +71,7 @@ rule.setTbRouteRule("{tbName}_{format('%04d', sdValue % 8)}");
 ```
 Sequence s0 = new SingleSequence("schema_name", "table_name", 100, 5, 100, sequenceRangeGetter0);
 Sequence s1 = new SingleSequence("schema_name", "table_name", 100, 5, 100, sequenceRangeGetter1);
-sequence = new PollingGroupSequence(s0, s1);
+Sequence sequence = new PollingGroupSequence(s0, s1);
 long id = sequence.nextValue(100, TimeUnit.MILLISECONDS);
 ```
 
