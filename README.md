@@ -1,7 +1,6 @@
 # DDAL
 
 [![Build Status](https://travis-ci.org/hellojavaer/ddal.svg?branch=master)](https://travis-ci.org/hellojavaer/ddal)
-[![Codecov](https://codecov.io/gh/hellojavaer/ddal/branch/master/graph/badge.svg)](https://codecov.io/gh/hellojavaer/ddal/branch/master)
 [![GitHub release](https://img.shields.io/github/release/hellojavaer/ddal.svg)](https://github.com/hellojavaer/ddal/releases)
 
 DDAL(Distributed Data Access Layer) is a simple solution to access database shard.
@@ -28,7 +27,7 @@ After sql routing, datasource routing will use the schemas returned by sql routi
 
 ## Extensions in the latest version 1.0.0.M5
 
-- 1. make route rule simpler
+- 1. optimize route rule expression parser
 
 ```
 // old
@@ -47,8 +46,8 @@ rule.setTbRouteRule("{tbName}_{format('%04d', sdValue % 8)}");
 ```
 "1,2,3"  => 1,2,3
 "[1..3]" => 1,2,3
-"[0..1][0..1]" => 00,01,10,11
 "['A'..'C','X']" => A,B,C,X
+"[0..1][0..1]" => 00,01,10,11
 "Hi![' Allen',' Bob']" => Hi! Allen,Hi! Bob
 ``` 
 
@@ -56,7 +55,7 @@ rule.setTbRouteRule("{tbName}_{format('%04d', sdValue % 8)}");
 - implement ddal-bom
 
 ```
-<!-- add the following dependency into your dependencyManagement -->
+<!-- add the following dependency into your dependencyManagement to manage ddal version -->
 <dependency>
     <groupId>org.hellojavaer.ddal</groupId>
     <artifactId>ddal-bom</artifactId>
