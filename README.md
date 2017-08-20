@@ -10,59 +10,11 @@ DDAL(Distributed Data Access Layer) is a simple solution to access database shar
 
 DDAL is dual licensed under **LGPL V2.1** and **Apache Software License, Version 2.0**.
 
-## Qick start
-
-See [ddal-demos](https://github.com/hellojavaer/ddal-demos/)
-```
-// TODO: define raw datasource
-DataSource wds00 = null;
-DataSource rds00 = null;
-
-// 1. Define route rule
-SpelShardRouteRule routeRule = new SpelShardRouteRule();
-routeRule.setScRouteRule("{scName}_{format('%02d', sdValue % 2)}");
-routeRule.setTbRouteRule("{tbName}_{format('%04d', sdValue % 8)}");
-
-// 2. Route rules bind to logical table name
-List<SimpleShardRouteRuleBinding> ruleBindings = new ArrayList<>();
-ruleBindings.add(new SimpleShardRouteRuleBinding("schema_name", "table_name", "id", routeRule, "[0..7]"));
-// TODO: add more route-rule-binding here ...
-SimpleShardRouter shardRouter = new SimpleShardRouter(ruleBindings);
-
-// 3. Schema names bind to datasource
-List<WeightedDataSource> weightedDataSources = new ArrayList<>();
-weightedDataSources.add(new WeightedDataSource(rds00, 9));
-weightedDataSources.add(new WeightedDataSource(wds00, 1));
-// TODO: add more datasource here ...
-List<ReadOnlyDataSourceBinding> readOnlyDataSourceBindings = new ArrayList<>();
-readOnlyDataSourceBindings.add(new ReadOnlyDataSourceBinding("schema_name_0[0..1]", weightedDataSources));
-List<WriteOnlyDataSourceBinding> writeOnlyDataSourceBindings = new ArrayList<>();
-writeOnlyDataSourceBindings.add(new WriteOnlyDataSourceBinding("schema_name_0[0..1]", (DataSource) Arrays.asList(wds00)));
-// TODO: add more datasource here ...
-DefaultReadWriteDataSourceManager dataSourceManager = new DefaultReadWriteDataSourceManager();
-dataSourceManager.setShardRouter(shardRouter);
-dataSourceManager.setReadOnlyDataSources(readOnlyDataSourceBindings);
-dataSourceManager.setWriteOnlyDataSources(writeOnlyDataSourceBindings);
-
-// 4. Define a 'DDRDataSource' to proxy the raw datasources
-DataSource ddrDataSource = new DefaultDDRDataSource(dataSourceManager, new SimpleShardParser(new JSQLParser(), shardRouter));
-// TODO: use 'ddrDataSource' to do your business here ...
-```
-
-## Summary
-
-DDAL include ddal-ddr, ddal-sequence, ddal-spring and ddal-jsqlparser.
-DDR's core module is sql routing which corresponds to ShardParser and datasource routing which corresponds to DataSourceManager. sql routing is actually converting the logic table name and schema name to its physical name in sql. ShardRouteRuleBinding determines which schema-table should be converted, ShardRouteRule and ShardRouteContext determines how to converte the logic table name and schema name.(see more detail aboute this).
-sql routing result contains converted sql and the schemas which associated witch the converted tables.
-In DataSourceManager, one datasource is associated with multiple schemas, DataSourceManager depends on the inputing schemas to choose which datasource should be returned.
-After sql routing, datasource routing will use the schemas returned by sql routing to choose which datasource will be returned. ReadWriteDataSourceManager requires at least one schema to choose datasource from confirmations and SingleDataSourceManager doesn't have this limiting. Meanwhile if you are trying to use two schemas which are not contained in the same datasource(Note! the same datasource doesn't mean the physical concept but a logic concept),'CrossingDataSourceException' will be thrown. In a transaction, only one datasource can be bound in one transaction, If you need to access two datasources in a invocation you can create a new transaction for the second datasource.
-
-
 ### [Release Notes](https://github.com/hellojavaer/ddal/releases)
 
 ## Extensions in the latest version 1.0.0.M5
 
-- 1. optimize route rule expression parser
+- optimize route rule expression parser
 
 ```
 // old
@@ -76,7 +28,7 @@ rule.setScRouteRule("{scName}_{format('%02d', sdValue % 4)}");
 rule.setTbRouteRule("{tbName}_{format('%04d', sdValue % 8)}");
 ```
 
-- 2. optimize range expression parser
+- optimize range expression parser
 
 ```
 "1,2,3"  => 1,2,3
@@ -84,54 +36,6 @@ rule.setTbRouteRule("{tbName}_{format('%04d', sdValue % 8)}");
 "['A'..'C','X']" => A,B,C,X
 "[0..1][0..1]" => 00,01,10,11
 "Hi![' Allen',' Bob']" => Hi! Allen,Hi! Bob
-``` 
-
-## Extensions in version 1.0.0.M4
-- implement ddal-bom
-
-```
-<!-- add the following dependency into your dependencyManagement to manage ddal version -->
-<dependency>
-    <groupId>org.hellojavaer.ddal</groupId>
-    <artifactId>ddal-bom</artifactId>
-    <version>1.0.0.M5</version>
-    <type>pom</type>
-    <scope>import</scope>
-</dependency>
-```
-
-- implement PollingGroupSequence
-
-```
-Sequence s0 = new SingleSequence("schema_name", "table_name", 100, 5, 100, sequenceRangeGetter0);
-Sequence s1 = new SingleSequence("schema_name", "table_name", 100, 5, 100, sequenceRangeGetter1);
-Sequence sequence = new PollingGroupSequence(s0, s1);
-long id = sequence.nextValue(100, TimeUnit.MILLISECONDS);
-```
-
-## Extensions in version 1.0.0.M3
-
-- provide a easier way for scanning table query
-
-```
-// list all physical tables by specified 'scName' and 'tbName'
-List<RouteInfo> routeInfos = shardRouter.getRouteInfos(scName, tbName);
-for (RouteInfo routeInfo : routeInfos) {
-    ShardRouteContext.setRouteInfo(scName, tbName, routeInfo);
-    // TODO: do your business here
-    // ...
-    ShardRouteContext.clearContext();
-}
-```
-
-## Extensions in version 1.0.0.M2
-
-- provide a simpler way to configure route rule
-
-```
-SpelShardRouteRule rule = new SpelShardRouteRule();
-rule.setScRouteRule("{#scName}_{#format('%02d', #sdValue % 4)}");
-rule.setTbRouteRule("{#tbName}_{#format('%04d', #sdValue % 8)}");
 ```
 
 ## Documentation
@@ -171,4 +75,43 @@ http://repo1.maven.org/maven2/org/hellojavaer/ddal/
     <version>x.x.x</version>
 </dependency>
 
+```
+
+## Qick start
+
+See [ddal-demos](https://github.com/hellojavaer/ddal-demos/)
+```
+// TODO: define raw datasource
+DataSource wds00 = null;
+DataSource rds00 = null;
+
+// 1. Define route rule
+SpelShardRouteRule routeRule = new SpelShardRouteRule();
+routeRule.setScRouteRule("{scName}_{format('%02d', sdValue % 2)}");
+routeRule.setTbRouteRule("{tbName}_{format('%04d', sdValue % 8)}");
+
+// 2. Route rules bind to logical table name
+List<SimpleShardRouteRuleBinding> ruleBindings = new ArrayList<>();
+ruleBindings.add(new SimpleShardRouteRuleBinding("schema_name", "table_name", "id", routeRule, "[0..7]"));
+// TODO: add more route-rule-binding here ...
+SimpleShardRouter shardRouter = new SimpleShardRouter(ruleBindings);
+
+// 3. Schema names bind to datasource
+List<WeightedDataSource> weightedDataSources = new ArrayList<>();
+weightedDataSources.add(new WeightedDataSource(rds00, 9));
+weightedDataSources.add(new WeightedDataSource(wds00, 1));
+// TODO: add more datasource here ...
+List<ReadOnlyDataSourceBinding> readOnlyDataSourceBindings = new ArrayList<>();
+readOnlyDataSourceBindings.add(new ReadOnlyDataSourceBinding("schema_name_0[0..1]", weightedDataSources));
+List<WriteOnlyDataSourceBinding> writeOnlyDataSourceBindings = new ArrayList<>();
+writeOnlyDataSourceBindings.add(new WriteOnlyDataSourceBinding("schema_name_0[0..1]", (DataSource) Arrays.asList(wds00)));
+// TODO: add more datasource here ...
+DefaultReadWriteDataSourceManager dataSourceManager = new DefaultReadWriteDataSourceManager();
+dataSourceManager.setShardRouter(shardRouter);
+dataSourceManager.setReadOnlyDataSources(readOnlyDataSourceBindings);
+dataSourceManager.setWriteOnlyDataSources(writeOnlyDataSourceBindings);
+
+// 4. Define a 'DDRDataSource' to proxy the raw datasources
+DataSource ddrDataSource = new DefaultDDRDataSource(dataSourceManager, new SimpleShardParser(new JSQLParser(), shardRouter));
+// TODO: use 'ddrDataSource' to do your business here ...
 ```
