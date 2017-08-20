@@ -32,6 +32,14 @@ public class SimpleShardParser implements ShardParser {
     private ShardRouter shardRouter = null;
     private SQLParser   sqlParser   = null;
 
+    public SimpleShardParser() {
+    }
+
+    public SimpleShardParser(SQLParser sqlParser, ShardRouter shardRouter) {
+        this.sqlParser = sqlParser;
+        this.shardRouter = shardRouter;
+    }
+
     public ShardRouter getShardRouter() {
         return shardRouter;
     }

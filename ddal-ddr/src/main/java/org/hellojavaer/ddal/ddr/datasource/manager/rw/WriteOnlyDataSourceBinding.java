@@ -26,6 +26,14 @@ public class WriteOnlyDataSourceBinding {
     private String     scNames;
     private DataSource dataSource;
 
+    public WriteOnlyDataSourceBinding() {
+    }
+
+    public WriteOnlyDataSourceBinding(String scNames, DataSource dataSource) {
+        this.scNames = scNames;
+        this.dataSource = dataSource;
+    }
+
     public String getScNames() {
         return scNames;
     }

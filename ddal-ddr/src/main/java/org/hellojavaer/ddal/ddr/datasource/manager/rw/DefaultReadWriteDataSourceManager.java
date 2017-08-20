@@ -68,14 +68,13 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
 
     // backup {physical schema name <-> datasources}
     private LinkedHashMap<String, List<WeightedDataSourceWrapper>> readOnlyDataSourceIndexCacheOriginalValues = null;
-    private Map<String, Map<String, WeightedDataSourceWrapper>>    readOnlyDataSourceMapCahceOriginalValues   = null;
+    private Map<String, Map<String, WeightedDataSourceWrapper>>    readOnlyDataSourceMapCacheOriginalValues   = null;
 
     private LinkedHashMap<String, List<WeightedDataSourceWrapper>> readOnlyDataSourceIndexCacheCurrentValues  = null;
     private Map<String, Map<String, WeightedDataSourceWrapper>>    readOnlyDataSourceMapCahceCurrentValues    = null;
 
     // tag
-    private AtomicBoolean                                          inited                                     = new AtomicBoolean(
-                                                                                                                                  false);
+    private AtomicBoolean                                          inited                                     = new AtomicBoolean(false);
 
     public MetaDataChecker getMetaDataChecker() {
         return metaDataChecker;
@@ -289,14 +288,14 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
                     return new WriterMethodInvokeResult(WriterMethodInvokeResult.CODE_OF_ILLEGAL_ARGUMENT,
                                                         "illegal argument(s)").toString();
                 }
-                if (readOnlyDataSourceMapCahceOriginalValues == null
-                    || readOnlyDataSourceMapCahceOriginalValues.isEmpty()
+                if (readOnlyDataSourceMapCacheOriginalValues == null
+                    || readOnlyDataSourceMapCacheOriginalValues.isEmpty()
                     || readOnlyDataSourceMapCahceCurrentValues == null
                     || readOnlyDataSourceMapCahceCurrentValues.isEmpty()) {
                     return new WriterMethodInvokeResult(WriterMethodInvokeResult.CODE_OF_DATA_IS_EMPTY,
                                                         "target data is empty").toString();
                 }
-                Map<String, WeightedDataSourceWrapper> weightedDataSourceMap0 = readOnlyDataSourceMapCahceOriginalValues.get(scName);
+                Map<String, WeightedDataSourceWrapper> weightedDataSourceMap0 = readOnlyDataSourceMapCacheOriginalValues.get(scName);
                 Map<String, WeightedDataSourceWrapper> weightedDataSourceMap1 = readOnlyDataSourceMapCahceCurrentValues.get(scName);
                 if (weightedDataSourceMap0 == null || weightedDataSourceMap0.isEmpty()//
                     || weightedDataSourceMap1 == null || weightedDataSourceMap1.isEmpty()) {
@@ -599,7 +598,7 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
         if (readOnlyDataSourceIndexCacheOriginalValues == null) {
             this.readOnlyDataSourceIndexCacheCurrentValues = null;// list
             this.readOnlyDataSourceMapCahceCurrentValues = null;// map
-            this.readOnlyDataSourceMapCahceOriginalValues = null;// map
+            this.readOnlyDataSourceMapCacheOriginalValues = null;// map
         } else {
             LinkedHashMap<String, List<WeightedDataSourceWrapper>> curList = new LinkedHashMap<String, List<WeightedDataSourceWrapper>>();
             LinkedHashMap<String, Map<String, WeightedDataSourceWrapper>> curMap = new LinkedHashMap<String, Map<String, WeightedDataSourceWrapper>>();
@@ -633,7 +632,7 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
             }
             this.readOnlyDataSourceIndexCacheCurrentValues = curList;// list
             this.readOnlyDataSourceMapCahceCurrentValues = curMap;// map
-            this.readOnlyDataSourceMapCahceOriginalValues = orgMap;// map
+            this.readOnlyDataSourceMapCacheOriginalValues = orgMap;// map
         }
         refreshReadDataSourceQueryCache();
     }
