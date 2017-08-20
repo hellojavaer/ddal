@@ -1,7 +1,6 @@
 # DDAL
 
 [![Build Status](https://travis-ci.org/hellojavaer/ddal.svg?branch=master)](https://travis-ci.org/hellojavaer/ddal)
-[![Codecov](https://codecov.io/gh/hellojavaer/ddal/branch/master/graph/badge.svg)](https://codecov.io/gh/hellojavaer/ddal/branch/master)
 [![GitHub release](https://img.shields.io/github/release/hellojavaer/ddal.svg)](https://github.com/hellojavaer/ddal/releases)
 
 DDAL(Distributed Data Access Layer) is a simple solution to access database shard.
@@ -24,19 +23,58 @@ In DataSourceManager, one datasource is associated with multiple schemas, DataSo
 After sql routing, datasource routing will use the schemas returned by sql routing to choose which datasource will be returned. ReadWriteDataSourceManager requires at least one schema to choose datasource from confirmations and SingleDataSourceManager doesn't have this limiting. Meanwhile if you are trying to use two schemas which are not contained in the same datasource(Note! the same datasource doesn't mean the physical concept but a logic concept),'CrossingDataSourceException' will be thrown. In a transaction, only one datasource can be bound in one transaction, If you need to access two datasources in a invocation you can create a new transaction for the second datasource.
 
 
-## News
-- version 1.0.0.M4 released.
-- version 1.0.0.M3 released.
-- version 1.0.0.M2 released.
-- version 1.0.0.M1 released.
-
 ### [Release Notes](https://github.com/hellojavaer/ddal/releases)
 
-## Extensions in the latest version 1.0.0.M4
-- add ddal-bom
+## Extensions in the latest version 1.0.0.M5
+
+- 1. optimize route rule expression parser
+
+```
+// old
+SpelShardRouteRule rule = new SpelShardRouteRule();
+rule.setScRouteRule("{#scName}_{#format('%02d', #sdValue % 4)}");
+rule.setTbRouteRule("{#tbName}_{#format('%04d', #sdValue % 8)}");
+
+// new
+SpelShardRouteRule rule = new SpelShardRouteRule();
+rule.setScRouteRule("{scName}_{format('%02d', sdValue % 4)}");
+rule.setTbRouteRule("{tbName}_{format('%04d', sdValue % 8)}");
+```
+
+- 2. optimize range expression parser
+
+```
+"1,2,3"  => 1,2,3
+"[1..3]" => 1,2,3
+"['A'..'C','X']" => A,B,C,X
+"[0..1][0..1]" => 00,01,10,11
+"Hi![' Allen',' Bob']" => Hi! Allen,Hi! Bob
+``` 
+
+## Extensions in version 1.0.0.M4
+- implement ddal-bom
+
+```
+<!-- add the following dependency into your dependencyManagement to manage ddal version -->
+<dependency>
+    <groupId>org.hellojavaer.ddal</groupId>
+    <artifactId>ddal-bom</artifactId>
+    <version>1.0.0.M5</version>
+    <type>pom</type>
+    <scope>import</scope>
+</dependency>
+```
+
 - implement PollingGroupSequence
 
-## Extensions in the version 1.0.0.M3
+```
+Sequence s0 = new SingleSequence("schema_name", "table_name", 100, 5, 100, sequenceRangeGetter0);
+Sequence s1 = new SingleSequence("schema_name", "table_name", 100, 5, 100, sequenceRangeGetter1);
+Sequence sequence = new PollingGroupSequence(s0, s1);
+long id = sequence.nextValue(100, TimeUnit.MILLISECONDS);
+```
+
+## Extensions in version 1.0.0.M3
 
 - provide a easier way for scanning table query
 
@@ -51,9 +89,9 @@ for (RouteInfo routeInfo : routeInfos) {
 }
 ```
 
-## Extensions in the version 1.0.0.M2
+## Extensions in version 1.0.0.M2
 
-- provide a more simple way to configure route rule
+- provide a simpler way to configure route rule
 
 ```
 SpelShardRouteRule rule = new SpelShardRouteRule();
