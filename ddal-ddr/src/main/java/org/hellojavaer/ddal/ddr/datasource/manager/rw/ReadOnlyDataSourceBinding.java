@@ -28,6 +28,14 @@ public class ReadOnlyDataSourceBinding {
     private String                   scNames;
     private List<WeightedDataSource> dataSources;
 
+    public ReadOnlyDataSourceBinding() {
+    }
+
+    public ReadOnlyDataSourceBinding(String scNames, List<WeightedDataSource> dataSources) {
+        this.scNames = scNames;
+        this.dataSources = dataSources;
+    }
+
     public String getScNames() {
         return scNames;
     }

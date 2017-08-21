@@ -37,6 +37,13 @@ public class SimpleShardRouter implements ShardRouter {
     private Map<String, List>                                    routeInfoMap      = new HashMap<String, List>();
     private Map<String, Set<String>>                             routedTables      = new HashMap<>();
 
+    public SimpleShardRouter() {
+    }
+
+    public SimpleShardRouter(List<SimpleShardRouteRuleBinding> routeRuleBindings) {
+        this.routeRuleBindings = routeRuleBindings;
+    }
+
     public List<SimpleShardRouteRuleBinding> getRouteRuleBindings() {
         return routeRuleBindings;
     }
@@ -184,7 +191,7 @@ public class SimpleShardRouter implements ShardRouter {
 
     @Override
     public RouteInfo getRouteInfo(String scName, String tbName, Object sdValue) throws ShardValueNotFoundException,
-                                                                                       ShardRouteException {
+                                                                               ShardRouteException {
         scName = DDRStringUtils.toLowerCase(scName);
         tbName = DDRStringUtils.toLowerCase(tbName);
         InnerSimpleShardRouteRuleBindingWrapper bindingWrapper = getBinding(scName, tbName);
@@ -199,7 +206,7 @@ public class SimpleShardRouter implements ShardRouter {
 
     @Override
     public List<RouteInfo> getRouteInfos(String scName, String tbName) throws ShardValueNotFoundException,
-                                                                              ShardRouteException {
+                                                                      ShardRouteException {
         return routeInfoMap.get(buildQueryKey(scName, tbName));
     }
 
@@ -220,8 +227,8 @@ public class SimpleShardRouter implements ShardRouter {
     }
 
     private RouteInfo getRouteInfo(SimpleShardRouteRuleBinding binding, String scName, String tbName, Object sdValue)
-            throws ShardRouteException,
-                   ShardValueNotFoundException {
+                                                                                                                     throws ShardRouteException,
+                                                                                                                     ShardValueNotFoundException {
         ShardRouteRule rule = binding.getRule();
         if (rule == null) {// 未配置rule,参数sdKey 和 sdValue都无效
             RouteInfo info = new RouteInfo();

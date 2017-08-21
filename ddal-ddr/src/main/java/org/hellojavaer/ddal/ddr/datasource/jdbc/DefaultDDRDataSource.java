@@ -42,6 +42,14 @@ public class DefaultDDRDataSource extends AbstractDDRDataSource {
         UninitializedConnectionProcessor.setDefaultValue(ConnectionProperty.metaData, null, false);
     }
 
+    public DefaultDDRDataSource() {
+    }
+
+    public DefaultDDRDataSource(DataSourceManager dataSourceManager, ShardParser shardParser) {
+        this.dataSourceManager = dataSourceManager;
+        this.shardParser = shardParser;
+    }
+
     public DataSourceManager getDataSourceManager() {
         return dataSourceManager;
     }

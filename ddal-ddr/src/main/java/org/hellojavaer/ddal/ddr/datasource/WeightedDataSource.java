@@ -30,6 +30,24 @@ public class WeightedDataSource {
     private String     name;
     private String     desc;
 
+    public WeightedDataSource() {
+    }
+
+    public WeightedDataSource(DataSource dataSource, Integer weight) {
+        this(dataSource, weight, null);
+    }
+
+    public WeightedDataSource(DataSource dataSource, Integer weight, String name) {
+        this(dataSource, weight, name, null);
+    }
+
+    public WeightedDataSource(DataSource dataSource, Integer weight, String name, String desc) {
+        this.dataSource = dataSource;
+        this.weight = weight;
+        this.name = name;
+        this.desc = desc;
+    }
+
     public DataSource getDataSource() {
         return dataSource;
     }

@@ -34,6 +34,21 @@ public class SimpleShardRouteRuleBinding implements ShardRouteRuleBinding, Seria
     private ShardRouteRule    rule;
     private String            sdValues;
 
+    public SimpleShardRouteRuleBinding() {
+    }
+
+    public SimpleShardRouteRuleBinding(String scName, String tbName, String sdKey, ShardRouteRule rule) {
+        this(scName, tbName, sdKey, rule, null);
+    }
+
+    public SimpleShardRouteRuleBinding(String scName, String tbName, String sdKey, ShardRouteRule rule, String sdValues) {
+        this.scName = scName;
+        this.tbName = tbName;
+        this.sdKey = sdKey;
+        this.rule = rule;
+        this.sdValues = sdValues;
+    }
+
     @Override
     public String getScName() {
         return scName;

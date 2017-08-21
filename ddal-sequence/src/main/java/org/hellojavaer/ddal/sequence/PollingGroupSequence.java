@@ -29,11 +29,9 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class PollingGroupSequence implements GroupSequence {
 
-    private final Sequence[]    sequences;
+    private final ReentrantLock             lock = new ReentrantLock();
 
-    private final AtomicInteger count = new AtomicInteger(-1);
-
-    private final ReentrantLock lock  = new ReentrantLock();
+    private final LinkedCycleList<Sequence> cycleList;
 
     static class InnerThreadFactory implements ThreadFactory {
 
@@ -44,119 +42,73 @@ public class PollingGroupSequence implements GroupSequence {
         }
     }
 
-    public PollingGroupSequence(Collection<Sequence> sequences) {
+    public PollingGroupSequence(Collection<? extends Sequence> sequences) {
         if (sequences == null || sequences.isEmpty()) {
             throw new IllegalArgumentException("sequences can't be empty");
         }
-        this.sequences = new Sequence[sequences.size()];
-        int i = 0;
-        for (Sequence sequence : sequences) {
-            this.sequences[i] = sequence;
-            i++;
-        }
+        this.cycleList = new LinkedCycleList(sequences);
     }
 
     public PollingGroupSequence(Sequence... sequences) {
         if (sequences == null || sequences.length == 0) {
             throw new IllegalArgumentException("sequences can't be empty");
         }
-        this.sequences = new Sequence[sequences.length];
-        for (int i = 0; i < sequences.length; i++) {
-            this.sequences[i] = sequences[i];
-        }
+        this.cycleList = new LinkedCycleList(sequences);
     }
 
     @Override
     public long nextValue(long timeout, final TimeUnit timeUnit) throws GetSequenceTimeoutException {
-        if (sequences.length == 1) {
-            return sequences[0].nextValue(timeout, timeUnit);
-        }
-        //
-        int start = count.incrementAndGet();
-        if (start < 0) {
-            synchronized (this) {
-                start = count.get();
-                if (start < 0) {
-                    start = (Integer.MAX_VALUE % sequences.length + 1) % sequences.length;
-                    count.set(start);
-                } else {
-                    start = count.incrementAndGet();
-                }
-            }
-        }
-        start = start % sequences.length;
-        for (int i = start; i < sequences.length; i++) {
-            try {
-                return sequences[i].nextValue(0, TimeUnit.NANOSECONDS);
-            } catch (GetSequenceTimeoutException e) {
-                continue;
-            }
-        }
-        for (int i = 0; i < start; i++) {
-            try {
-                return sequences[i].nextValue(0, TimeUnit.NANOSECONDS);
-            } catch (GetSequenceTimeoutException e) {
-                continue;
-            }
-        }
         long now = System.nanoTime();
         try {
-            if (lock.tryLock(timeout, timeUnit) == false) {
-                throw new GetSequenceTimeoutException(timeout + " " + timeUnit);
-            }
-        } catch (InterruptedException e) {
-            throw new SequenceException(e);
-        }
-        try {
-            long tempTimeout = timeUnit.toNanos(timeout) - (System.nanoTime() - now);
-            if (tempTimeout < 0) {
-                tempTimeout = 0;
-            }
-            final long nanTimeout = tempTimeout;
-            for (int i = start; i < sequences.length; i++) {
+            for (Sequence sequence : cycleList) {
                 try {
-                    return sequences[i].nextValue(0, TimeUnit.NANOSECONDS);
+                    return sequence.nextValue(0, TimeUnit.NANOSECONDS);
                 } catch (GetSequenceTimeoutException e) {
                     continue;
                 }
-            }
-            for (int i = 0; i < start; i++) {
-                try {
-                    return sequences[i].nextValue(0, TimeUnit.NANOSECONDS);
-                } catch (GetSequenceTimeoutException e) {
-                    continue;
-                }
-            }
-            //
-            ExecutorService executorService = new ThreadPoolExecutor(this.sequences.length, this.sequences.length, 0L,
-                                                                     TimeUnit.MILLISECONDS,
-                                                                     new LinkedBlockingQueue<Runnable>(),
-                                                                     new InnerThreadFactory());
-            ExecutorCompletionService executorCompletionService = new ExecutorCompletionService(executorService);
-            for (int i = 0; i < sequences.length; i++) {
-                final Sequence sequence = sequences[i];
-                executorCompletionService.submit(new Callable<Long>() {
-
-                    @Override
-                    public Long call() throws Exception {
-                        return sequence.nextValue(nanTimeout, TimeUnit.NANOSECONDS);
-                    }
-                });
             }
             try {
-                // only get the first
-                Future<Long> future = executorCompletionService.take();
-                // some ids may lost
-                executorService.shutdownNow();
-                return future.get();
+                if (lock.tryLock(timeout, timeUnit) == false) {
+                    throw new GetSequenceTimeoutException(timeout + " " + timeUnit);
+                }
             } catch (InterruptedException e) {
                 throw new SequenceException(e);
-            } catch (ExecutionException e) {
-                throw new SequenceException(e);
+            }
+            try {
+                final long nanTimeout = timeUnit.toNanos(timeout) - (System.nanoTime() - now);
+                if (nanTimeout <= 0) {
+                    throw new GetSequenceTimeoutException(timeout + " " + timeUnit);
+                }
+                ExecutorService executorService = new ThreadPoolExecutor(this.cycleList.size(), this.cycleList.size(),
+                                                                         0L, TimeUnit.MILLISECONDS,
+                                                                         new LinkedBlockingQueue<Runnable>(),
+                                                                         new InnerThreadFactory());
+                ExecutorCompletionService executorCompletionService = new ExecutorCompletionService(executorService);
+                for (final Sequence sequence : cycleList) {
+                    executorCompletionService.submit(new Callable<Long>() {
+
+                        @Override
+                        public Long call() throws Exception {
+                            return sequence.nextValue(nanTimeout, TimeUnit.NANOSECONDS);
+                        }
+                    });
+                }
+                try {
+                    // only get the first
+                    Future<Long> future = executorCompletionService.take();
+                    // some ids may lost
+                    executorService.shutdownNow();
+                    return future.get();
+                } catch (InterruptedException e) {
+                    throw new SequenceException(e);
+                } catch (ExecutionException e) {
+                    throw new SequenceException(e);
+                }
+            } finally {
+                lock.unlock();
             }
         } finally {
-            lock.unlock();
+            cycleList.next();
         }
     }
-
 }
