@@ -56,8 +56,8 @@ http://repo1.maven.org/maven2/org/hellojavaer/ddal/
     <groupId>org.hellojavaer.ddal</groupId>
     <artifactId>ddal-bom</artifactId>
     <version>x.x.x</version>
-	<type>pom</type>
-	<scope>import</scope>
+    <type>pom</type>
+    <scope>import</scope>
 </dependency>
 
 <!-- dependencies -->
