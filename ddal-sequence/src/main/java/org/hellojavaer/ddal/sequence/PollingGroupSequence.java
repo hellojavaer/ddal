@@ -59,56 +59,53 @@ public class PollingGroupSequence implements GroupSequence {
     @Override
     public long nextValue(long timeout, final TimeUnit timeUnit) throws GetSequenceTimeoutException {
         long now = System.nanoTime();
+        cycleList.next();
+        for (Sequence sequence : cycleList) {
+            try {
+                return sequence.nextValue(0, TimeUnit.NANOSECONDS);
+            } catch (GetSequenceTimeoutException e) {
+                continue;
+            }
+        }
         try {
-            for (Sequence sequence : cycleList) {
-                try {
-                    return sequence.nextValue(0, TimeUnit.NANOSECONDS);
-                } catch (GetSequenceTimeoutException e) {
-                    continue;
-                }
+            if (lock.tryLock(timeout, timeUnit) == false) {
+                throw new GetSequenceTimeoutException(timeout + " " + timeUnit);
+            }
+        } catch (InterruptedException e) {
+            throw new SequenceException(e);
+        }
+        try {
+            final long nanTimeout = timeUnit.toNanos(timeout) - (System.nanoTime() - now);
+            if (nanTimeout <= 0) {
+                throw new GetSequenceTimeoutException(timeout + " " + timeUnit);
+            }
+            ExecutorService executorService = new ThreadPoolExecutor(this.cycleList.size(), this.cycleList.size(), 0L,
+                                                                     TimeUnit.MILLISECONDS,
+                                                                     new LinkedBlockingQueue<Runnable>(),
+                                                                     new InnerThreadFactory());
+            ExecutorCompletionService executorCompletionService = new ExecutorCompletionService(executorService);
+            for (final Sequence sequence : cycleList) {
+                executorCompletionService.submit(new Callable<Long>() {
+
+                    @Override
+                    public Long call() throws Exception {
+                        return sequence.nextValue(nanTimeout, TimeUnit.NANOSECONDS);
+                    }
+                });
             }
             try {
-                if (lock.tryLock(timeout, timeUnit) == false) {
-                    throw new GetSequenceTimeoutException(timeout + " " + timeUnit);
-                }
+                // only get the first
+                Future<Long> future = executorCompletionService.take();
+                // some ids may lost
+                executorService.shutdownNow();
+                return future.get();
             } catch (InterruptedException e) {
                 throw new SequenceException(e);
-            }
-            try {
-                final long nanTimeout = timeUnit.toNanos(timeout) - (System.nanoTime() - now);
-                if (nanTimeout <= 0) {
-                    throw new GetSequenceTimeoutException(timeout + " " + timeUnit);
-                }
-                ExecutorService executorService = new ThreadPoolExecutor(this.cycleList.size(), this.cycleList.size(),
-                                                                         0L, TimeUnit.MILLISECONDS,
-                                                                         new LinkedBlockingQueue<Runnable>(),
-                                                                         new InnerThreadFactory());
-                ExecutorCompletionService executorCompletionService = new ExecutorCompletionService(executorService);
-                for (final Sequence sequence : cycleList) {
-                    executorCompletionService.submit(new Callable<Long>() {
-
-                        @Override
-                        public Long call() throws Exception {
-                            return sequence.nextValue(nanTimeout, TimeUnit.NANOSECONDS);
-                        }
-                    });
-                }
-                try {
-                    // only get the first
-                    Future<Long> future = executorCompletionService.take();
-                    // some ids may lost
-                    executorService.shutdownNow();
-                    return future.get();
-                } catch (InterruptedException e) {
-                    throw new SequenceException(e);
-                } catch (ExecutionException e) {
-                    throw new SequenceException(e);
-                }
-            } finally {
-                lock.unlock();
+            } catch (ExecutionException e) {
+                throw new SequenceException(e);
             }
         } finally {
-            cycleList.next();
+            lock.unlock();
         }
     }
 }
