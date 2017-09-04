@@ -676,7 +676,7 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
             for (String s : schemas) {
                 s = DDRStringUtils.toLowerCase(s);
                 if (s == null) {
-                    throw new IllegalArgumentException("scName cann't be empty");
+                    throw new IllegalArgumentException("scName can't be empty");
                 } else if (uniqSchemas.contains(s)) {
                     throw new IllegalArgumentException("duplicate scName '" + s + "'");
                 } else {
