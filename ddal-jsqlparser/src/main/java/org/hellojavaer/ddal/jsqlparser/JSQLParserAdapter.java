@@ -44,7 +44,6 @@ import org.hellojavaer.ddal.ddr.sqlparse.SQLParsedState;
 import org.hellojavaer.ddal.ddr.sqlparse.exception.*;
 import org.hellojavaer.ddal.ddr.utils.DDRJSONUtils;
 import org.hellojavaer.ddal.ddr.utils.DDRStringUtils;
-import org.hellojavaer.ddal.jsqlparser.utils.JSQLBaseVisitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
