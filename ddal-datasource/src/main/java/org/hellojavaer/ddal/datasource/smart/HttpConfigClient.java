@@ -27,20 +27,20 @@ import java.util.Map;
 public class HttpConfigClient implements ConfigClient {
 
     private String serverUrl;
-    private String clientId;
-    private String clientToken;
+    private String appName;
+    private String authorizeToken;
 
-    public HttpConfigClient(String serverUrl, String clientId, String clientToken) {
+    public HttpConfigClient(String serverUrl, String appName, String authorizeToken) {
         this.serverUrl = serverUrl;
-        this.clientId = clientId;
-        this.clientToken = clientToken;
+        this.appName = appName;
+        this.authorizeToken = authorizeToken;
     }
 
     @Override
     public String get() {
         Map<String, Object> params = new HashMap<>();
-        params.put("clientId", clientId);
-        params.put("clientToken", clientToken);
+        params.put("app_name", appName);
+        params.put("authorize_token", authorizeToken);
         return HttpUtils.sendPost(serverUrl, params);
     }
 
