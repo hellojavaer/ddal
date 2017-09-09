@@ -19,6 +19,7 @@
         <module>ddal-sequence</module>
         <module>ddal-jsqlparser</module>
         <module>ddal-bom</module>
+        <module>ddal-datasource</module>
     </modules>
 
     <developers>
