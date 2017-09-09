@@ -14,12 +14,13 @@
     <url>https://github.com/hellojavaer/ddal</url>
 
     <modules>
+        <module>ddal-core</module>
         <module>ddal-ddr</module>
         <module>ddal-spring</module>
         <module>ddal-sequence</module>
         <module>ddal-jsqlparser</module>
-        <module>ddal-bom</module>
         <module>ddal-datasource</module>
+        <module>ddal-bom</module>
     </modules>
 
     <developers>

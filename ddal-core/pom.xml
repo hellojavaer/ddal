@@ -5,13 +5,17 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.hellojavaer.ddal</groupId>
-    <artifactId>ddal-datasource</artifactId>
+    <artifactId>ddal-core</artifactId>
     <version>1.0.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+    <description>DDAL(Distributed Data Access Layer) is a simple solution to access database shard.</description>
+
+    <name>ddal-ddr</name>
+    <url>https://github.com/hellojavaer/ddal</url>
 
     <properties>
         <gpg.skip>true</gpg.skip>
         <javadoc.skip>false</javadoc.skip>
-        <spring.version>4.2.5.RELEASE</spring.version>
         <jdk.version>1.7</jdk.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
@@ -132,31 +136,5 @@
             </plugin>
         </plugins>
     </build>
-    <dependencies>
-        <dependency>
-            <groupId>org.hellojavaer.ddal</groupId>
-            <artifactId>ddal-core</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.hellojavaer.ddal</groupId>
-            <artifactId>ddal-ddr</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.hellojavaer.ddal</groupId>
-            <artifactId>ddal-jsqlparser</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.hellojavaer.ddal</groupId>
-            <artifactId>ddal-sequence</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-context</artifactId>
-            <version>${spring.version}</version>
-        </dependency>
-    </dependencies>
+
 </project>

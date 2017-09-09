@@ -15,10 +15,8 @@
  */
 package org.hellojavaer.ddal.datasource.smart;
 
-import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLEncoder;
+import org.hellojavaer.ddal.core.utils.HttpUtils;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -43,69 +41,7 @@ public class HttpConfigClient implements ConfigClient {
         Map<String, Object> params = new HashMap<>();
         params.put("clientId", clientId);
         params.put("clientToken", clientToken);
-        return sendPost(serverUrl, params);
-    }
-
-    private String sendPost(String url, Map<String, Object> params) {
-        try {
-            URL obj = new URL(url);
-            HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-            con.setRequestMethod("POST");
-            con.setRequestProperty("User-Agent", "Mozilla/5.0");
-            con.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
-            con.setDoOutput(true);
-            // send
-            DataOutputStream wr = null;
-            try {
-                wr = new DataOutputStream(con.getOutputStream());
-                if (params != null && !params.isEmpty()) {
-                    StringBuilder sb = new StringBuilder();
-                    for (Map.Entry<String, Object> entry : params.entrySet()) {
-                        sb.append(URLEncoder.encode(entry.getKey(), "UTF-8"));
-                        sb.append('=');
-                        sb.append(URLEncoder.encode(entry.getValue().toString(), "UTF-8"));
-                        sb.append('&');
-                    }
-                    sb.deleteCharAt(sb.length() - 1);
-                    wr.write(sb.toString().getBytes("UTF-8"));
-                }
-                wr.flush();
-            } finally {
-                closeIO(wr);
-            }
-            // get
-            BufferedReader in = null;
-            try {
-                int responseCode = con.getResponseCode();
-                if (responseCode != 200) {
-                    throw new IllegalStateException();
-                }
-                in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-                String inputLine;
-                StringBuilder response = new StringBuilder();
-                while ((inputLine = in.readLine()) != null) {
-                    response.append(inputLine);
-                }
-                return response.toString();
-            } finally {
-                closeIO(in);
-            }
-        } catch (Exception e) {
-            if (e instanceof RuntimeException) {
-                throw (RuntimeException) e;
-            } else {
-                throw new RuntimeException(e);
-            }
-        }
-    }
-
-    private void closeIO(Closeable closeable) {
-        if (closeable != null) {
-            try {
-                closeable.close();
-            } catch (IOException e) {
-            }
-        }
+        return HttpUtils.sendPost(serverUrl, params);
     }
 
 }
