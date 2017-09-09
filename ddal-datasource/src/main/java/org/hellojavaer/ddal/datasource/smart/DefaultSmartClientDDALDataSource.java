@@ -19,9 +19,9 @@ import org.hellojavaer.ddal.datasource.SmartClientDDALDataSource;
 import org.hellojavaer.ddal.ddr.datasource.jdbc.DDRDataSource;
 import org.hellojavaer.ddal.ddr.shard.ShardRouter;
 import org.hellojavaer.ddal.sequence.Sequence;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.context.support.FileSystemXmlApplicationContext;
+import org.springframework.context.support.GenericXmlApplicationContext;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 
 import javax.sql.DataSource;
 import java.io.PrintWriter;
@@ -35,30 +35,18 @@ import java.sql.SQLFeatureNotSupportedException;
  */
 public class DefaultSmartClientDDALDataSource implements SmartClientDDALDataSource {
 
-    private DataSource    dataSource;
-    private ConfigManager configManager;
-    private Sequence      sequence;
-    private ShardRouter   shardRouter;
+    private ConfigClient client;
+    private DataSource   dataSource;
+    private Sequence     sequence;
+    private ShardRouter  shardRouter;
 
-    public DefaultSmartClientDDALDataSource(ConfigManager configManager) {
-        this.configManager = configManager;
-        init();
-    }
-
-    public DefaultSmartClientDDALDataSource(ConfigManager configManager, Sequence sequence) {
-        this.configManager = configManager;
-        this.sequence = sequence;
-        init();
-    }
-
-    private void init() {
-        String location = configManager.getLocation();
-        ApplicationContext context = null;
-        if (location.startsWith("classpath:") || location.startsWith("classpath*:")) {
-            context = new ClassPathXmlApplicationContext(location);
-        } else {
-            context = new FileSystemXmlApplicationContext(location);
-        }
+    public DefaultSmartClientDDALDataSource(ConfigClient client) {
+        this.client = client;
+        String content = client.get();
+        Resource resource = new ByteArrayResource(content.getBytes());
+        GenericXmlApplicationContext context = new GenericXmlApplicationContext();
+        context.load(resource);
+        context.refresh();
         this.dataSource = context.getBean(DDRDataSource.class, "ddrDataSource");
         this.sequence = context.getBean(Sequence.class, "sequence");
         this.shardRouter = context.getBean(ShardRouter.class, "shardRouter");
