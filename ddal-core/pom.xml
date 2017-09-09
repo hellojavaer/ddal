@@ -10,7 +10,7 @@
     <packaging>jar</packaging>
     <description>DDAL(Distributed Data Access Layer) is a simple solution to access database shard.</description>
 
-    <name>ddal-ddr</name>
+    <name>ddal-core</name>
     <url>https://github.com/hellojavaer/ddal</url>
 
     <properties>

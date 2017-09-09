@@ -6,7 +6,12 @@
 
     <groupId>org.hellojavaer.ddal</groupId>
     <artifactId>ddal-datasource</artifactId>
+    <packaging>jar</packaging>
     <version>1.0.0-SNAPSHOT</version>
+    <description>DDAL(Distributed Data Access Layer) is a simple solution to access database shard.</description>
+
+    <name>ddal-datasource</name>
+    <url>https://github.com/hellojavaer/ddal</url>
 
     <properties>
         <gpg.skip>true</gpg.skip>
