@@ -40,9 +40,10 @@ import java.util.Map;
  */
 public class DefaultDDALDataSource implements DDALDataSource {
 
-    private static final String JDBC_DDAL_PREFIX = "jdbc:ddal:";
-    private static final String THICK_PREFIX     = "thick:";
-    private static final String THIN_PREFIX      = "thin:";
+    private static final String JDBC_DDAL_PROTOCOL_PREFIX = "jdbc:ddal:";
+    private static final String THICK_PROTOCOL_PREFIX     = "thick:";
+    private static final String THIN_PROTOCOL_PREFIX      = "thin:";
+
     private DataSource          dataSource;
     private Sequence            sequence;
     private ShardRouter         shardRouter;
@@ -65,13 +66,13 @@ public class DefaultDDALDataSource implements DDALDataSource {
         if (url == null || url.length() == 0) {
             throw new IllegalArgumentException("url can't be null");
         }
-        if (!url.startsWith(JDBC_DDAL_PREFIX)) {
-            throw new IllegalArgumentException("url must be start with '" + JDBC_DDAL_PREFIX + "'");
+        if (!url.startsWith(JDBC_DDAL_PROTOCOL_PREFIX)) {
+            throw new IllegalArgumentException("url must be start with '" + JDBC_DDAL_PROTOCOL_PREFIX + "'");
         }
-        String url1 = url.substring(JDBC_DDAL_PREFIX.length()).trim();
+        String url1 = url.substring(JDBC_DDAL_PROTOCOL_PREFIX.length()).trim();
         ApplicationContext context;
-        if (url1.startsWith(THICK_PREFIX)) {
-            String url2 = url1.substring(THICK_PREFIX.length());
+        if (url1.startsWith(THICK_PROTOCOL_PREFIX)) {
+            String url2 = url1.substring(THICK_PROTOCOL_PREFIX.length());
             if (url2.startsWith("classpath:") || url2.startsWith("classpath*:")) {
                 context = new ClassPathXmlApplicationContext(url2);
             } else if (url2.startsWith("file:")) {
@@ -89,7 +90,7 @@ public class DefaultDDALDataSource implements DDALDataSource {
             } else {
                 throw new IllegalArgumentException("Unsupported protocol:" + url);
             }
-        } else if (url1.startsWith(THIN_PREFIX)) {
+        } else if (url1.startsWith(THIN_PROTOCOL_PREFIX)) {
             // TODOD
             throw new IllegalArgumentException("Unsupport 'jdbc:ddal:thin:' protocol now");
         } else {
