@@ -13,12 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddal.datasource.smart;
+package org.hellojavaer.ddal.datasource;
 
-import org.hellojavaer.ddal.datasource.SmartClientDDALDataSource;
+import org.hellojavaer.ddal.core.utils.HttpUtils;
 import org.hellojavaer.ddal.ddr.datasource.jdbc.DDRDataSource;
 import org.hellojavaer.ddal.ddr.shard.ShardRouter;
 import org.hellojavaer.ddal.sequence.Sequence;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.context.support.FileSystemXmlApplicationContext;
 import org.springframework.context.support.GenericXmlApplicationContext;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
@@ -35,18 +38,27 @@ import java.sql.SQLFeatureNotSupportedException;
  */
 public class DefaultSmartClientDDALDataSource implements SmartClientDDALDataSource {
 
-    private ConfigClient client;
-    private DataSource   dataSource;
-    private Sequence     sequence;
-    private ShardRouter  shardRouter;
+    private String      location;
+    private DataSource  dataSource;
+    private Sequence    sequence;
+    private ShardRouter shardRouter;
 
-    public DefaultSmartClientDDALDataSource(ConfigClient client) {
-        this.client = client;
-        String content = client.get();
-        Resource resource = new ByteArrayResource(content.getBytes());
-        GenericXmlApplicationContext context = new GenericXmlApplicationContext();
-        context.load(resource);
-        context.refresh();
+    public DefaultSmartClientDDALDataSource(String location) {
+        this.location = location;
+        ApplicationContext context;
+        if (location.startsWith("classpath:") || location.startsWith("classpath*:")) {
+            context = new ClassPathXmlApplicationContext(location);
+        } else if (location.startsWith("jdbc:ddal:")) {
+            location = "http:" + location.substring("jdbc:ddal:".length());
+            String content = HttpUtils.sendPost(location, null);
+            Resource resource = new ByteArrayResource(content.getBytes());
+            GenericXmlApplicationContext genericXmlApplicationContext = new GenericXmlApplicationContext();
+            genericXmlApplicationContext.load(resource);
+            genericXmlApplicationContext.refresh();
+            context = genericXmlApplicationContext;
+        } else {
+            context = new FileSystemXmlApplicationContext(location);
+        }
         this.dataSource = context.getBean(DDRDataSource.class, "ddrDataSource");
         this.sequence = context.getBean(Sequence.class, "sequence");
         this.shardRouter = context.getBean(ShardRouter.class, "shardRouter");
