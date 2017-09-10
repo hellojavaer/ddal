@@ -40,7 +40,9 @@ import java.util.Map;
  */
 public class DefaultDDALDataSource implements DDALDataSource {
 
-    private static final String DDAL_PROTOCOL_PREFIX = "jdbc:ddal:";
+    private static final String JDBC_DDAL_PREFIX = "jdbc:ddal:";
+    private static final String THICK_PREFIX     = "thick";
+    private static final String THIN_PREFIX      = "thin";
     private DataSource          dataSource;
     private Sequence            sequence;
     private ShardRouter         shardRouter;
@@ -49,6 +51,13 @@ public class DefaultDDALDataSource implements DDALDataSource {
         this(url, null, null);
     }
 
+    /**
+     *
+     * jdbc:ddal:thick:
+     * 
+     * jdbc:ddal:thin:
+     * 
+     */
     public DefaultDDALDataSource(String url, String username, String password) {
         if (url != null) {
             url = url.trim();
@@ -56,25 +65,33 @@ public class DefaultDDALDataSource implements DDALDataSource {
         if (url == null || url.length() == 0) {
             throw new IllegalArgumentException("url can't be null");
         }
-        if (!url.startsWith(DDAL_PROTOCOL_PREFIX)) {
-            throw new IllegalArgumentException("url must be start with '" + DDAL_PROTOCOL_PREFIX + "'");
+        if (!url.startsWith(JDBC_DDAL_PREFIX)) {
+            throw new IllegalArgumentException("url must be start with '" + JDBC_DDAL_PREFIX + "'");
         }
-        String subUrl = url.substring(DDAL_PROTOCOL_PREFIX.length()).trim();
+        String url1 = url.substring(JDBC_DDAL_PREFIX.length()).trim();
         ApplicationContext context;
-        if (subUrl.startsWith("classpath:") || subUrl.startsWith("classpath*:")) {
-            context = new ClassPathXmlApplicationContext(subUrl);
-        } else if (subUrl.startsWith("file:")) {
-            context = new FileSystemXmlApplicationContext(subUrl);
-        } else if (subUrl.startsWith("http:") || subUrl.startsWith("https:")) {
-            Map<String, Object> param = new LinkedHashMap<>();
-            param.put("username", username);
-            param.put("password", password);
-            String content = HttpUtils.sendPost(subUrl, param);
-            Resource resource = new ByteArrayResource(content.getBytes());
-            GenericXmlApplicationContext genericXmlApplicationContext = new GenericXmlApplicationContext();
-            genericXmlApplicationContext.load(resource);
-            genericXmlApplicationContext.refresh();
-            context = genericXmlApplicationContext;
+        if (url1.startsWith(THICK_PREFIX)) {
+            String url2 = url1.substring(THICK_PREFIX.length());
+            if (url2.startsWith("classpath:") || url2.startsWith("classpath*:")) {
+                context = new ClassPathXmlApplicationContext(url2);
+            } else if (url2.startsWith("file:")) {
+                context = new FileSystemXmlApplicationContext(url2);
+            } else if (url2.startsWith("http:") || url2.startsWith("https:")) {
+                Map<String, Object> param = new LinkedHashMap<>();
+                param.put("username", username);
+                param.put("password", password);
+                String content = HttpUtils.sendPost(url2, param);
+                Resource resource = new ByteArrayResource(content.getBytes());
+                GenericXmlApplicationContext genericXmlApplicationContext = new GenericXmlApplicationContext();
+                genericXmlApplicationContext.load(resource);
+                genericXmlApplicationContext.refresh();
+                context = genericXmlApplicationContext;
+            } else {
+                throw new IllegalArgumentException("Unsupported protocol:" + url);
+            }
+        } else if (url1.startsWith(THIN_PREFIX)) {
+            // TODOD
+            throw new IllegalArgumentException("Unsupport 'jdbc:ddal:thin:' protocol now");
         } else {
             throw new IllegalArgumentException("Unsupported protocol:" + url);
         }
