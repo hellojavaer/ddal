@@ -19,6 +19,9 @@ import org.hellojavaer.ddal.core.utils.HttpUtils;
 import org.hellojavaer.ddal.ddr.datasource.jdbc.DDRDataSource;
 import org.hellojavaer.ddal.ddr.shard.ShardRouter;
 import org.hellojavaer.ddal.sequence.Sequence;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.beans.factory.NoUniqueBeanDefinitionException;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
@@ -44,6 +47,7 @@ public class DefaultDDALDataSource implements DDALDataSource {
     private static final String THICK_PROTOCOL_PREFIX     = "thick:";
     private static final String THIN_PROTOCOL_PREFIX      = "thin:";
 
+    @Qualifier
     private DataSource          dataSource;
     private Sequence            sequence;
     private ShardRouter         shardRouter;
@@ -97,9 +101,27 @@ public class DefaultDDALDataSource implements DDALDataSource {
         } else {
             throw new IllegalArgumentException("Unsupported protocol:" + url);
         }
-        this.dataSource = context.getBean(DDRDataSource.class, "ddrDataSource");
-        this.sequence = context.getBean(Sequence.class, "sequence");
-        this.shardRouter = context.getBean(ShardRouter.class, "shardRouter");
+        this.dataSource = getBean(context, DDRDataSource.class, "ddrDataSource");
+        this.sequence = getBean(context, Sequence.class, "sequence");
+        this.shardRouter = getBean(context, ShardRouter.class, "shardRouter");
+    }
+
+    private <T> T getBean(ApplicationContext context, Class<T> requiredType, String beanName) {
+        Map<String, T> map = context.getBeansOfType(requiredType);
+        if (map == null || map.isEmpty()) {
+            throw new NoSuchBeanDefinitionException(requiredType);
+        }
+        if (map.size() == 1) {
+            return map.values().iterator().next();
+        } else {
+            if (beanName != null) {
+                T t = map.get(beanName);
+                if (t != null) {
+                    return t;
+                }
+            }
+            throw new NoUniqueBeanDefinitionException(requiredType, map.keySet());
+        }
     }
 
     protected DataSource getDataSource() {
