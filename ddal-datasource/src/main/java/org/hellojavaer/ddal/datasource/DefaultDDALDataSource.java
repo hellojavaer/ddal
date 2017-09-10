@@ -41,8 +41,8 @@ import java.util.Map;
 public class DefaultDDALDataSource implements DDALDataSource {
 
     private static final String JDBC_DDAL_PREFIX = "jdbc:ddal:";
-    private static final String THICK_PREFIX     = "thick";
-    private static final String THIN_PREFIX      = "thin";
+    private static final String THICK_PREFIX     = "thick:";
+    private static final String THIN_PREFIX      = "thin:";
     private DataSource          dataSource;
     private Sequence            sequence;
     private ShardRouter         shardRouter;
