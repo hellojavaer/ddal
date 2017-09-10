@@ -31,6 +31,8 @@ import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  *
@@ -38,32 +40,43 @@ import java.sql.SQLFeatureNotSupportedException;
  */
 public class DefaultDDALDataSource implements DDALDataSource {
 
-    private String      location;
-    private DataSource  dataSource;
-    private Sequence    sequence;
-    private ShardRouter shardRouter;
+    private static final String DDAL_PROTOCOL_PREFIX = "jdbc:ddal:";
+    private DataSource          dataSource;
+    private Sequence            sequence;
+    private ShardRouter         shardRouter;
 
-    public DefaultDDALDataSource(String location) {
-        if (location != null) {
-            location = location.trim();
+    public DefaultDDALDataSource(String url) {
+        this(url, null, null);
+    }
+
+    public DefaultDDALDataSource(String url, String username, String password) {
+        if (url != null) {
+            url = url.trim();
         }
-        if (location == null || location.length() == 0) {
-            throw new IllegalArgumentException("location can't be null");
+        if (url == null || url.length() == 0) {
+            throw new IllegalArgumentException("url can't be null");
         }
-        this.location = location;
+        if (!url.startsWith(DDAL_PROTOCOL_PREFIX)) {
+            throw new IllegalArgumentException("url must be start with '" + DDAL_PROTOCOL_PREFIX + "'");
+        }
+        String subUrl = url.substring(DDAL_PROTOCOL_PREFIX.length()).trim();
         ApplicationContext context;
-        if (location.startsWith("classpath:") || location.startsWith("classpath*:")) {
-            context = new ClassPathXmlApplicationContext(location);
-        } else if (location.startsWith("jdbc:ddal:")) {
-            location = "http:" + location.substring("jdbc:ddal:".length());
-            String content = HttpUtils.sendPost(location, null);
+        if (subUrl.startsWith("classpath:") || subUrl.startsWith("classpath*:")) {
+            context = new ClassPathXmlApplicationContext(subUrl);
+        } else if (subUrl.startsWith("file:")) {
+            context = new FileSystemXmlApplicationContext(subUrl);
+        } else if (subUrl.startsWith("http:") || subUrl.startsWith("https:")) {
+            Map<String, Object> param = new LinkedHashMap<>();
+            param.put("username", username);
+            param.put("password", password);
+            String content = HttpUtils.sendPost(subUrl, param);
             Resource resource = new ByteArrayResource(content.getBytes());
             GenericXmlApplicationContext genericXmlApplicationContext = new GenericXmlApplicationContext();
             genericXmlApplicationContext.load(resource);
             genericXmlApplicationContext.refresh();
             context = genericXmlApplicationContext;
         } else {
-            context = new FileSystemXmlApplicationContext(location);
+            throw new IllegalArgumentException("Unsupported protocol:" + url);
         }
         this.dataSource = context.getBean(DDRDataSource.class, "ddrDataSource");
         this.sequence = context.getBean(Sequence.class, "sequence");
