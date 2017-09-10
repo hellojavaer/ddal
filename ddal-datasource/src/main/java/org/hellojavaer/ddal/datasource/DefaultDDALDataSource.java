@@ -77,7 +77,8 @@ public class DefaultDDALDataSource implements DDALDataSource {
                 context = new ClassPathXmlApplicationContext(url2);
             } else if (url2.startsWith("file:")) {
                 context = new FileSystemXmlApplicationContext(url2);
-            } else if (url2.startsWith("http:") || url2.startsWith("https:")) {
+            } else if (url2.startsWith("//")) {
+                url2 = "http:" + url2;
                 Map<String, Object> param = new LinkedHashMap<>();
                 param.put("username", username);
                 param.put("password", password);
