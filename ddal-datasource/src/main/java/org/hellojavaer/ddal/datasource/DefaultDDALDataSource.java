@@ -36,14 +36,20 @@ import java.sql.SQLFeatureNotSupportedException;
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 22/08/2017.
  */
-public class DefaultSmartClientDDALDataSource implements SmartClientDDALDataSource {
+public class DefaultDDALDataSource implements DDALDataSource {
 
     private String      location;
     private DataSource  dataSource;
     private Sequence    sequence;
     private ShardRouter shardRouter;
 
-    public DefaultSmartClientDDALDataSource(String location) {
+    public DefaultDDALDataSource(String location) {
+        if (location != null) {
+            location = location.trim();
+        }
+        if (location == null || location.length() == 0) {
+            throw new IllegalArgumentException("location can't be null");
+        }
         this.location = location;
         ApplicationContext context;
         if (location.startsWith("classpath:") || location.startsWith("classpath*:")) {
@@ -118,7 +124,6 @@ public class DefaultSmartClientDDALDataSource implements SmartClientDDALDataSour
         return sequence;
     }
 
-    @Override
     public ShardRouter getShardRouter() {
         return shardRouter;
     }
