@@ -27,7 +27,7 @@ public class SingleDataSourceManager implements DataSourceManager {
 
     private DataSource dataSource;
 
-    public SingleDataSourceManager() {
+    private SingleDataSourceManager() {
     }
 
     public SingleDataSourceManager(DataSource dataSource) {
@@ -38,7 +38,7 @@ public class SingleDataSourceManager implements DataSourceManager {
         return dataSource;
     }
 
-    public void setDataSource(DataSource dataSource) {
+    private void setDataSource(DataSource dataSource) {
         this.dataSource = dataSource;
     }
 

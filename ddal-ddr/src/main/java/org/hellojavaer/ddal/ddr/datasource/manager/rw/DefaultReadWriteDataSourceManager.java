@@ -74,22 +74,72 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
     private Map<String, Map<String, WeightedDataSourceWrapper>>    readOnlyDataSourceMapCahceCurrentValues    = null;
 
     // tag
-    private AtomicBoolean                                          inited                                     = new AtomicBoolean(false);
+    private AtomicBoolean                                          inited                                     = new AtomicBoolean(
+                                                                                                                                  false);
 
-    public MetaDataChecker getMetaDataChecker() {
-        return metaDataChecker;
+    private DefaultReadWriteDataSourceManager() {
     }
 
-    public void setMetaDataChecker(MetaDataChecker metaDataChecker) {
-        this.metaDataChecker = metaDataChecker;
+    public DefaultReadWriteDataSourceManager(List<ReadOnlyDataSourceBinding> readOnlyDataSources,
+                                             ReadOnlyDataSourceMonitorServer readOnlyDataSourceMonitorServer,
+                                             List<WriteOnlyDataSourceBinding> writeOnlyDataSources,
+                                             ShardRouter shardRouter) {
+        setReadOnlyDataSources(readOnlyDataSources);
+        setReadOnlyDataSourceMonitorServer(readOnlyDataSourceMonitorServer);
+        setWriteOnlyDataSources(writeOnlyDataSources);
+        setShardRouter(shardRouter);
+        init();
+    }
+
+    public synchronized List<ReadOnlyDataSourceBinding> getReadOnlyDataSources() {
+        return readOnlyDataSources;
+    }
+
+    private synchronized void setReadOnlyDataSources(List<ReadOnlyDataSourceBinding> readOnlyDataSources) {
+        initReadOnlyDataSource(readOnlyDataSources);
+        check(readOnlyDataSourceIndexCacheOriginalValues);
+        this.readOnlyDataSources = readOnlyDataSources;
+    }
+
+    @Override
+    public ReadOnlyDataSourceMonitorServer getReadOnlyDataSourceMonitorServer() {
+        return this.readOnlyDataSourceMonitorServer;
+    }
+
+    private void setReadOnlyDataSourceMonitorServer(ReadOnlyDataSourceMonitorServer readOnlyDataSourceMonitorServer) {
+        this.readOnlyDataSourceMonitorServer = readOnlyDataSourceMonitorServer;
+    }
+
+    public synchronized List<WriteOnlyDataSourceBinding> getWriteOnlyDataSources() {
+        return writeOnlyDataSources;
+    }
+
+    private synchronized void setWriteOnlyDataSources(List<WriteOnlyDataSourceBinding> writeOnlyDataSources) {
+        initWriteOnlyDataSource(writeOnlyDataSources);
+        check(writeOnlyDataSourceQueryCache);
+        this.writeOnlyDataSources = writeOnlyDataSources;
     }
 
     public ShardRouter getShardRouter() {
         return shardRouter;
     }
 
-    public void setShardRouter(ShardRouter shardRouter) {
+    private void setShardRouter(ShardRouter shardRouter) {
         this.shardRouter = shardRouter;
+    }
+
+    protected MetaDataChecker getMetaDataChecker() {
+        return metaDataChecker;
+    }
+
+    protected void setMetaDataChecker(MetaDataChecker metaDataChecker) {
+        this.metaDataChecker = metaDataChecker;
+    }
+
+    private void init() {
+        if (inited.compareAndSet(false, true) && readOnlyDataSourceMonitorServer != null) {
+            readOnlyDataSourceMonitorServer.init(getReadOnlyDataSourceMonitor());
+        }
     }
 
     private static class WeightedDataSourceWrapper extends WeightedDataSource implements Cloneable {
@@ -404,25 +454,6 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
         };
     }
 
-    @Override
-    public ReadOnlyDataSourceMonitorServer getReadOnlyDataSourceMonitorServer() {
-        return this.readOnlyDataSourceMonitorServer;
-    }
-
-    public void setReadOnlyDataSourceMonitorServer(ReadOnlyDataSourceMonitorServer readOnlyDataSourceMonitorServer) {
-        this.readOnlyDataSourceMonitorServer = readOnlyDataSourceMonitorServer;
-    }
-
-    public synchronized List<WriteOnlyDataSourceBinding> getWriteOnlyDataSources() {
-        return writeOnlyDataSources;
-    }
-
-    public synchronized void setWriteOnlyDataSources(List<WriteOnlyDataSourceBinding> writeOnlyDataSources) {
-        initWriteOnlyDataSource(writeOnlyDataSources);
-        check(writeOnlyDataSourceQueryCache);
-        this.writeOnlyDataSources = writeOnlyDataSources;
-    }
-
     private void check(Map<String, DataSourceWrapper> writeOnlyDataSourceQueryCache) {
         if (writeOnlyDataSourceQueryCache == null || writeOnlyDataSourceQueryCache.isEmpty() || metaDataChecker == null
             || shardRouter == null) {
@@ -450,16 +481,6 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
                 }
             }
         }
-    }
-
-    public synchronized List<ReadOnlyDataSourceBinding> getReadOnlyDataSources() {
-        return readOnlyDataSources;
-    }
-
-    public synchronized void setReadOnlyDataSources(List<ReadOnlyDataSourceBinding> readOnlyDataSources) {
-        initReadOnlyDataSource(readOnlyDataSources);
-        check(readOnlyDataSourceIndexCacheOriginalValues);
-        this.readOnlyDataSources = readOnlyDataSources;
     }
 
     private void check(LinkedHashMap<String, List<WeightedDataSourceWrapper>> readOnlyDataSourceIndexCacheOriginalValues) {
@@ -752,9 +773,7 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
 
     @Override
     public DataSourceWrapper getDataSource(DataSourceParam param) {
-        if (inited.compareAndSet(false, true) && readOnlyDataSourceMonitorServer != null) {
-            readOnlyDataSourceMonitorServer.init(getReadOnlyDataSourceMonitor());
-        }
+        init();
         if (param.getScNames() == null || param.getScNames().isEmpty()) {
             throw new IllegalArgumentException("scNames can't be empty");
         }

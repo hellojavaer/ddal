@@ -48,7 +48,16 @@ public class SpelShardRouteRule implements ShardRouteRule {
     private Expression scRouteRuleExpression;
     private Expression tbRouteRuleExpression;
 
-    public void setScRouteRule(String scRouteRule) {
+    // used for spring bean
+    private SpelShardRouteRule() {
+    }
+
+    public SpelShardRouteRule(String scRouteRule, String tbRouteRule) {
+        setScRouteRule(scRouteRule);
+        setTbRouteRule(tbRouteRule);
+    }
+
+    private void setScRouteRule(String scRouteRule) {
         scRouteRule = filter(scRouteRule);
         this.scRouteRule = scRouteRule;
         if (scRouteRule != null) {
@@ -61,7 +70,7 @@ public class SpelShardRouteRule implements ShardRouteRule {
         return scRouteRule;
     }
 
-    public void setTbRouteRule(String tbRouteRule) {
+    private void setTbRouteRule(String tbRouteRule) {
         tbRouteRule = filter(tbRouteRule);
         this.tbRouteRule = tbRouteRule;
         if (tbRouteRule != null) {

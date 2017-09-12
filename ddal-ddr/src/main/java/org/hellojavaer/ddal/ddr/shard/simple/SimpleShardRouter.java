@@ -37,51 +37,20 @@ public class SimpleShardRouter implements ShardRouter {
     private Map<String, List>                                    routeInfoMap      = new HashMap<String, List>();
     private Map<String, Set<String>>                             routedTables      = new HashMap<>();
 
-    public SimpleShardRouter() {
+    private SimpleShardRouter() {
     }
 
     public SimpleShardRouter(List<SimpleShardRouteRuleBinding> routeRuleBindings) {
-        this.routeRuleBindings = routeRuleBindings;
+        setRouteRuleBindings(routeRuleBindings);
     }
 
     public List<SimpleShardRouteRuleBinding> getRouteRuleBindings() {
         return routeRuleBindings;
     }
 
-    protected class InnerSimpleShardRouteRuleBindingWrapper {
-
-        private List<String>                conflictSchemas = new ArrayList<String>();
-        private SimpleShardRouteRuleBinding ruleBinding;
-        private RouteConfig                 routeConfig;
-
-        public List<String> getConflictSchemas() {
-            return conflictSchemas;
-        }
-
-        public void setConflictSchemas(List<String> conflictSchemas) {
-            this.conflictSchemas = conflictSchemas;
-        }
-
-        public SimpleShardRouteRuleBinding getRuleBinding() {
-            return ruleBinding;
-        }
-
-        public void setRuleBinding(SimpleShardRouteRuleBinding ruleBinding) {
-            this.ruleBinding = ruleBinding;
-        }
-
-        public RouteConfig getRouteConfig() {
-            return routeConfig;
-        }
-
-        public void setRouteConfig(RouteConfig routeConfig) {
-            this.routeConfig = routeConfig;
-        }
-    }
-
-    public void setRouteRuleBindings(List<SimpleShardRouteRuleBinding> bindings) {
-        Map<String, InnerSimpleShardRouteRuleBindingWrapper> cache = new HashMap<String, InnerSimpleShardRouteRuleBindingWrapper>();
-        Map<String, List> routeInfoMap = new HashMap<String, List>();
+    private void setRouteRuleBindings(List<SimpleShardRouteRuleBinding> bindings) {
+        Map<String, InnerSimpleShardRouteRuleBindingWrapper> cache = new HashMap<>();
+        Map<String, List> routeInfoMap = new HashMap<>();
         Map<String, Set<String>> routedTables = new HashMap<>();
         if (bindings != null && !bindings.isEmpty()) {
             for (SimpleShardRouteRuleBinding binding : bindings) {
@@ -138,6 +107,37 @@ public class SimpleShardRouter implements ShardRouter {
         this.cache = cache;
         this.routeInfoMap = routeInfoMap;
         this.routedTables = routedTables;
+    }
+
+    protected class InnerSimpleShardRouteRuleBindingWrapper {
+
+        private List<String>                conflictSchemas = new ArrayList<String>();
+        private SimpleShardRouteRuleBinding ruleBinding;
+        private RouteConfig                 routeConfig;
+
+        public List<String> getConflictSchemas() {
+            return conflictSchemas;
+        }
+
+        public void setConflictSchemas(List<String> conflictSchemas) {
+            this.conflictSchemas = conflictSchemas;
+        }
+
+        public SimpleShardRouteRuleBinding getRuleBinding() {
+            return ruleBinding;
+        }
+
+        public void setRuleBinding(SimpleShardRouteRuleBinding ruleBinding) {
+            this.ruleBinding = ruleBinding;
+        }
+
+        public RouteConfig getRouteConfig() {
+            return routeConfig;
+        }
+
+        public void setRouteConfig(RouteConfig routeConfig) {
+            this.routeConfig = routeConfig;
+        }
     }
 
     private void putToCache(Map<String, InnerSimpleShardRouteRuleBindingWrapper> cache, String key,

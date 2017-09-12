@@ -31,11 +31,28 @@ public class LRUSQLParserCache implements SQLParserCache {
     private Integer                                                         capacity;
     private SQLParser                                                       sqlParser;
 
-    public LRUSQLParserCache() {
+    private LRUSQLParserCache() {
     }
 
-    public LRUSQLParserCache(Integer capacity, SQLParser sqlParser) {
+    public LRUSQLParserCache(SQLParser sqlParser, Integer capacity) {
+        this.sqlParser = sqlParser;
         this.capacity = capacity;
+        init();
+    }
+
+    public Integer getCapacity() {
+        return capacity;
+    }
+
+    private void setCapacity(Integer capacity) {
+        this.capacity = capacity;
+    }
+
+    public SQLParser getSqlParser() {
+        return sqlParser;
+    }
+
+    private void setSqlParser(SQLParser sqlParser) {
         this.sqlParser = sqlParser;
     }
 
@@ -55,7 +72,7 @@ public class LRUSQLParserCache implements SQLParserCache {
         return result;
     }
 
-    private void init() {
+    public void init() {
         if (cache == null) {
             synchronized (this) {
                 if (cache == null) {
@@ -63,22 +80,6 @@ public class LRUSQLParserCache implements SQLParserCache {
                 }
             }
         }
-    }
-
-    public Integer getCapacity() {
-        return capacity;
-    }
-
-    public void setCapacity(Integer capacity) {
-        this.capacity = capacity;
-    }
-
-    public SQLParser getSqlParser() {
-        return sqlParser;
-    }
-
-    public void setSqlParser(SQLParser sqlParser) {
-        this.sqlParser = sqlParser;
     }
 
     private class InnerQueryKey {

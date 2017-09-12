@@ -31,9 +31,7 @@ public class SpelShardRouteRuleTest extends BaseTestShardParser {
 
     @Test
     public void test01() {
-        SpelShardRouteRule rule = new SpelShardRouteRule();
-        rule.setScRouteRule("{scName}_{#format('%02d', sdValue % 4)}");
-        rule.setTbRouteRule("{tbName}_{#format('%04d', sdValue % 8)}");
+        SpelShardRouteRule rule = new SpelShardRouteRule("{scName}_{#format('%02d', sdValue % 4)}","{tbName}_{#format('%04d', sdValue % 8)}");
         ShardRouteRuleContext context = new ShardRouteRuleContext();
         context.setScName("member");
         context.setTbName("user");
