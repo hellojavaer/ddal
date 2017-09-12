@@ -72,7 +72,7 @@ public class LRUSQLParserCache implements SQLParserCache {
         return result;
     }
 
-    public void init() {
+    private void init() {
         if (cache == null) {
             synchronized (this) {
                 if (cache == null) {

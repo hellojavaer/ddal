@@ -25,8 +25,8 @@ import org.hellojavaer.ddal.ddr.datasource.manager.rw.monitor.ReadOnlyDataSource
 import org.hellojavaer.ddal.ddr.datasource.manager.rw.monitor.WriterMethodInvokeResult;
 import org.hellojavaer.ddal.ddr.datasource.security.metadata.DefaultMetaDataChecker;
 import org.hellojavaer.ddal.ddr.datasource.security.metadata.MetaDataChecker;
-import org.hellojavaer.ddal.ddr.expression.range.RangeExpressionParser;
 import org.hellojavaer.ddal.ddr.expression.range.RangeExpressionItemVisitor;
+import org.hellojavaer.ddal.ddr.expression.range.RangeExpressionParser;
 import org.hellojavaer.ddal.ddr.lb.random.WeightItem;
 import org.hellojavaer.ddal.ddr.lb.random.WeightedRandom;
 import org.hellojavaer.ddal.ddr.shard.RouteInfo;
@@ -41,7 +41,6 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  *
@@ -74,8 +73,7 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
     private Map<String, Map<String, WeightedDataSourceWrapper>>    readOnlyDataSourceMapCahceCurrentValues    = null;
 
     // tag
-    private AtomicBoolean                                          inited                                     = new AtomicBoolean(
-                                                                                                                                  false);
+    private boolean                                                initialized                                = false;
 
     private DefaultReadWriteDataSourceManager() {
     }
@@ -137,8 +135,13 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
     }
 
     private void init() {
-        if (inited.compareAndSet(false, true) && readOnlyDataSourceMonitorServer != null) {
-            readOnlyDataSourceMonitorServer.init(getReadOnlyDataSourceMonitor());
+        if (initialized == false && readOnlyDataSourceMonitorServer != null) {
+            synchronized (this) {
+                if (initialized == false && readOnlyDataSourceMonitorServer != null) {
+                    readOnlyDataSourceMonitorServer.init(getReadOnlyDataSourceMonitor());
+                    initialized = true;
+                }
+            }
         }
     }
 
