@@ -37,10 +37,12 @@ import java.util.Set;
  */
 public interface ShardRouter {
 
+    ShardRouteRule getRouteRule(String scName, String tbName);
+
     RouteConfig getRouteConfig(String scName, String tbName);
 
     RouteInfo getRouteInfo(String scName, String tbName, Object sdValue) throws ShardValueNotFoundException,
-                                                                                ShardRouteException;
+                                                                        ShardRouteException;
 
     List<RouteInfo> getRouteInfos(String scName, String tbName);
 

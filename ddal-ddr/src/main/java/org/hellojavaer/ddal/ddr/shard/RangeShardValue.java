@@ -15,19 +15,36 @@
  */
 package org.hellojavaer.ddal.ddr.shard;
 
-import java.util.List;
-import java.util.Map;
-
 /**
  *
- * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 31/01/2017.
+ * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 16/09/2017.
  */
-public interface ShardRouteRule {
+public class RangeShardValue {
 
-    String parseScName(ShardRouteRuleContext context);
+    private Long begin;
+    private Long end;
 
-    String parseTbName(ShardRouteRuleContext context);
+    public RangeShardValue() {
+    }
 
-    Map<RouteInfo, List<RangeShardValue>> groupSdValuesByRouteInfo(String scName, String tbName,
-                                                                   RangeShardValue rangeShardValue);
+    public RangeShardValue(Long begin, Long end) {
+        this.begin = begin;
+        this.end = end;
+    }
+
+    public Long getBegin() {
+        return begin;
+    }
+
+    public void setBegin(Long begin) {
+        this.begin = begin;
+    }
+
+    public Long getEnd() {
+        return end;
+    }
+
+    public void setEnd(Long end) {
+        this.end = end;
+    }
 }

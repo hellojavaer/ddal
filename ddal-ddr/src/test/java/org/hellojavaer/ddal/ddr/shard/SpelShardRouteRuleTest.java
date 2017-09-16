@@ -16,7 +16,7 @@
 package org.hellojavaer.ddal.ddr.shard;
 
 import org.hellojavaer.ddal.ddr.shard.simple.SimpleShardParser;
-import org.hellojavaer.ddal.ddr.shard.simple.SpelShardRouteRule;
+import org.hellojavaer.ddal.ddr.shard.rule.SpelShardRouteRule;
 import org.hellojavaer.ddal.ddr.utils.Assert;
 import org.junit.Test;
 

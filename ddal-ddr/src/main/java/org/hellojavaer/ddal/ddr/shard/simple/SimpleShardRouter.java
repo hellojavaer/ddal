@@ -61,22 +61,23 @@ public class SimpleShardRouter implements ShardRouter {
                 final String sdKey = DDRStringUtils.toLowerCase(binding.getSdKey());
                 final String sdValues = DDRStringUtils.trimToNull(binding.getSdValues());
 
-                if (scName == null) {
-                    throw new IllegalArgumentException("'scName' can't be empty");
-                }
                 if (tbName == null) {
                     throw new IllegalArgumentException("'tbName' can't be empty");
                 }
-                StringBuilder sb = new StringBuilder();
-                sb.append(scName).append('.').append(tbName);
-                putToCache(cache, sb.toString(), binding, true);
 
                 final SimpleShardRouteRuleBinding b0 = new SimpleShardRouteRuleBinding();
                 b0.setScName(scName);
                 b0.setTbName(tbName);
                 b0.setSdKey(sdKey);
                 b0.setRule(binding.getRule());
-                putToCache(cache, tbName, b0, false);
+                if (scName != null) {
+                    StringBuilder sb = new StringBuilder();
+                    sb.append(scName).append('.').append(tbName);
+                    putToCache(cache, sb.toString(), b0, true);
+                    putToCache(cache, tbName, b0, false);
+                } else {
+                    putToCache(cache, tbName, b0, true);
+                }
 
                 final Set<RouteInfo> routeInfos = new LinkedHashSet<RouteInfo>();
                 if (sdValues != null) {
@@ -174,6 +175,18 @@ public class SimpleShardRouter implements ShardRouter {
                                                          + tbName + " is ambiguous");
         } else {
             return ruleBindingWrapper;
+        }
+    }
+
+    @Override
+    public ShardRouteRule getRouteRule(String scName, String tbName) {
+        scName = DDRStringUtils.toLowerCase(scName);
+        tbName = DDRStringUtils.toLowerCase(tbName);
+        InnerSimpleShardRouteRuleBindingWrapper bindingWrapper = getBinding(scName, tbName);
+        if (bindingWrapper == null || bindingWrapper.getRuleBinding() == null) {
+            return null;
+        } else {
+            return bindingWrapper.getRuleBinding().getRule();
         }
     }
 

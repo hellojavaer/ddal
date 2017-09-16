@@ -13,12 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddal.ddr.shard.simple;
+package org.hellojavaer.ddal.ddr.shard.rule;
 
 import org.hellojavaer.ddal.ddr.expression.el.function.ELFunctionManager;
+import org.hellojavaer.ddal.ddr.shard.RangeShardValue;
+import org.hellojavaer.ddal.ddr.shard.RouteInfo;
 import org.hellojavaer.ddal.ddr.shard.ShardRouteRule;
 import org.hellojavaer.ddal.ddr.shard.ShardRouteRuleContext;
+import org.hellojavaer.ddal.ddr.shard.exception.CrossTableException;
 import org.hellojavaer.ddal.ddr.shard.exception.ExpressionValueNotFoundException;
+import org.hellojavaer.ddal.ddr.shard.exception.OutOfRangeSizeLimitException;
 import org.hellojavaer.ddal.ddr.utils.DDRToStringBuilder;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.convert.TypeDescriptor;
@@ -31,10 +35,7 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  *
@@ -44,6 +45,7 @@ public class SpelShardRouteRule implements ShardRouteRule {
 
     private String     scRouteRule;
     private String     tbRouteRule;
+    private Integer    rangeSizeLimit;
 
     private Expression scRouteRuleExpression;
     private Expression tbRouteRuleExpression;
@@ -55,6 +57,12 @@ public class SpelShardRouteRule implements ShardRouteRule {
     public SpelShardRouteRule(String scRouteRule, String tbRouteRule) {
         setScRouteRule(scRouteRule);
         setTbRouteRule(tbRouteRule);
+    }
+
+    public SpelShardRouteRule(String scRouteRule, String tbRouteRule, Integer rangeSizeLimit) {
+        this.scRouteRule = scRouteRule;
+        this.tbRouteRule = tbRouteRule;
+        this.rangeSizeLimit = rangeSizeLimit;
     }
 
     private void setScRouteRule(String scRouteRule) {
@@ -83,6 +91,14 @@ public class SpelShardRouteRule implements ShardRouteRule {
         return tbRouteRule;
     }
 
+    public Integer getRangeSizeLimit() {
+        return rangeSizeLimit;
+    }
+
+    private void setRangeSizeLimit(Integer rangeSizeLimit) {
+        this.rangeSizeLimit = rangeSizeLimit;
+    }
+
     private String filter(String string) {
         if (string != null) {
             string = string.trim();
@@ -95,27 +111,86 @@ public class SpelShardRouteRule implements ShardRouteRule {
 
     @Override
     public String parseScName(ShardRouteRuleContext context) {
-        if (scRouteRuleExpression == null) {
-            return context.getScName();
-        } else {
-            EvaluationContext elContext = buildEvaluationContext(scRouteRule);
-            elContext.setVariable("scName", context.getScName());
-            elContext.setVariable("tbName", context.getTbName());
-            elContext.setVariable("sdValue", context.getSdValue());
-            return scRouteRuleExpression.getValue(elContext, String.class);
-        }
+        return parseName(scRouteRuleExpression, context, scRouteRule);
     }
 
     @Override
     public String parseTbName(ShardRouteRuleContext context) {
-        if (tbRouteRuleExpression == null) {
+        return parseName(tbRouteRuleExpression, context, tbRouteRule);
+    }
+
+    @Override
+    public Map<RouteInfo, List<RangeShardValue>> groupSdValuesByRouteInfo(String scName, String tbName,
+                                                                          RangeShardValue rangeShardValue) {
+
+        Long begin = rangeShardValue.getBegin();
+        Long end = rangeShardValue.getEnd();
+        if (begin == null || end == null) {
+            throw new IllegalArgumentException("rangeShardValue.begin and rangeShardValue.end can't be null");
+        }
+        if (begin > end) {
+            throw new IllegalArgumentException("rangeShardValue.begin can't be greater than rangeShardValue.end");
+        }
+        if (rangeSizeLimit != null && end - begin + 1 > rangeSizeLimit) {
+            throw new OutOfRangeSizeLimitException((end - begin) + " > " + rangeSizeLimit);
+        }
+        Map<RouteInfo, List<RangeShardValue>> map = new HashMap<>();
+        for (long l = begin; l <= end; l++) {
+            ShardRouteRuleContext context0 = new ShardRouteRuleContext();
+            String scName0 = parseScName(context0);
+            ShardRouteRuleContext context1 = new ShardRouteRuleContext();
+            String tbName0 = parseScName(context1);
+            RouteInfo routeInfo = new RouteInfo();
+            routeInfo.setScName(scName0);
+            routeInfo.setTbName(tbName0);
+            List<RangeShardValue> rangeShardValues = map.get(routeInfo);
+            if (rangeShardValues == null) {
+                rangeShardValues = new ArrayList<>();
+                map.put(routeInfo, rangeShardValues);
+            }
+            rangeShardValues.add(new RangeShardValue(l, l));
+        }
+        return map;
+    }
+
+    protected String parseName(Expression expression, ShardRouteRuleContext context, String routeRule) {
+        if (expression == null) {
             return context.getTbName();
         } else {
-            EvaluationContext elContext = buildEvaluationContext(tbRouteRule);
-            elContext.setVariable("scName", context.getScName());
-            elContext.setVariable("tbName", context.getTbName());
-            elContext.setVariable("sdValue", context.getSdValue());
-            return tbRouteRuleExpression.getValue(elContext, String.class);
+            Object sdValue = context.getSdValue();
+            if (sdValue != null && sdValue instanceof RangeShardValue) {
+                Long begin = ((RangeShardValue) sdValue).getBegin();
+                Long end = ((RangeShardValue) sdValue).getEnd();
+                if (begin == null || end == null) {
+                    throw new IllegalArgumentException("rangeShardValue.begin and rangeShardValue.end can't be null");
+                }
+                if (begin > end) {
+                    throw new IllegalArgumentException(
+                                                       "rangeShardValue.begin can't be greater than rangeShardValue.end");
+                }
+                if (rangeSizeLimit != null && end - begin + 1 > rangeSizeLimit) {
+                    throw new OutOfRangeSizeLimitException((end - begin) + " > " + rangeSizeLimit);
+                }
+                String result = null;
+                for (long l = begin; l <= end; l++) {
+                    EvaluationContext elContext = buildEvaluationContext(routeRule);
+                    elContext.setVariable("scName", context.getScName());
+                    elContext.setVariable("tbName", context.getTbName());
+                    elContext.setVariable("sdValue", l);
+                    String temp = expression.getValue(elContext, String.class);
+                    if (result != null && !result.equals(temp)) {
+                        throw new CrossTableException(result + " and " + temp);
+                    }
+                    result = temp;
+                }
+                return result;
+            } else {
+                EvaluationContext elContext = buildEvaluationContext(routeRule);
+                elContext.setVariable("scName", context.getScName());
+                elContext.setVariable("tbName", context.getTbName());
+                elContext.setVariable("sdValue", context.getSdValue());
+                return expression.getValue(elContext, String.class);
+            }
         }
     }
 

@@ -23,6 +23,18 @@ import java.util.*;
  */
 public class ShardRouteUtils {
 
+    public static Map<RouteInfo, List<RangeShardValue>> groupSdValuesByRouteInfo(ShardRouter shardRouter,
+                                                                                 String scName, String tbName,
+                                                                                 RangeShardValue sdValues) {
+        RouteConfig routeConfig = shardRouter.getRouteConfig(scName, tbName);
+        ShardRouteRule rule = shardRouter.getRouteRule(routeConfig.getScName(), routeConfig.getTbName());
+        Map<RouteInfo, List<RangeShardValue>> map = rule.groupSdValuesByRouteInfo(scName, tbName, sdValues);
+        if (map == null) {
+            return Collections.emptyMap();
+        }
+        return map;
+    }
+
     public static <T> Map<RouteInfo, List<T>> groupSdValuesByRouteInfo(ShardRouter shardRouter, String scName,
                                                                        String tbName, List<T> sdValues) {
         if (sdValues == null || sdValues.isEmpty()) {

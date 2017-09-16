@@ -18,7 +18,7 @@ package org.hellojavaer.ddal.ddr.shard;
 import org.hellojavaer.ddal.ddr.shard.simple.SimpleShardParser;
 import org.hellojavaer.ddal.ddr.shard.simple.SimpleShardRouteRuleBinding;
 import org.hellojavaer.ddal.ddr.shard.simple.SimpleShardRouter;
-import org.hellojavaer.ddal.ddr.shard.simple.SpelShardRouteRule;
+import org.hellojavaer.ddal.ddr.shard.rule.SpelShardRouteRule;
 
 import java.util.ArrayList;
 import java.util.List;
