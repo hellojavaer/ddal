@@ -36,18 +36,12 @@ public class BaseTestShardParser {
      * @return
      */
     protected SimpleShardParser buildShardParser() {
-        SimpleShardParser parser = new SimpleShardParser();
-        SimpleShardRouter shardRouter = new SimpleShardRouter();
         List<SimpleShardRouteRuleBinding> bindings = new ArrayList<SimpleShardRouteRuleBinding>();
         // 定义规则
-        SpelShardRouteRule numRule = new SpelShardRouteRule();
-        numRule.setScRouteRule("{scName}_{format('%02d', sdValue % 8)}");
-        numRule.setTbRouteRule("{tbName}_{format('%04d', sdValue % 128)}");
-
-        SpelShardRouteRule strRule = new SpelShardRouteRule();
-        strRule.setScRouteRule("{scName}_{format('%02d', sdValue.hashCode() % 8)}");
-        strRule.setTbRouteRule("{tbName}_{format('%04d', sdValue.hashCode() % 128)}");
-
+        SpelShardRouteRule numRule = new SpelShardRouteRule("{scName}_{format('%02d', sdValue % 8)}",
+                                                            "{tbName}_{format('%04d', sdValue % 128)}");
+        SpelShardRouteRule strRule = new SpelShardRouteRule("{scName}_{format('%02d', sdValue.hashCode() % 8)}",
+                                                            "{tbName}_{format('%04d', sdValue.hashCode() % 128)}");
         // 用户表
         SimpleShardRouteRuleBinding user = new SimpleShardRouteRuleBinding();
         user.setScName("db");
@@ -93,9 +87,8 @@ public class BaseTestShardParser {
         user_back.setRule(strRule);
         bindings.add(user_back);
 
-        shardRouter.setRouteRuleBindings(bindings);
-        parser.setShardRouter(shardRouter);
-        parser.setSqlParser(null);
+        SimpleShardRouter shardRouter = new SimpleShardRouter(bindings);
+        SimpleShardParser parser = new SimpleShardParser(null, shardRouter);
         return parser;
     }
 

@@ -27,11 +27,18 @@ public class SingleDataSourceManager implements DataSourceManager {
 
     private DataSource dataSource;
 
+    private SingleDataSourceManager() {
+    }
+
+    public SingleDataSourceManager(DataSource dataSource) {
+        this.dataSource = dataSource;
+    }
+
     public DataSource getDataSource() {
         return dataSource;
     }
 
-    public void setDataSource(DataSource dataSource) {
+    private void setDataSource(DataSource dataSource) {
         this.dataSource = dataSource;
     }
 

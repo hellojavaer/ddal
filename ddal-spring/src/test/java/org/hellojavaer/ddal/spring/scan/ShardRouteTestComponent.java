@@ -16,7 +16,7 @@
 package org.hellojavaer.ddal.spring.scan;
 
 import org.hellojavaer.ddal.ddr.shard.ShardRouteContext;
-import org.hellojavaer.ddal.ddr.shard.annotation.ShardRoute;
+import org.hellojavaer.ddal.ddr.shard.ShardRoute;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 

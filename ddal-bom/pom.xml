@@ -76,6 +76,11 @@
         <dependencies>
             <dependency>
                 <groupId>${project.groupId}</groupId>
+                <artifactId>ddal-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
                 <artifactId>ddal-ddr</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -92,6 +97,11 @@
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>ddal-jsqlparser</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>ddal-datasource</artifactId>
                 <version>${project.version}</version>
             </dependency>
         </dependencies>

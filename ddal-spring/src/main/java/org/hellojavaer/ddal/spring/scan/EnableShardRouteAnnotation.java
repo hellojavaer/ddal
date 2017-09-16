@@ -20,7 +20,7 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.hellojavaer.ddal.ddr.shard.ShardRouteContext;
-import org.hellojavaer.ddal.ddr.shard.annotation.ShardRoute;
+import org.hellojavaer.ddal.ddr.shard.ShardRoute;
 import org.hellojavaer.ddal.ddr.utils.DDRStringUtils;
 import org.springframework.core.DefaultParameterNameDiscoverer;
 import org.springframework.core.ParameterNameDiscoverer;

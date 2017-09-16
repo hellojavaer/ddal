@@ -42,17 +42,12 @@ public class BaseTestShardParser {
      * user -1:N- shop -1:N- item  
      */
     protected SimpleShardParser buildParserForId() {
-        SimpleShardParser parser = new SimpleShardParser();
-        SimpleShardRouter shardRouter = new SimpleShardRouter();
         List<SimpleShardRouteRuleBinding> bindings = new ArrayList<SimpleShardRouteRuleBinding>();
         // 定义规则
-        SpelShardRouteRule numRule = new SpelShardRouteRule();
-        numRule.setScRouteRule("{scName}_{format('%02d', sdValue % 8)}");
-        numRule.setTbRouteRule("{tbName}_{format('%04d', sdValue % 128)}");
-
-        SpelShardRouteRule strRule = new SpelShardRouteRule();
-        strRule.setScRouteRule("{scName}_{format('%02d', sdValue.hashCode() % 8)}");
-        strRule.setTbRouteRule("{tbName}_{format('%04d', sdValue.hashCode() % 128)}");
+        SpelShardRouteRule numRule = new SpelShardRouteRule("{scName}_{format('%02d', sdValue % 8)}",
+                                                            "{tbName}_{format('%04d', sdValue % 128)}");
+        SpelShardRouteRule strRule = new SpelShardRouteRule("{scName}_{format('%02d', sdValue.hashCode() % 8)}",
+                                                            "{tbName}_{format('%04d', sdValue.hashCode() % 128)}");
 
         // 用户表
         SimpleShardRouteRuleBinding user = new SimpleShardRouteRuleBinding();
@@ -81,15 +76,12 @@ public class BaseTestShardParser {
         item.setRule(numRule);
         bindings.add(item);
 
-        shardRouter.setRouteRuleBindings(bindings);
-        parser.setShardRouter(shardRouter);
-        parser.setSqlParser(new JSQLParser());
+        SimpleShardRouter shardRouter = new SimpleShardRouter(bindings);
+        SimpleShardParser parser = new SimpleShardParser(new JSQLParser(), shardRouter);
         return parser;
     }
 
     protected ShardParser buildParserForName() {
-        SimpleShardParser parser = new SimpleShardParser();
-        SimpleShardRouter shardRouter = new SimpleShardRouter();
         List<SimpleShardRouteRuleBinding> bindings = new ArrayList<SimpleShardRouteRuleBinding>();
         SimpleShardRouteRuleBinding b0 = new SimpleShardRouteRuleBinding();
         b0.setScName("db");
@@ -97,24 +89,18 @@ public class BaseTestShardParser {
         b0.setSdKey("name");
         b0.setSdValues("[1..128]");
 
-        SpelShardRouteRule r0 = new SpelShardRouteRule();
-        r0.setScRouteRule("{scName}_{format('%02d', sdValue.hashCode() % 8)}");
-        r0.setTbRouteRule("{tbName}_{format('%04d', sdValue.hashCode() % 128)}");
+        SpelShardRouteRule r0 = new SpelShardRouteRule("{scName}_{format('%02d', sdValue.hashCode() % 8)}",
+                                                       "{tbName}_{format('%04d', sdValue.hashCode() % 128)}");
         b0.setRule(r0);
         bindings.add(b0);
-        shardRouter.setRouteRuleBindings(bindings);
-        parser.setShardRouter(shardRouter);
-        parser.setSqlParser(new JSQLParser());
+        SimpleShardRouter shardRouter = new SimpleShardRouter(bindings);
+        SimpleShardParser parser = new SimpleShardParser(new JSQLParser(), shardRouter);
         return parser;
     }
 
     protected ShardParser buildParserForNoSdKey() {
-        SpelShardRouteRule r0 = new SpelShardRouteRule();
-        r0.setScRouteRule("{scName}_{format('%02d', sdValue.hashCode() % 8)}");
-        r0.setTbRouteRule("{tbName}_{format('%04d', sdValue.hashCode() % 128)}");
-
-        SimpleShardParser parser = new SimpleShardParser();
-        SimpleShardRouter shardRouter = new SimpleShardRouter();
+        SpelShardRouteRule r0 = new SpelShardRouteRule("{scName}_{format('%02d', sdValue.hashCode() % 8)}",
+                                                       "{tbName}_{format('%04d', sdValue.hashCode() % 128)}");
         List<SimpleShardRouteRuleBinding> bindings = new ArrayList<SimpleShardRouteRuleBinding>();
         SimpleShardRouteRuleBinding user = new SimpleShardRouteRuleBinding();
         user.setScName("db");
@@ -134,15 +120,12 @@ public class BaseTestShardParser {
         item.setRule(r0);
         bindings.add(item);
 
-        shardRouter.setRouteRuleBindings(bindings);
-        parser.setShardRouter(shardRouter);
-        parser.setSqlParser(new JSQLParser());
+        SimpleShardRouter shardRouter = new SimpleShardRouter(bindings);
+        SimpleShardParser parser = new SimpleShardParser(new JSQLParser(), shardRouter);
         return parser;
     }
 
     protected ShardParser buildParserForNoRule() {
-        SimpleShardParser parser = new SimpleShardParser();
-        SimpleShardRouter shardRouter = new SimpleShardRouter();
         List<SimpleShardRouteRuleBinding> bindings = new ArrayList<SimpleShardRouteRuleBinding>();
         SimpleShardRouteRuleBinding b0 = new SimpleShardRouteRuleBinding();
         b0.setScName("db");
@@ -154,9 +137,8 @@ public class BaseTestShardParser {
 
         bindings.add(b0);
         bindings.add(b1);
-        shardRouter.setRouteRuleBindings(bindings);
-        parser.setShardRouter(shardRouter);
-        parser.setSqlParser(new JSQLParser());
+        SimpleShardRouter shardRouter = new SimpleShardRouter(bindings);
+        SimpleShardParser parser = new SimpleShardParser(new JSQLParser(), shardRouter);
         return parser;
     }
 }

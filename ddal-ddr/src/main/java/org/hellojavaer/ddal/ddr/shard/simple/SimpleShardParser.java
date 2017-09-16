@@ -29,22 +29,22 @@ import java.util.Map;
  */
 public class SimpleShardParser implements ShardParser {
 
-    private ShardRouter shardRouter = null;
-    private SQLParser   sqlParser   = null;
+    private ShardRouter shardRouter;
+    private SQLParser   sqlParser;
 
-    public SimpleShardParser() {
+    private SimpleShardParser() {
     }
 
     public SimpleShardParser(SQLParser sqlParser, ShardRouter shardRouter) {
-        this.sqlParser = sqlParser;
-        this.shardRouter = shardRouter;
+        setSqlParser(sqlParser);
+        setShardRouter(shardRouter);
     }
 
     public ShardRouter getShardRouter() {
         return shardRouter;
     }
 
-    public void setShardRouter(ShardRouter shardRouter) {
+    private void setShardRouter(ShardRouter shardRouter) {
         this.shardRouter = shardRouter;
     }
 
@@ -52,7 +52,7 @@ public class SimpleShardParser implements ShardParser {
         return sqlParser;
     }
 
-    public void setSqlParser(SQLParser sqlParser) {
+    private void setSqlParser(SQLParser sqlParser) {
         this.sqlParser = sqlParser;
     }
 

@@ -100,8 +100,8 @@ public class SingleSequence implements Sequence {
 
                             @Override
                             public SequenceRange getSequenceRange() throws Exception {
-                                SequenceRange sequenceRange = getSequenceRangeGetter().get(getSchemaName(), getTableName(),
-                                                                                     getStep());
+                                SequenceRange sequenceRange = getSequenceRangeGetter().get(getSchemaName(),
+                                                                                           getTableName(), getStep());
                                 if (sequenceRange == null) {
                                     throw new NoAvailableSequenceRangeFoundException(
                                                                                      "No available sequence rang was found for schemaName:'"
