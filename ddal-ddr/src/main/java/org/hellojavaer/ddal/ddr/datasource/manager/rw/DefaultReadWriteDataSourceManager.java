@@ -58,8 +58,8 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
     private List<ReadOnlyDataSourceBinding>                        readOnlyDataSources                        = null;
 
     // Original input
-    private MetaDataChecker                                        metaDataChecker                            = new DefaultMetaDataChecker();
     private ShardRouter                                            shardRouter                                = null;
+    private MetaDataChecker                                        metaDataChecker                            = null;
 
     // cache
     private Map<String, WeightedRandom>                            readOnlyDataSourceQueryCache               = null;
@@ -79,6 +79,7 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
     private Map<String, Set<String>>                               physicalTables                             = null;
 
     private DefaultReadWriteDataSourceManager() {
+        this.metaDataChecker = new DefaultMetaDataChecker("mysql");
     }
 
     public DefaultReadWriteDataSourceManager(List<ReadOnlyDataSourceBinding> readOnlyDataSources,
@@ -89,6 +90,19 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
         setReadOnlyDataSourceMonitorServer(readOnlyDataSourceMonitorServer);
         setWriteOnlyDataSources(writeOnlyDataSources);
         setShardRouter(shardRouter);
+        setMetaDataChecker(new DefaultMetaDataChecker("mysql"));
+        init();
+    }
+
+    public DefaultReadWriteDataSourceManager(ReadOnlyDataSourceMonitorServer readOnlyDataSourceMonitorServer,
+                                             List<WriteOnlyDataSourceBinding> writeOnlyDataSources,
+                                             List<ReadOnlyDataSourceBinding> readOnlyDataSources,
+                                             ShardRouter shardRouter, MetaDataChecker metaDataChecker) {
+        setReadOnlyDataSources(readOnlyDataSources);
+        setReadOnlyDataSourceMonitorServer(readOnlyDataSourceMonitorServer);
+        setWriteOnlyDataSources(writeOnlyDataSources);
+        setShardRouter(shardRouter);
+        setMetaDataChecker(metaDataChecker);
         init();
     }
 
@@ -129,11 +143,11 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
         this.shardRouter = shardRouter;
     }
 
-    protected MetaDataChecker getMetaDataChecker() {
+    public MetaDataChecker getMetaDataChecker() {
         return metaDataChecker;
     }
 
-    protected void setMetaDataChecker(MetaDataChecker metaDataChecker) {
+    private void setMetaDataChecker(MetaDataChecker metaDataChecker) {
         this.metaDataChecker = metaDataChecker;
     }
 
