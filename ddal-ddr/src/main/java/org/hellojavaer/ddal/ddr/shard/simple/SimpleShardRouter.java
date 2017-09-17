@@ -34,7 +34,7 @@ public class SimpleShardRouter implements ShardRouter {
     private Logger                                               logger            = LoggerFactory.getLogger(getClass());
     private List<SimpleShardRouteRuleBinding>                    routeRuleBindings = null;
     private Map<String, InnerSimpleShardRouteRuleBindingWrapper> cache             = Collections.EMPTY_MAP;
-    private Map<String, List>                                    routeInfoMap      = new HashMap<String, List>();
+    private Map<String, List<RouteInfo>>                         routeInfoMap      = new HashMap<>();
     private Map<String, Set<String>>                             routedTables      = new HashMap<>();
 
     private SimpleShardRouter() {
@@ -50,7 +50,7 @@ public class SimpleShardRouter implements ShardRouter {
 
     private void setRouteRuleBindings(List<SimpleShardRouteRuleBinding> bindings) {
         Map<String, InnerSimpleShardRouteRuleBindingWrapper> cache = new HashMap<>();
-        Map<String, List> routeInfoMap = new HashMap<>();
+        Map<String, List<RouteInfo>> routeInfoMap = new HashMap<>();
         Map<String, Set<String>> routedTables = new HashMap<>();
         if (bindings != null && !bindings.isEmpty()) {
             for (SimpleShardRouteRuleBinding binding : bindings) {
@@ -61,22 +61,23 @@ public class SimpleShardRouter implements ShardRouter {
                 final String sdKey = DDRStringUtils.toLowerCase(binding.getSdKey());
                 final String sdValues = DDRStringUtils.trimToNull(binding.getSdValues());
 
-                if (scName == null) {
-                    throw new IllegalArgumentException("'scName' can't be empty");
-                }
                 if (tbName == null) {
                     throw new IllegalArgumentException("'tbName' can't be empty");
                 }
-                StringBuilder sb = new StringBuilder();
-                sb.append(scName).append('.').append(tbName);
-                putToCache(cache, sb.toString(), binding, true);
 
                 final SimpleShardRouteRuleBinding b0 = new SimpleShardRouteRuleBinding();
                 b0.setScName(scName);
                 b0.setTbName(tbName);
                 b0.setSdKey(sdKey);
                 b0.setRule(binding.getRule());
-                putToCache(cache, tbName, b0, false);
+                if (scName != null) {
+                    StringBuilder sb = new StringBuilder();
+                    sb.append(scName).append('.').append(tbName);
+                    putToCache(cache, sb.toString(), b0, true);
+                    putToCache(cache, tbName, b0, false);
+                } else {
+                    putToCache(cache, tbName, b0, true);
+                }
 
                 final Set<RouteInfo> routeInfos = new LinkedHashSet<RouteInfo>();
                 if (sdValues != null) {
@@ -174,6 +175,18 @@ public class SimpleShardRouter implements ShardRouter {
                                                          + tbName + " is ambiguous");
         } else {
             return ruleBindingWrapper;
+        }
+    }
+
+    @Override
+    public ShardRouteRule getRouteRule(String scName, String tbName) {
+        scName = DDRStringUtils.toLowerCase(scName);
+        tbName = DDRStringUtils.toLowerCase(tbName);
+        InnerSimpleShardRouteRuleBindingWrapper bindingWrapper = getBinding(scName, tbName);
+        if (bindingWrapper == null || bindingWrapper.getRuleBinding() == null) {
+            return null;
+        } else {
+            return bindingWrapper.getRuleBinding().getRule();
         }
     }
 

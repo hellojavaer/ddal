@@ -36,6 +36,7 @@ import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.select.*;
 import net.sf.jsqlparser.statement.update.Update;
 import org.hellojavaer.ddal.ddr.datasource.exception.CrossPreparedStatementException;
+import org.hellojavaer.ddal.ddr.shard.RangeShardValue;
 import org.hellojavaer.ddal.ddr.shard.RouteConfig;
 import org.hellojavaer.ddal.ddr.shard.RouteInfo;
 import org.hellojavaer.ddal.ddr.shard.ShardRouter;
@@ -305,40 +306,33 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
                 } else {
                     e0 = ((Number) end.getValue()).longValue();
                 }
-                //
-                if (s0 > e0) {
-                    long temp = s0;
-                    s0 = e0;
-                    e0 = temp;
-                }
-                for (long l = s0; l <= e0; l++) {
-                    routeInfo = getRouteInfo(tab, l);
-                    String next = routeInfo.toString();
-                    if (routedFullTableName == null) {
-                        routedFullTableName = next;
-                    } else {
-                        if (!routedFullTableName.equals(next)) {
-                            if (routedSql != null) {
-                                throw new CrossPreparedStatementException("Sql[" + sql + "] has been routed to ["
-                                                                             + routedSql + "] and table:'"
-                                                                             + tab.getOriginalConfig().toString()
-                                                                             + "' has been route to '"
-                                                                             + routedFullTableName
-                                                                             + "'. But current jdbc parameter:"
-                                                                             + DDRJSONUtils.toJSONString(jdbcParams)
-                                                                             + " require route to " + next
-                                                                             + DDRJSONUtils.toJSONString(jdbcParams));
-                            } else {
-                                throw new AmbiguousRouteResultException("In sql[" + sql + "], table:'"
-                                                                        + tab.getOriginalConfig().toString()
-                                                                        + "' has multiple routing results["
-                                                                        + routedFullTableName + "," + next
-                                                                        + "]. Jdbc parameter is "
-                                                                        + DDRJSONUtils.toJSONString(jdbcParams));
-                            }
+
+                routeInfo = getRouteInfo(tab, new RangeShardValue(s0, e0));
+                String next = routeInfo.toString();
+                if (routedFullTableName == null) {
+                    routedFullTableName = next;
+                } else {
+                    if (!routedFullTableName.equals(next)) {
+                        if (routedSql != null) {
+                            throw new CrossPreparedStatementException("Sql[" + sql + "] has been routed to ["
+                                                                      + routedSql + "] and table:'"
+                                                                      + tab.getOriginalConfig().toString()
+                                                                      + "' has been route to '" + routedFullTableName
+                                                                      + "'. But current jdbc parameter:"
+                                                                      + DDRJSONUtils.toJSONString(jdbcParams)
+                                                                      + " require route to " + next
+                                                                      + DDRJSONUtils.toJSONString(jdbcParams));
+                        } else {
+                            throw new AmbiguousRouteResultException("In sql[" + sql + "], table:'"
+                                                                    + tab.getOriginalConfig().toString()
+                                                                    + "' has multiple routing results["
+                                                                    + routedFullTableName + "," + next
+                                                                    + "]. Jdbc parameter is "
+                                                                    + DDRJSONUtils.toJSONString(jdbcParams));
                         }
                     }
                 }
+
             }
         }
         return routeInfo;
