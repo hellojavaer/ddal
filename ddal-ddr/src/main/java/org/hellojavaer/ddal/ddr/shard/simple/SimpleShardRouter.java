@@ -34,7 +34,7 @@ public class SimpleShardRouter implements ShardRouter {
     private Logger                                               logger            = LoggerFactory.getLogger(getClass());
     private List<SimpleShardRouteRuleBinding>                    routeRuleBindings = null;
     private Map<String, InnerSimpleShardRouteRuleBindingWrapper> cache             = Collections.EMPTY_MAP;
-    private Map<String, List>                                    routeInfoMap      = new HashMap<String, List>();
+    private Map<String, List<RouteInfo>>                         routeInfoMap      = new HashMap<>();
     private Map<String, Set<String>>                             routedTables      = new HashMap<>();
 
     private SimpleShardRouter() {
@@ -50,7 +50,7 @@ public class SimpleShardRouter implements ShardRouter {
 
     private void setRouteRuleBindings(List<SimpleShardRouteRuleBinding> bindings) {
         Map<String, InnerSimpleShardRouteRuleBindingWrapper> cache = new HashMap<>();
-        Map<String, List> routeInfoMap = new HashMap<>();
+        Map<String, List<RouteInfo>> routeInfoMap = new HashMap<>();
         Map<String, Set<String>> routedTables = new HashMap<>();
         if (bindings != null && !bindings.isEmpty()) {
             for (SimpleShardRouteRuleBinding binding : bindings) {

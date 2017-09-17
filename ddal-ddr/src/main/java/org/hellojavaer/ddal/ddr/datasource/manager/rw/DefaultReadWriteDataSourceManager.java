@@ -75,6 +75,9 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
     // tag
     private boolean                                                initialized                                = false;
 
+    // cache
+    private Map<String, Set<String>>                               physicalTables                             = null;
+
     private DefaultReadWriteDataSourceManager() {
     }
 
@@ -512,38 +515,43 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
         }
     }
 
+    private Map<String, Set<String>> getPhysicalTables() {
+        if (physicalTables == null) {
+            synchronized (this) {
+                if (physicalTables == null) {
+                    Map<String, Set<String>> tabs = new HashMap<>();
+                    Map<String, Set<String>> routedTables = shardRouter.getRoutedTables();
+                    if (routedTables != null) {
+                        for (Map.Entry<String, Set<String>> entry : routedTables.entrySet()) {
+                            String sc = entry.getKey();
+                            for (String tb : entry.getValue()) {
+                                List<RouteInfo> routeInfos = shardRouter.getRouteInfos(sc, tb);
+                                if (routeInfos != null) {
+                                    for (RouteInfo routeInfo : routeInfos) {
+                                        Set<String> set = tabs.get(routeInfo.getScName());
+                                        if (set == null) {
+                                            set = new HashSet<>();
+                                            tabs.put(routeInfo.getScName(), set);
+                                        }
+                                        set.add(routeInfo.getTbName());
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    physicalTables = tabs;
+                }
+            }
+        }
+        return physicalTables;
+    }
+
     private void check(Connection conn, String scName) {
         if (metaDataChecker == null || shardRouter == null) {
             return;
         }
-        Map<String, Set<String>> routedTables = shardRouter.getRoutedTables();
-        if (routedTables == null) {
-            return;
-        }
-        Set<String> tables = routedTables.get(scName);
-        if (tables == null) {
-            return;
-        }
-        for (String tbName : tables) {
-            List<RouteInfo> routeInfos = shardRouter.getRouteInfos(scName, tbName);
-            if (routeInfos == null || routeInfos.isEmpty()) {
-                continue;
-            }
-            // group table by schema
-            Map<String, Set<String>> groupedTables = new LinkedHashMap<>();
-            for (RouteInfo routeInfo : routeInfos) {
-                Set<String> physicalTbs = groupedTables.get(routeInfo.getScName());
-                if (physicalTbs == null) {
-                    physicalTbs = new LinkedHashSet<>();
-                    groupedTables.put(routeInfo.getScName(), physicalTbs);
-                }
-                physicalTbs.add(routeInfo.getTbName());
-            }
-            // check meta data
-            for (Map.Entry<String, Set<String>> entry : groupedTables.entrySet()) {
-                metaDataChecker.check(conn, entry.getKey(), entry.getValue());
-            }
-        }
+        Map<String, Set<String>> physicalTables = getPhysicalTables();
+        metaDataChecker.check(conn, scName, physicalTables.get(scName));
     }
 
     private void initWriteOnlyDataSource(List<WriteOnlyDataSourceBinding> bindings) {

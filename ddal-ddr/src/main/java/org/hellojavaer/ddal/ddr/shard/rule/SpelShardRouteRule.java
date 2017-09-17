@@ -111,7 +111,11 @@ public class SpelShardRouteRule implements ShardRouteRule {
 
     @Override
     public String parseScName(ShardRouteRuleContext context) {
-        return parseName(scRouteRuleExpression, context, scRouteRule);
+        if (scRouteRuleExpression == null) {
+            return context.getScName();
+        } else {
+            return parseName(scRouteRuleExpression, context, scRouteRule);
+        }
     }
 
     @Override
@@ -122,7 +126,6 @@ public class SpelShardRouteRule implements ShardRouteRule {
     @Override
     public Map<RouteInfo, List<RangeShardValue>> groupSdValuesByRouteInfo(String scName, String tbName,
                                                                           RangeShardValue rangeShardValue) {
-
         Long begin = rangeShardValue.getBegin();
         Long end = rangeShardValue.getEnd();
         if (begin == null || end == null) {
@@ -155,42 +158,40 @@ public class SpelShardRouteRule implements ShardRouteRule {
 
     protected String parseName(Expression expression, ShardRouteRuleContext context, String routeRule) {
         if (expression == null) {
-            return context.getTbName();
-        } else {
-            Object sdValue = context.getSdValue();
-            if (sdValue != null && sdValue instanceof RangeShardValue) {
-                Long begin = ((RangeShardValue) sdValue).getBegin();
-                Long end = ((RangeShardValue) sdValue).getEnd();
-                if (begin == null || end == null) {
-                    throw new IllegalArgumentException("rangeShardValue.begin and rangeShardValue.end can't be null");
-                }
-                if (begin > end) {
-                    throw new IllegalArgumentException(
-                                                       "rangeShardValue.begin can't be greater than rangeShardValue.end");
-                }
-                if (rangeSizeLimit != null && end - begin + 1 > rangeSizeLimit) {
-                    throw new OutOfRangeSizeLimitException((end - begin) + " > " + rangeSizeLimit);
-                }
-                String result = null;
-                for (long l = begin; l <= end; l++) {
-                    EvaluationContext elContext = buildEvaluationContext(routeRule);
-                    elContext.setVariable("scName", context.getScName());
-                    elContext.setVariable("tbName", context.getTbName());
-                    elContext.setVariable("sdValue", l);
-                    String temp = expression.getValue(elContext, String.class);
-                    if (result != null && !result.equals(temp)) {
-                        throw new CrossTableException(result + " and " + temp);
-                    }
-                    result = temp;
-                }
-                return result;
-            } else {
+            throw new IllegalArgumentException("expression can't be null");
+        }
+        Object sdValue = context.getSdValue();
+        if (sdValue != null && sdValue instanceof RangeShardValue) {
+            Long begin = ((RangeShardValue) sdValue).getBegin();
+            Long end = ((RangeShardValue) sdValue).getEnd();
+            if (begin == null || end == null) {
+                throw new IllegalArgumentException("rangeShardValue.begin and rangeShardValue.end can't be null");
+            }
+            if (begin > end) {
+                throw new IllegalArgumentException("rangeShardValue.begin can't be greater than rangeShardValue.end");
+            }
+            if (rangeSizeLimit != null && end - begin + 1 > rangeSizeLimit) {
+                throw new OutOfRangeSizeLimitException((end - begin) + " > " + rangeSizeLimit);
+            }
+            String result = null;
+            for (long l = begin; l <= end; l++) {
                 EvaluationContext elContext = buildEvaluationContext(routeRule);
                 elContext.setVariable("scName", context.getScName());
                 elContext.setVariable("tbName", context.getTbName());
-                elContext.setVariable("sdValue", context.getSdValue());
-                return expression.getValue(elContext, String.class);
+                elContext.setVariable("sdValue", l);
+                String temp = expression.getValue(elContext, String.class);
+                if (result != null && !result.equals(temp)) {
+                    throw new CrossTableException(result + " and " + temp);
+                }
+                result = temp;
             }
+            return result;
+        } else {
+            EvaluationContext elContext = buildEvaluationContext(routeRule);
+            elContext.setVariable("scName", context.getScName());
+            elContext.setVariable("tbName", context.getTbName());
+            elContext.setVariable("sdValue", context.getSdValue());
+            return expression.getValue(elContext, String.class);
         }
     }
 
