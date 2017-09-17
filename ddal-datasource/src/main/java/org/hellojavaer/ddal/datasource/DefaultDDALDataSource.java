@@ -93,13 +93,13 @@ public class DefaultDDALDataSource implements DDALDataSource {
                 genericXmlApplicationContext.refresh();
                 context = genericXmlApplicationContext;
             } else {
-                throw new IllegalArgumentException("Unsupported protocol:" + url);
+                throw new IllegalArgumentException("Unsupported protocol " + url);
             }
         } else if (url1.startsWith(THIN_PROTOCOL_PREFIX)) {
             // TODOD
-            throw new IllegalArgumentException("Unsupport 'jdbc:ddal:thin:' protocol now");
+            throw new IllegalArgumentException("Unsupported protocol jdbc:ddal:thin:");
         } else {
-            throw new IllegalArgumentException("Unsupported protocol:" + url);
+            throw new IllegalArgumentException("Unsupported protocol " + url);
         }
         this.dataSource = getBean(context, DDRDataSource.class, "ddrDataSource");
         this.sequence = getBean(context, Sequence.class, "sequence");
