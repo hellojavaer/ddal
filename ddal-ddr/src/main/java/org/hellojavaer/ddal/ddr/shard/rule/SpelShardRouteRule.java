@@ -17,9 +17,8 @@ package org.hellojavaer.ddal.ddr.shard.rule;
 
 import org.hellojavaer.ddal.ddr.expression.el.function.ELFunctionManager;
 import org.hellojavaer.ddal.ddr.shard.RangeShardValue;
-import org.hellojavaer.ddal.ddr.shard.RouteInfo;
+import org.hellojavaer.ddal.ddr.shard.ShardRouteInfo;
 import org.hellojavaer.ddal.ddr.shard.ShardRouteRule;
-import org.hellojavaer.ddal.ddr.shard.ShardRouteRuleContext;
 import org.hellojavaer.ddal.ddr.shard.exception.CrossTableException;
 import org.hellojavaer.ddal.ddr.shard.exception.ExpressionValueNotFoundException;
 import org.hellojavaer.ddal.ddr.shard.exception.OutOfRangeSizeLimitException;
@@ -110,22 +109,26 @@ public class SpelShardRouteRule implements ShardRouteRule {
     }
 
     @Override
-    public String parseScName(ShardRouteRuleContext context) {
+    public String parseScName(String scName, Object sdValue) {
         if (scRouteRuleExpression == null) {
-            return context.getScName();
+            return scName;
         } else {
-            return parseName(scRouteRuleExpression, context, scRouteRule);
+            EvaluationContext elContext = buildEvaluationContext(tbRouteRule);
+            elContext.setVariable("scName", scName);
+            return parseName(scRouteRuleExpression, elContext, sdValue);
         }
     }
 
     @Override
-    public String parseTbName(ShardRouteRuleContext context) {
-        return parseName(tbRouteRuleExpression, context, tbRouteRule);
+    public String parseTbName(String tbName, Object sdValue) {
+        EvaluationContext elContext = buildEvaluationContext(tbRouteRule);
+        elContext.setVariable("tbName", tbName);
+        return parseName(tbRouteRuleExpression, elContext, sdValue);
     }
 
     @Override
-    public Map<RouteInfo, List<RangeShardValue>> groupSdValuesByRouteInfo(String scName, String tbName,
-                                                                          RangeShardValue rangeShardValue) {
+    public Map<ShardRouteInfo, List<RangeShardValue>> groupSdValuesByRouteInfo(String scName, String tbName,
+                                                                               RangeShardValue rangeShardValue) {
         Long begin = rangeShardValue.getBegin();
         Long end = rangeShardValue.getEnd();
         if (begin == null || end == null) {
@@ -137,13 +140,11 @@ public class SpelShardRouteRule implements ShardRouteRule {
         if (rangeSizeLimit != null && end - begin + 1 > rangeSizeLimit) {
             throw new OutOfRangeSizeLimitException((end - begin) + " > " + rangeSizeLimit);
         }
-        Map<RouteInfo, List<RangeShardValue>> map = new HashMap<>();
+        Map<ShardRouteInfo, List<RangeShardValue>> map = new HashMap<>();
         for (long l = begin; l <= end; l++) {
-            ShardRouteRuleContext context0 = new ShardRouteRuleContext();
-            String scName0 = parseScName(context0);
-            ShardRouteRuleContext context1 = new ShardRouteRuleContext();
-            String tbName0 = parseScName(context1);
-            RouteInfo routeInfo = new RouteInfo();
+            String scName0 = parseScName(scName, l);
+            String tbName0 = parseScName(tbName, l);
+            ShardRouteInfo routeInfo = new ShardRouteInfo();
             routeInfo.setScName(scName0);
             routeInfo.setTbName(tbName0);
             List<RangeShardValue> rangeShardValues = map.get(routeInfo);
@@ -156,11 +157,10 @@ public class SpelShardRouteRule implements ShardRouteRule {
         return map;
     }
 
-    protected String parseName(Expression expression, ShardRouteRuleContext context, String routeRule) {
+    protected String parseName(Expression expression, EvaluationContext elContext, Object sdValue) {
         if (expression == null) {
             throw new IllegalArgumentException("expression can't be null");
         }
-        Object sdValue = context.getSdValue();
         if (sdValue != null && sdValue instanceof RangeShardValue) {
             Long begin = ((RangeShardValue) sdValue).getBegin();
             Long end = ((RangeShardValue) sdValue).getEnd();
@@ -175,9 +175,6 @@ public class SpelShardRouteRule implements ShardRouteRule {
             }
             String result = null;
             for (long l = begin; l <= end; l++) {
-                EvaluationContext elContext = buildEvaluationContext(routeRule);
-                elContext.setVariable("scName", context.getScName());
-                elContext.setVariable("tbName", context.getTbName());
                 elContext.setVariable("sdValue", l);
                 String temp = expression.getValue(elContext, String.class);
                 if (result != null && !result.equals(temp)) {
@@ -187,10 +184,7 @@ public class SpelShardRouteRule implements ShardRouteRule {
             }
             return result;
         } else {
-            EvaluationContext elContext = buildEvaluationContext(routeRule);
-            elContext.setVariable("scName", context.getScName());
-            elContext.setVariable("tbName", context.getTbName());
-            elContext.setVariable("sdValue", context.getSdValue());
+            elContext.setVariable("sdValue", sdValue);
             return expression.getValue(elContext, String.class);
         }
     }

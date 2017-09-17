@@ -165,10 +165,10 @@ public class ShardContextUtilsTest extends BaseTestShardParser {
         }
         SimpleShardParser shardParser = this.buildShardParser();
 
-        Map<RouteInfo, List<Long>> map = ShardRouteUtils.groupSdValuesByRouteInfo(shardParser.getShardRouter(), "db",
-                                                                                  "user", list);
+        Map<ShardRouteInfo, List<Long>> map = ShardRouteUtils.groupSdValuesByRouteInfo(shardParser.getShardRouter(), "db",
+                                                                                       "user", list);
         int count = 0;
-        for (Map.Entry<RouteInfo, List<Long>> entry : map.entrySet()) {
+        for (Map.Entry<ShardRouteInfo, List<Long>> entry : map.entrySet()) {
             Assert.isTrue(entry.getKey().toString().equals(expectedResult.get(count)));
             count++;
         }
@@ -178,10 +178,10 @@ public class ShardContextUtilsTest extends BaseTestShardParser {
             set.add((long) i);
         }
 
-        Map<RouteInfo, Set<Long>> map1 = ShardRouteUtils.groupSdValuesByRouteInfo(shardParser.getShardRouter(), "db",
-                                                                                  "user", set);
+        Map<ShardRouteInfo, Set<Long>> map1 = ShardRouteUtils.groupSdValuesByRouteInfo(shardParser.getShardRouter(), "db",
+                                                                                       "user", set);
         int i = 0;
-        for (Map.Entry<RouteInfo, Set<Long>> entry : map1.entrySet()) {
+        for (Map.Entry<ShardRouteInfo, Set<Long>> entry : map1.entrySet()) {
             Assert.isTrue(entry.getKey().toString().equals(expectedResult.get(i)));
             i++;
         }

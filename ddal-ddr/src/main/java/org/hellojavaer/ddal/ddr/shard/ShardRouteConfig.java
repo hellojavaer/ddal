@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2017 the original author or authors.
+ * Copyright 2016-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,19 +15,26 @@
  */
 package org.hellojavaer.ddal.ddr.shard;
 
-import java.io.Serializable;
+import org.hellojavaer.ddal.ddr.utils.DDRToStringBuilder;
 
 /**
  *
- * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 31/01/2017.
+ * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 20/12/2016.
  */
-public class ShardRouteRuleContext implements Serializable {
+public class ShardRouteConfig {
 
-    private static final long serialVersionUID = 0L;
+    private String scName;
+    private String tbName;
+    private String sdKey;
 
-    private String            scName;
-    private String            tbName;
-    private Object            sdValue;
+    public ShardRouteConfig() {
+    }
+
+    public ShardRouteConfig(String scName, String tbName, String sdKey) {
+        this.scName = scName;
+        this.tbName = tbName;
+        this.sdKey = sdKey;
+    }
 
     public String getScName() {
         return scName;
@@ -45,11 +52,16 @@ public class ShardRouteRuleContext implements Serializable {
         this.tbName = tbName;
     }
 
-    public Object getSdValue() {
-        return sdValue;
+    public String getSdKey() {
+        return sdKey;
     }
 
-    public void setSdValue(Object sdValue) {
-        this.sdValue = sdValue;
+    public void setSdKey(String sdKey) {
+        this.sdKey = sdKey;
+    }
+
+    @Override
+    public String toString() {
+        return new DDRToStringBuilder().append("scName", scName).append("tbName", tbName).append("sdKey", sdKey).toString();
     }
 }

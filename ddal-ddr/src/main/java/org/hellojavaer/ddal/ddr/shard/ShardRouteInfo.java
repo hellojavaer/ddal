@@ -21,15 +21,15 @@ import java.util.Objects;
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 15/11/2016.
  */
-public class RouteInfo {
+public class ShardRouteInfo {
 
     private String scName;
     private String tbName;
 
-    public RouteInfo() {
+    public ShardRouteInfo() {
     }
 
-    public RouteInfo(String scName, String tbName) {
+    public ShardRouteInfo(String scName, String tbName) {
         this.scName = scName;
         this.tbName = tbName;
     }
@@ -72,10 +72,10 @@ public class RouteInfo {
         if (obj == this) {
             return true;
         }
-        if (!(obj instanceof RouteInfo)) {
+        if (!(obj instanceof ShardRouteInfo)) {
             return false;
         }
-        RouteInfo routeInfo = (RouteInfo) obj;
+        ShardRouteInfo routeInfo = (ShardRouteInfo) obj;
         if (this.scName == null) {
             if (routeInfo.getScName() != null) {
                 return false;

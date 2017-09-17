@@ -62,7 +62,7 @@ public class ShardRouteContext {
     }
 
     //
-    public static void setRouteInfo(String scName, RouteInfo routeInfo) {
+    public static void setRouteInfo(String scName, ShardRouteInfo routeInfo) {
         setRouteInfo(scName, (Object) routeInfo);
     }
 
@@ -147,7 +147,7 @@ public class ShardRouteContext {
         scMap.put(scName, sdValue);
     }
 
-    public static void setRouteInfo(String scName, String tbName, RouteInfo routeInfo) {
+    public static void setRouteInfo(String scName, String tbName, ShardRouteInfo routeInfo) {
         setRouteInfo(scName, tbName, (Object) routeInfo);
     }
 

@@ -21,7 +21,7 @@
  */
 package org.hellojavaer.ddal.jsqlparser;
 
-import org.hellojavaer.ddal.ddr.shard.RouteInfo;
+import org.hellojavaer.ddal.ddr.shard.ShardRouteInfo;
 import org.hellojavaer.ddal.ddr.shard.ShardParser;
 import org.hellojavaer.ddal.ddr.shard.ShardRouteContext;
 import org.hellojavaer.ddal.ddr.shard.simple.SimpleShardParser;
@@ -454,8 +454,8 @@ public class SelectTest extends BaseTestShardParser {
             throw new Error();
         } catch (Exception e) {
         }
-        RouteInfo routeInfo1 = parser.getShardRouter().getRouteInfo("db", "user", 508);
-        RouteInfo routeInfo2 = parser.getShardRouter().getRouteInfo("db", "shop", 509);
+        ShardRouteInfo routeInfo1 = parser.getShardRouter().getRouteInfo("db", "user", 508);
+        ShardRouteInfo routeInfo2 = parser.getShardRouter().getRouteInfo("db", "shop", 509);
         Assert.isTrue(routeInfo1.toString().equals("db_04.user_0124"));
         Assert.isTrue(routeInfo2.toString().equals("db_05.shop_0125"));
 
@@ -475,8 +475,8 @@ public class SelectTest extends BaseTestShardParser {
 
     @Test
     public void testShardRouteContext00b() {
-        ShardRouteContext.setRouteInfo("db", "user", new RouteInfo("db_07", "user_0125"));
-        ShardRouteContext.setRouteInfo("db", "shop", new RouteInfo("db_01", "shop_0123"));
+        ShardRouteContext.setRouteInfo("db", "user", new ShardRouteInfo("db_07", "user_0125"));
+        ShardRouteContext.setRouteInfo("db", "shop", new ShardRouteInfo("db_01", "shop_0123"));
         ShardParser parser = buildParserForId();
         SQLParsedResult parsedResult = parser.parse("select * from db.user where id != 507 AND name in (select user_id from shop where user_id != 507) ",
                                                     null);
@@ -505,8 +505,8 @@ public class SelectTest extends BaseTestShardParser {
 
     @Test
     public void testShardRouteContext01b() {
-        ShardRouteContext.setRouteInfo("db", "user", new RouteInfo("db_07", "user_0125"));
-        ShardRouteContext.setRouteInfo("db", "shop", new RouteInfo("db_01", "shop_0123"));
+        ShardRouteContext.setRouteInfo("db", "user", new ShardRouteInfo("db_07", "user_0125"));
+        ShardRouteContext.setRouteInfo("db", "shop", new ShardRouteInfo("db_01", "shop_0123"));
         ShardParser parser = buildParserForNoSdKey();
         SQLParsedResult parsedResult = parser.parse("select * from db.user where id != 507 AND name in (select user_id from shop where user_id != 507) ",
                                                     null);
@@ -522,8 +522,8 @@ public class SelectTest extends BaseTestShardParser {
     // =========== no rule ==========
     @Test
     public void testNoRule00() {
-        ShardRouteContext.setRouteInfo("db", "user", new RouteInfo("db_07", "user_0125"));
-        ShardRouteContext.setRouteInfo("db", "shop", new RouteInfo("db_01", "shop_0123"));
+        ShardRouteContext.setRouteInfo("db", "user", new ShardRouteInfo("db_07", "user_0125"));
+        ShardRouteContext.setRouteInfo("db", "shop", new ShardRouteInfo("db_01", "shop_0123"));
         ShardParser parser = buildParserForNoRule();
         SQLParsedResult parsedResult = parser.parse("select * from db.user where id = 507 AND name in (select user_id from shop where user_id = 507) ",
                                                     null);
