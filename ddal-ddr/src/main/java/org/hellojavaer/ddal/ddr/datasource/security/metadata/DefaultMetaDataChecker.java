@@ -34,7 +34,30 @@ public class DefaultMetaDataChecker implements MetaDataChecker {
     private static final String              MYSQL_AND_ORACLE = "SELECT table_name FROM information_schema.tables WHERE table_schema = ? ";
     private static final String              SQL_SERVER       = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_CATALOG = ? ";
 
-    private static final Map<String, String> map              = new LinkedHashMap<String, String>();
+    private static final Map<String, String> databaseTypeMap  = new LinkedHashMap<String, String>();
+
+    private String                           databaseType     = "mysql";
+
+    static {
+        databaseTypeMap.put("mysql", MYSQL_AND_ORACLE);
+        databaseTypeMap.put("oracle", MYSQL_AND_ORACLE);
+        databaseTypeMap.put("sqlserver", SQL_SERVER);
+    }
+
+    private DefaultMetaDataChecker() {
+    }
+
+    public DefaultMetaDataChecker(String databaseType) {
+        this.databaseType = databaseType;
+    }
+
+    public String getDatabaseType() {
+        return databaseType;
+    }
+
+    private void setDatabaseType(String databaseType) {
+        this.databaseType = databaseType;
+    }
 
     /**
      *  检查指定schema下是否包含指定的table
@@ -70,8 +93,11 @@ public class DefaultMetaDataChecker implements MetaDataChecker {
         }
     }
 
-    private static Set<String> getAllTables(Connection conn, String scName) throws SQLException {
-        String sql = get(conn);
+    private Set<String> getAllTables(Connection conn, String scName) throws SQLException {
+        String sql = databaseTypeMap.get(databaseType);
+        if (sql == null) {
+            sql = MYSQL_AND_ORACLE;
+        }
         PreparedStatement statement = conn.prepareStatement(sql);
         statement.setString(1, scName);
         ResultSet rs = statement.executeQuery();
@@ -83,25 +109,7 @@ public class DefaultMetaDataChecker implements MetaDataChecker {
         return tabs;
     }
 
-    private static String get(Connection conn) {
-        String connPackage = conn.getClass().getPackage().getName();
-        if (connPackage.contains("mysql")) {
-            return MYSQL_AND_ORACLE;
-        } else if (connPackage.contains("oracle")) {
-            return MYSQL_AND_ORACLE;
-        } else if (connPackage.contains("sqlserver")) {
-            return SQL_SERVER;
-        } else {
-            for (Map.Entry<String, String> entry : map.entrySet()) {
-                if (connPackage.contains(entry.getKey())) {
-                    return entry.getValue();
-                }
-            }
-            return MYSQL_AND_ORACLE;
-        }
-    }
-
-    public static void registerQueryMetaDataSQL(String keyWord, String sql) {
-        map.put(keyWord, sql);
+    public static void registerQueryMetaDataSQL(String databaseType, String sql) {
+        databaseTypeMap.put(databaseType, sql);
     }
 }
