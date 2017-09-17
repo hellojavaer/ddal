@@ -37,8 +37,8 @@ import net.sf.jsqlparser.statement.select.*;
 import net.sf.jsqlparser.statement.update.Update;
 import org.hellojavaer.ddal.ddr.datasource.exception.CrossPreparedStatementException;
 import org.hellojavaer.ddal.ddr.shard.RangeShardValue;
-import org.hellojavaer.ddal.ddr.shard.RouteConfig;
-import org.hellojavaer.ddal.ddr.shard.RouteInfo;
+import org.hellojavaer.ddal.ddr.shard.ShardRouteConfig;
+import org.hellojavaer.ddal.ddr.shard.ShardRouteInfo;
 import org.hellojavaer.ddal.ddr.shard.ShardRouter;
 import org.hellojavaer.ddal.ddr.sqlparse.SQLParsedResult;
 import org.hellojavaer.ddal.ddr.sqlparse.SQLParsedState;
@@ -205,7 +205,7 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
                     for (Object obj : splitSqls) {
                         if (obj instanceof TableWrapper) {
                             TableWrapper tab = (TableWrapper) obj;
-                            RouteInfo routeInfo = route1(tab, jdbcParams, tab.getRoutedFullTableName(), null);
+                            ShardRouteInfo routeInfo = route1(tab, jdbcParams, tab.getRoutedFullTableName(), null);
                             schemas.add(routeInfo.getScName());
                             String routedFullTableName = routeInfo.toString();
                             convertedTables.put(tab, routedFullTableName);
@@ -226,9 +226,9 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
         }
     }
 
-    private RouteInfo route1(TableWrapper tab, Map<Object, Object> jdbcParams, String routedFullTableName,
-                             String routedSql) {
-        RouteInfo routeInfo = null;
+    private ShardRouteInfo route1(TableWrapper tab, Map<Object, Object> jdbcParams, String routedFullTableName,
+                                  String routedSql) {
+        ShardRouteInfo routeInfo = null;
         // 1. no shard key
         if (tab.getJdbcParamKeys() == null || tab.getJdbcParamKeys().isEmpty()) {
             routeInfo = getRouteInfo(tab, null);
@@ -355,10 +355,10 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
         }
     }
 
-    private RouteInfo getRouteInfo(TableWrapper tab, Object sdValue) {
+    private ShardRouteInfo getRouteInfo(TableWrapper tab, Object sdValue) {
         try {
-            RouteInfo routeInfo = this.shardRouter.getRouteInfo(tab.getOriginalConfig().getSchemaName(),
-                                                                tab.getOriginalConfig().getName(), sdValue);
+            ShardRouteInfo routeInfo = this.shardRouter.getRouteInfo(tab.getOriginalConfig().getSchemaName(),
+                                                                     tab.getOriginalConfig().getName(), sdValue);
             return routeInfo;
         } catch (Throwable e) {
             String fullTableName = null;
@@ -378,7 +378,7 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
         }
     }
 
-    private void route0(TableWrapper tab, RouteInfo routeInfo) {
+    private void route0(TableWrapper tab, ShardRouteInfo routeInfo) {
         String fullTableName = routeInfo.toString();
         if (tab.getRoutedFullTableName() != null) {// 多重路由
             if (!tab.getRoutedFullTableName().equals(fullTableName)) {
@@ -398,8 +398,8 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
     @Override
     public void visit(Insert insert) {
         this.getStack().push(new FrameContext());
-        RouteConfig routeConfig = shardRouter.getRouteConfig(insert.getTable().getSchemaName(),
-                                                             insert.getTable().getName());
+        ShardRouteConfig routeConfig = shardRouter.getRouteConfig(insert.getTable().getSchemaName(),
+                                                                  insert.getTable().getName());
         if (routeConfig != null) {
             TableWrapper table = new TableWrapper(insert.getTable(), routeConfig);
             addRoutedTableIntoContext(table, routeConfig, false);
@@ -430,8 +430,8 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
             throw new IllegalStateException("no limit in sql: " + sql);
         }
         this.getStack().push(new FrameContext());
-        RouteConfig routeConfig = shardRouter.getRouteConfig(delete.getTable().getSchemaName(),
-                                                             delete.getTable().getName());
+        ShardRouteConfig routeConfig = shardRouter.getRouteConfig(delete.getTable().getSchemaName(),
+                                                                  delete.getTable().getName());
         if (routeConfig != null) {
             TableWrapper tab = new TableWrapper(delete.getTable(), routeConfig);
             delete.setTable(tab);
@@ -449,7 +449,7 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
         this.getStack().push(new FrameContext());
         if (update.getTables() != null) {
             for (Table table : update.getTables()) {
-                RouteConfig routeConfig = shardRouter.getRouteConfig(table.getSchemaName(), table.getName());
+                ShardRouteConfig routeConfig = shardRouter.getRouteConfig(table.getSchemaName(), table.getName());
                 if (routeConfig != null) {
                     TableWrapper tab = new TableWrapper(table, routeConfig);
                     addRoutedTableIntoContext(tab, routeConfig, true);
@@ -486,7 +486,7 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
         return frameContext.get(colFullName);
     }
 
-    private void addRoutedTableIntoContext(TableWrapper table, RouteConfig routeInfo) {
+    private void addRoutedTableIntoContext(TableWrapper table, ShardRouteConfig routeInfo) {
         addRoutedTableIntoContext(table, routeInfo, true);
     }
 
@@ -495,7 +495,7 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
      * @param table
      * @param appendAlias
      */
-    private void addRoutedTableIntoContext(TableWrapper table, RouteConfig routeConfig, boolean appendAlias) {
+    private void addRoutedTableIntoContext(TableWrapper table, ShardRouteConfig routeConfig, boolean appendAlias) {
         FrameContext frameContext = this.getStack().peek();
         String tbName = table.getName();
         String tbAliasName = tbName;
@@ -655,14 +655,14 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
             throw new RuntimeException("Shard value '" + column.toString() + "' in where clause is ambiguous. Sql is ["
                                        + sql + "]");
         }
-        RouteInfo routeInfo = getRouteInfo(tab, sdValue);
+        ShardRouteInfo routeInfo = getRouteInfo(tab, sdValue);
         route0(tab, routeInfo);
     }
 
     @Override
     public void visit(Table table) {
         String tbName = table.getName();
-        RouteConfig routeConfig = shardRouter.getRouteConfig(table.getSchemaName(), tbName);
+        ShardRouteConfig routeConfig = shardRouter.getRouteConfig(table.getSchemaName(), tbName);
         if (routeConfig != null) {
             TableWrapper tab = new TableWrapper(table, routeConfig);
             addRoutedTableIntoContext(tab, routeConfig);
@@ -698,7 +698,7 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
 
     private static class TableWrapper extends Table {
 
-        public TableWrapper(Table table, RouteConfig routeConfig) {
+        public TableWrapper(Table table, ShardRouteConfig routeConfig) {
             this.routeConfig = routeConfig;
             if (table != null) {
                 this.table = table;
@@ -715,17 +715,17 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
 
         private Table        originalConfig = new Table();
 
-        private RouteConfig  routeConfig;                       // route config info
+        private ShardRouteConfig routeConfig;                       // route config info
 
         private String       routedFullTableName;               // 由routeInfo计算出,如果有sql路由时该字段不为空,如果该参数为空,表示需要jdbc路由
 
         private List<Object> jdbcParamKeys  = new ArrayList<>(); // table 关联的jdbc列
 
-        public RouteConfig getRouteConfig() {
+        public ShardRouteConfig getRouteConfig() {
             return routeConfig;
         }
 
-        public void setRouteConfig(RouteConfig routeConfig) {
+        public void setRouteConfig(ShardRouteConfig routeConfig) {
             this.routeConfig = routeConfig;
         }
 

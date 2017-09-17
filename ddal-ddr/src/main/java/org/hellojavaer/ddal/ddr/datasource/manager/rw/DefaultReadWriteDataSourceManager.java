@@ -29,7 +29,7 @@ import org.hellojavaer.ddal.ddr.expression.range.RangeExpressionItemVisitor;
 import org.hellojavaer.ddal.ddr.expression.range.RangeExpressionParser;
 import org.hellojavaer.ddal.ddr.lb.random.WeightItem;
 import org.hellojavaer.ddal.ddr.lb.random.WeightedRandom;
-import org.hellojavaer.ddal.ddr.shard.RouteInfo;
+import org.hellojavaer.ddal.ddr.shard.ShardRouteInfo;
 import org.hellojavaer.ddal.ddr.shard.ShardRouter;
 import org.hellojavaer.ddal.ddr.utils.DDRJSONUtils;
 import org.hellojavaer.ddal.ddr.utils.DDRStringUtils;
@@ -525,9 +525,9 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
                         for (Map.Entry<String, Set<String>> entry : routedTables.entrySet()) {
                             String sc = entry.getKey();
                             for (String tb : entry.getValue()) {
-                                List<RouteInfo> routeInfos = shardRouter.getRouteInfos(sc, tb);
+                                List<ShardRouteInfo> routeInfos = shardRouter.getRouteInfos(sc, tb);
                                 if (routeInfos != null) {
-                                    for (RouteInfo routeInfo : routeInfos) {
+                                    for (ShardRouteInfo routeInfo : routeInfos) {
                                         Set<String> set = tabs.get(routeInfo.getScName());
                                         if (set == null) {
                                             set = new HashSet<>();

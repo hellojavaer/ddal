@@ -17,7 +17,7 @@ package org.hellojavaer.ddal.ddr.shard.rule;
 
 import org.hellojavaer.ddal.ddr.expression.el.function.ELFunctionManager;
 import org.hellojavaer.ddal.ddr.shard.RangeShardValue;
-import org.hellojavaer.ddal.ddr.shard.RouteInfo;
+import org.hellojavaer.ddal.ddr.shard.ShardRouteInfo;
 import org.hellojavaer.ddal.ddr.shard.ShardRouteRule;
 import org.hellojavaer.ddal.ddr.shard.ShardRouteRuleContext;
 import org.hellojavaer.ddal.ddr.shard.exception.CrossTableException;
@@ -124,8 +124,8 @@ public class SpelShardRouteRule implements ShardRouteRule {
     }
 
     @Override
-    public Map<RouteInfo, List<RangeShardValue>> groupSdValuesByRouteInfo(String scName, String tbName,
-                                                                          RangeShardValue rangeShardValue) {
+    public Map<ShardRouteInfo, List<RangeShardValue>> groupSdValuesByRouteInfo(String scName, String tbName,
+                                                                               RangeShardValue rangeShardValue) {
         Long begin = rangeShardValue.getBegin();
         Long end = rangeShardValue.getEnd();
         if (begin == null || end == null) {
@@ -137,13 +137,13 @@ public class SpelShardRouteRule implements ShardRouteRule {
         if (rangeSizeLimit != null && end - begin + 1 > rangeSizeLimit) {
             throw new OutOfRangeSizeLimitException((end - begin) + " > " + rangeSizeLimit);
         }
-        Map<RouteInfo, List<RangeShardValue>> map = new HashMap<>();
+        Map<ShardRouteInfo, List<RangeShardValue>> map = new HashMap<>();
         for (long l = begin; l <= end; l++) {
             ShardRouteRuleContext context0 = new ShardRouteRuleContext();
             String scName0 = parseScName(context0);
             ShardRouteRuleContext context1 = new ShardRouteRuleContext();
             String tbName0 = parseScName(context1);
-            RouteInfo routeInfo = new RouteInfo();
+            ShardRouteInfo routeInfo = new ShardRouteInfo();
             routeInfo.setScName(scName0);
             routeInfo.setTbName(tbName0);
             List<RangeShardValue> rangeShardValues = map.get(routeInfo);

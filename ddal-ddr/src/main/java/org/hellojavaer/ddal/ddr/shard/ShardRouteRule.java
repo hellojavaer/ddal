@@ -28,6 +28,6 @@ public interface ShardRouteRule {
 
     String parseTbName(ShardRouteRuleContext context);
 
-    Map<RouteInfo, List<RangeShardValue>> groupSdValuesByRouteInfo(String scName, String tbName,
-                                                                   RangeShardValue rangeShardValue);
+    Map<ShardRouteInfo, List<RangeShardValue>> groupSdValuesByRouteInfo(String scName, String tbName,
+                                                                        RangeShardValue rangeShardValue);
 }

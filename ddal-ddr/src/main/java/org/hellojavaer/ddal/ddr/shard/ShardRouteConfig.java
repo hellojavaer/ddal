@@ -21,16 +21,16 @@ import org.hellojavaer.ddal.ddr.utils.DDRToStringBuilder;
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 20/12/2016.
  */
-public class RouteConfig {
+public class ShardRouteConfig {
 
     private String scName;
     private String tbName;
     private String sdKey;
 
-    public RouteConfig() {
+    public ShardRouteConfig() {
     }
 
-    public RouteConfig(String scName, String tbName, String sdKey) {
+    public ShardRouteConfig(String scName, String tbName, String sdKey) {
         this.scName = scName;
         this.tbName = tbName;
         this.sdKey = sdKey;

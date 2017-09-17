@@ -16,7 +16,7 @@
 package org.hellojavaer.ddal.ddr.shard.rule;
 
 import org.hellojavaer.ddal.ddr.shard.RangeShardValue;
-import org.hellojavaer.ddal.ddr.shard.RouteInfo;
+import org.hellojavaer.ddal.ddr.shard.ShardRouteInfo;
 import org.hellojavaer.ddal.ddr.shard.ShardRouteRule;
 import org.hellojavaer.ddal.ddr.shard.ShardRouteRuleContext;
 import org.hellojavaer.ddal.ddr.shard.exception.CrossTableException;
@@ -71,8 +71,8 @@ public class DivideShardRouteRule implements ShardRouteRule {
     }
 
     @Override
-    public Map<RouteInfo, List<RangeShardValue>> groupSdValuesByRouteInfo(String scName, String tbName,
-                                                                          RangeShardValue rangeShardValue) {
+    public Map<ShardRouteInfo, List<RangeShardValue>> groupSdValuesByRouteInfo(String scName, String tbName,
+                                                                               RangeShardValue rangeShardValue) {
         Long begin = rangeShardValue.getBegin();
         Long end = rangeShardValue.getEnd();
         if (begin == null || end == null) {
@@ -85,13 +85,13 @@ public class DivideShardRouteRule implements ShardRouteRule {
         int scEnd = (int) (end / scSdValueDividend);
         int tbBegin = (int) (begin / tbSdValueDividend);
         int tbEnd = (int) (end / tbSdValueDividend);
-        Map<RouteInfo, List<RangeShardValue>> map = new HashMap<>();
+        Map<ShardRouteInfo, List<RangeShardValue>> map = new HashMap<>();
         if (scName != null) {
             for (int i = scBegin; i <= scEnd; i++) {
                 String scName0 = scName + '_' + i;
                 for (int j = tbBegin; j < tbEnd; j++) {
                     String tbName0 = tbName + '_' + j;
-                    RouteInfo routeInfo = new RouteInfo(scName0, tbName0);
+                    ShardRouteInfo routeInfo = new ShardRouteInfo(scName0, tbName0);
                     List<RangeShardValue> list = map.get(routeInfo);
                     if (list == null) {
                         list = new ArrayList<>();
@@ -114,7 +114,7 @@ public class DivideShardRouteRule implements ShardRouteRule {
         } else {
             for (int j = tbBegin; j < tbEnd; j++) {
                 String tbName0 = tbName + '_' + j;
-                RouteInfo routeInfo = new RouteInfo(null, tbName0);
+                ShardRouteInfo routeInfo = new ShardRouteInfo(null, tbName0);
                 List<RangeShardValue> list = map.get(routeInfo);
                 if (list == null) {
                     list = new ArrayList<>();

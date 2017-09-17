@@ -173,9 +173,9 @@ public class SpelShardRouteRuleTest extends BaseTestShardParser {
         expectedResult.add("db_07.user_0127");
 
         SimpleShardParser shardParser = buildShardParser();
-        List<RouteInfo> routeInfos = shardParser.getShardRouter().getRouteInfos("db", "user");
+        List<ShardRouteInfo> routeInfos = shardParser.getShardRouter().getRouteInfos("db", "user");
         int count = 0;
-        for (RouteInfo si : routeInfos) {
+        for (ShardRouteInfo si : routeInfos) {
             Assert.equals(si.toString(), expectedResult.get(count));
             count++;
         }
@@ -313,9 +313,9 @@ public class SpelShardRouteRuleTest extends BaseTestShardParser {
         expectedResult.add("db_back_07.user_0127");
         expectedResult.add("db_back_00.user_0000");
         SimpleShardParser shardParser = buildShardParser();
-        List<RouteInfo> routeInfos = shardParser.getShardRouter().getRouteInfos("db_back", "user");
+        List<ShardRouteInfo> routeInfos = shardParser.getShardRouter().getRouteInfos("db_back", "user");
         int count = 0;
-        for (RouteInfo si : routeInfos) {
+        for (ShardRouteInfo si : routeInfos) {
             Assert.equals(si.toString(), expectedResult.get(count));
             count++;
         }
