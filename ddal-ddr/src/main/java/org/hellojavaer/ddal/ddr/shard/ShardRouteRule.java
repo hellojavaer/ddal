@@ -24,9 +24,9 @@ import java.util.Map;
  */
 public interface ShardRouteRule {
 
-    String parseScName(ShardRouteRuleContext context);
+    String parseScName(String scName, Object sdValue);
 
-    String parseTbName(ShardRouteRuleContext context);
+    String parseTbName(String tbName, Object sdValue);
 
     Map<ShardRouteInfo, List<RangeShardValue>> groupSdValuesByRouteInfo(String scName, String tbName,
                                                                         RangeShardValue rangeShardValue);

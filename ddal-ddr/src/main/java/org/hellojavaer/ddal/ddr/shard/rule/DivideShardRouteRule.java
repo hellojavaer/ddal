@@ -18,7 +18,6 @@ package org.hellojavaer.ddal.ddr.shard.rule;
 import org.hellojavaer.ddal.ddr.shard.RangeShardValue;
 import org.hellojavaer.ddal.ddr.shard.ShardRouteInfo;
 import org.hellojavaer.ddal.ddr.shard.ShardRouteRule;
-import org.hellojavaer.ddal.ddr.shard.ShardRouteRuleContext;
 import org.hellojavaer.ddal.ddr.shard.exception.CrossTableException;
 import org.hellojavaer.ddal.ddr.shard.exception.UnsupportedShardValueTypeException;
 
@@ -61,13 +60,13 @@ public class DivideShardRouteRule implements ShardRouteRule {
     }
 
     @Override
-    public String parseScName(ShardRouteRuleContext context) {
-        return parseName(context.getScName(), context.getSdValue(), scSdValueDividend);
+    public String parseScName(String scName, Object sdValue) {
+        return parseName(scName, sdValue, scSdValueDividend);
     }
 
     @Override
-    public String parseTbName(ShardRouteRuleContext context) {
-        return parseName(context.getTbName(), context.getSdValue(), tbSdValueDividend);
+    public String parseTbName(String tbName, Object sdValue) {
+        return parseName(tbName, sdValue, tbSdValueDividend);
     }
 
     @Override

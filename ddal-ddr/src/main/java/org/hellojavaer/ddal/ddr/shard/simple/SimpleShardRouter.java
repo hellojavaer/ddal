@@ -279,14 +279,10 @@ public class SimpleShardRouter implements ShardRouter {
     private ShardRouteInfo getRouteInfoByRouteRule(ShardRouteRule rule, String scName, String tbName, Object sdValue) {
         try {
             ShardRouteInfo info = new ShardRouteInfo();
-            ShardRouteRuleContext context = new ShardRouteRuleContext();
-            context.setScName(scName);
-            context.setTbName(tbName);
-            context.setSdValue(sdValue);
             // throws exception
-            String sc = rule.parseScName(context);
+            String sc = rule.parseScName(scName, sdValue);
             // throws exception
-            String tb = rule.parseTbName(context);
+            String tb = rule.parseTbName(tbName, sdValue);
 
             info.setScName(sc);
             info.setTbName(tb);
