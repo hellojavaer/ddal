@@ -41,6 +41,21 @@ public class DivideShardRouteRule implements ShardRouteRule {
     public DivideShardRouteRule(Long scSdValueDividend, Long tbSdValueDividend) {
         this.scSdValueDividend = scSdValueDividend;
         this.tbSdValueDividend = tbSdValueDividend;
+        verify();
+    }
+
+    private void verify() {
+        if (scSdValueDividend != null && scSdValueDividend <= 0) {
+            throw new IllegalArgumentException("scSdValueDividend must be greater than 0");
+        }
+        if (tbSdValueDividend != null && tbSdValueDividend <= 0) {
+            throw new IllegalArgumentException("tbSdValueDividend must be greater than 0");
+        }
+        if (scSdValueDividend != null && tbSdValueDividend != null) {
+            if (tbSdValueDividend > scSdValueDividend || scSdValueDividend % tbSdValueDividend != 0) {
+                throw new IllegalArgumentException("tbSdValueDividend must be a multiple of scSdValueDividend");
+            }
+        }
     }
 
     public Long getScSdValueDividend() {
@@ -49,6 +64,7 @@ public class DivideShardRouteRule implements ShardRouteRule {
 
     private void setScSdValueDividend(Long scSdValueDividend) {
         this.scSdValueDividend = scSdValueDividend;
+        verify();
     }
 
     public Long getTbSdValueDividend() {
@@ -57,6 +73,7 @@ public class DivideShardRouteRule implements ShardRouteRule {
 
     private void setTbSdValueDividend(Long tbSdValueDividend) {
         this.tbSdValueDividend = tbSdValueDividend;
+        verify();
     }
 
     @Override
@@ -80,12 +97,18 @@ public class DivideShardRouteRule implements ShardRouteRule {
         if (begin > end) {
             throw new IllegalArgumentException("rangeShardValue.begin can't be greater than rangeShardValue.end");
         }
-        int scBegin = (int) (begin / scSdValueDividend);
-        int scEnd = (int) (end / scSdValueDividend);
-        int tbBegin = (int) (begin / tbSdValueDividend);
-        int tbEnd = (int) (end / tbSdValueDividend);
         Map<ShardRouteInfo, List<RangeShardValue>> map = new HashMap<>();
-        if (scName != null) {
+        if (scSdValueDividend == null && tbSdValueDividend == null) {
+            ShardRouteInfo routeInfo = new ShardRouteInfo(scName, tbName);
+            List<RangeShardValue> list = new ArrayList(1);
+            list.add(new RangeShardValue(begin, end));
+            map.put(routeInfo, list);
+            return map;
+        } else if (scSdValueDividend != null && tbSdValueDividend != null) {
+            int scBegin = (int) (begin / scSdValueDividend);
+            int scEnd = (int) (end / scSdValueDividend);
+            int tbBegin = (int) (begin / tbSdValueDividend);
+            int tbEnd = (int) (end / tbSdValueDividend);
             for (int i = scBegin; i <= scEnd; i++) {
                 String scName0 = scName + '_' + i;
                 for (int j = tbBegin; j < tbEnd; j++) {
@@ -99,18 +122,14 @@ public class DivideShardRouteRule implements ShardRouteRule {
                     RangeShardValue rangeShardValue1 = new RangeShardValue(j * tbSdValueDividend, (j + 1)
                                                                                                   * tbSdValueDividend
                                                                                                   - 1);
-                    if (rangeShardValue1.getBegin() <= rangeShardValue.getBegin()
-                        && rangeShardValue1.getEnd() <= rangeShardValue.getBegin()) {
-                        rangeShardValue1.setBegin(rangeShardValue.getBegin());
-                    }
-                    if (rangeShardValue1.getBegin() <= rangeShardValue.getEnd()
-                        && rangeShardValue1.getEnd() <= rangeShardValue.getEnd()) {
-                        rangeShardValue1.setEnd(rangeShardValue.getEnd());
-                    }
+                    adjustBorder(rangeShardValue1, rangeShardValue);
                     list.add(rangeShardValue1);
                 }
             }
-        } else {
+            return map;
+        } else if (scSdValueDividend == null && tbSdValueDividend == null) {
+            int tbBegin = (int) (begin / tbSdValueDividend);
+            int tbEnd = (int) (end / tbSdValueDividend);
             for (int j = tbBegin; j < tbEnd; j++) {
                 String tbName0 = tbName + '_' + j;
                 ShardRouteInfo routeInfo = new ShardRouteInfo(null, tbName0);
@@ -121,18 +140,39 @@ public class DivideShardRouteRule implements ShardRouteRule {
                 }
                 RangeShardValue rangeShardValue1 = new RangeShardValue(j * tbSdValueDividend, (j + 1)
                                                                                               * tbSdValueDividend - 1);
-                if (rangeShardValue1.getBegin() <= rangeShardValue.getBegin()
-                    && rangeShardValue1.getEnd() <= rangeShardValue.getBegin()) {
-                    rangeShardValue1.setBegin(rangeShardValue.getBegin());
-                }
-                if (rangeShardValue1.getBegin() <= rangeShardValue.getEnd()
-                    && rangeShardValue1.getEnd() <= rangeShardValue.getEnd()) {
-                    rangeShardValue1.setEnd(rangeShardValue.getEnd());
-                }
+                adjustBorder(rangeShardValue1, rangeShardValue);
                 list.add(rangeShardValue1);
             }
+            return map;
+        } else {
+            int scBegin = (int) (begin / scSdValueDividend);
+            int scEnd = (int) (end / scSdValueDividend);
+            for (int j = scBegin; j < scEnd; j++) {
+                String scName0 = scName + '_' + j;
+                ShardRouteInfo routeInfo = new ShardRouteInfo(scName0, null);
+                List<RangeShardValue> list = map.get(routeInfo);
+                if (list == null) {
+                    list = new ArrayList<>();
+                    map.put(routeInfo, list);
+                }
+                RangeShardValue rangeShardValue1 = new RangeShardValue(j * scSdValueDividend, (j + 1)
+                                                                                              * scSdValueDividend - 1);
+                adjustBorder(rangeShardValue1, rangeShardValue);
+                list.add(rangeShardValue1);
+            }
+            return map;
         }
-        return map;
+    }
+
+    private void adjustBorder(RangeShardValue currentRangeShardValue, RangeShardValue originalRangeShardValue) {
+        if (currentRangeShardValue.getBegin() <= originalRangeShardValue.getBegin()
+            && currentRangeShardValue.getEnd() <= originalRangeShardValue.getBegin()) {
+            currentRangeShardValue.setBegin(originalRangeShardValue.getBegin());
+        }
+        if (currentRangeShardValue.getBegin() <= originalRangeShardValue.getEnd()
+            && currentRangeShardValue.getEnd() <= originalRangeShardValue.getEnd()) {
+            currentRangeShardValue.setEnd(originalRangeShardValue.getEnd());
+        }
     }
 
     protected String parseName(String name, Object sdValue, Long dividend) {
@@ -140,37 +180,35 @@ public class DivideShardRouteRule implements ShardRouteRule {
             return name;
         }
         if (sdValue == null) {
-            return null;
-        } else {
-            StringBuilder sb = new StringBuilder();
-            sb.append(name).append('_');
-            if (sdValue instanceof Number) {
-                long l = ((Number) sdValue).longValue();
-                return sb.append(l / dividend).toString();
-            } else if (sdValue instanceof RangeShardValue) {
-                Long begin = ((RangeShardValue) sdValue).getBegin();
-                Long end = ((RangeShardValue) sdValue).getEnd();
-                if (begin == null || end == null) {
-                    throw new IllegalArgumentException("rangeShardValue.begin and rangeShardValue.end can't be null");
-                }
-                if (begin > end) {
-                    throw new IllegalArgumentException(
-                                                       "rangeShardValue.begin can't be greater than rangeShardValue.end");
-                }
-                Long a = begin / dividend;
-                Long b = end / dividend;
-                if (a != b) {
-                    String prefix = sb.toString();
-                    throw new CrossTableException(prefix + a + " and " + prefix + b);
-                } else {
-                    return sb.append(a).toString();
-                }
-            } else if (sdValue instanceof String) {
-                Long l = Long.valueOf((String) sdValue);
-                return sb.append(l / dividend).toString();
-            } else {
-                throw new UnsupportedShardValueTypeException(sdValue.getClass().toString());
+            throw new NullPointerException("sdValue can't be null");
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append(name).append('_');
+        if (sdValue instanceof Number) {
+            long l = ((Number) sdValue).longValue();
+            return sb.append(l / dividend).toString();
+        } else if (sdValue instanceof RangeShardValue) {
+            Long begin = ((RangeShardValue) sdValue).getBegin();
+            Long end = ((RangeShardValue) sdValue).getEnd();
+            if (begin == null || end == null) {
+                throw new IllegalArgumentException("rangeShardValue.begin and rangeShardValue.end can't be null");
             }
+            if (begin > end) {
+                throw new IllegalArgumentException("rangeShardValue.end must be greater than rangeShardValue.begin");
+            }
+            Long a = begin / dividend;
+            Long b = end / dividend;
+            if (a != b) {
+                String prefix = sb.toString();
+                throw new CrossTableException(prefix + a + ", " + prefix + b);
+            } else {
+                return sb.append(a).toString();
+            }
+        } else if (sdValue instanceof String) {
+            Long l = Long.valueOf((String) sdValue);
+            return sb.append(l / dividend).toString();
+        } else {
+            throw new UnsupportedShardValueTypeException(sdValue.getClass().toString());
         }
     }
 }

@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddal.ddr.shard;
+package org.hellojavaer.ddal.ddr.shard.rule;
 
+import org.hellojavaer.ddal.ddr.shard.BaseTestShardParser;
+import org.hellojavaer.ddal.ddr.shard.ShardRouteInfo;
 import org.hellojavaer.ddal.ddr.shard.simple.SimpleShardParser;
-import org.hellojavaer.ddal.ddr.shard.rule.SpelShardRouteRule;
 import org.hellojavaer.ddal.ddr.utils.Assert;
 import org.junit.Test;
 
