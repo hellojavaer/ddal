@@ -121,9 +121,13 @@ public class SpelShardRouteRule implements ShardRouteRule {
 
     @Override
     public String parseTbName(String tbName, Object sdValue) {
-        EvaluationContext elContext = buildEvaluationContext(tbRouteRule);
-        elContext.setVariable("tbName", tbName);
-        return parseName(tbRouteRuleExpression, elContext, sdValue);
+        if (tbRouteRuleExpression == null) {
+            return tbName;
+        } else {
+            EvaluationContext elContext = buildEvaluationContext(tbRouteRule);
+            elContext.setVariable("tbName", tbName);
+            return parseName(tbRouteRuleExpression, elContext, sdValue);
+        }
     }
 
     @Override
@@ -141,6 +145,13 @@ public class SpelShardRouteRule implements ShardRouteRule {
             throw new OutOfRangeSizeLimitException((end - begin) + " > " + rangeSizeLimit);
         }
         Map<ShardRouteInfo, List<RangeShardValue>> map = new HashMap<>();
+        if (scRouteRuleExpression == null && tbRouteRuleExpression == null) {
+            ShardRouteInfo routeInfo = new ShardRouteInfo(scName, tbName);
+            List<RangeShardValue> list = new ArrayList(1);
+            list.add(new RangeShardValue(begin, end));
+            map.put(routeInfo, list);
+            return map;
+        }
         for (long l = begin; l <= end; l++) {
             String scName0 = parseScName(scName, l);
             String tbName0 = parseScName(tbName, l);
