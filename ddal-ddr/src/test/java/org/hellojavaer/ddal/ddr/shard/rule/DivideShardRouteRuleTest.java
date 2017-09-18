@@ -27,9 +27,9 @@ public class DivideShardRouteRuleTest {
 
     @Test
     public void test01() {
-        DivideShardRouteRule rule = new DivideShardRouteRule(4L, 8L);
-        Assert.equals(rule.parseScName("member", 13), "member_3");
-        Assert.equals(rule.parseTbName("user", 13), "user_1");
+        DivideShardRouteRule rule = new DivideShardRouteRule(8L, 4L);
+        Assert.equals(rule.parseScName("member", 13), "member_1");
+        Assert.equals(rule.parseTbName("user", 13), "user_3");
     }
 
     @Test
