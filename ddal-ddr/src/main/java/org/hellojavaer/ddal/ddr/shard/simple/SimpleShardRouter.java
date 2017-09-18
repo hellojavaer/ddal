@@ -60,26 +60,23 @@ public class SimpleShardRouter implements ShardRouter {
                 // can be null
                 final String sdKey = DDRStringUtils.toLowerCase(binding.getSdKey());
                 final String sdValues = DDRStringUtils.trimToNull(binding.getSdValues());
-
+                if (scName == null) {
+                    throw new IllegalArgumentException("'scName' can't be empty");
+                }
                 if (tbName == null) {
                     throw new IllegalArgumentException("'tbName' can't be empty");
                 }
-
                 final SimpleShardRouteRuleBinding b0 = new SimpleShardRouteRuleBinding();
                 b0.setScName(scName);
                 b0.setTbName(tbName);
                 b0.setSdKey(sdKey);
                 b0.setRule(binding.getRule());
-                if (scName != null) {
-                    StringBuilder sb = new StringBuilder();
-                    sb.append(scName).append('.').append(tbName);
-                    putToCache(cache, sb.toString(), b0, true);
-                    putToCache(cache, tbName, b0, false);
-                } else {
-                    putToCache(cache, tbName, b0, true);
-                }
+                StringBuilder sb = new StringBuilder();
+                sb.append(scName).append('.').append(tbName);
+                putToCache(cache, sb.toString(), b0, true);
+                putToCache(cache, tbName, b0, false);
 
-                final Set<ShardRouteInfo> routeInfos = new LinkedHashSet<ShardRouteInfo>();
+                final Set<ShardRouteInfo> routeInfos = new LinkedHashSet<>();
                 if (sdValues != null) {
                     new RangeExpressionParser(sdValues).visit(new RangeExpressionItemVisitor() {
 
@@ -203,8 +200,9 @@ public class SimpleShardRouter implements ShardRouter {
     }
 
     @Override
-    public ShardRouteInfo getRouteInfo(String scName, String tbName, Object sdValue) throws ShardValueNotFoundException,
-                                                                                            ShardRouteException {
+    public ShardRouteInfo getRouteInfo(String scName, String tbName, Object sdValue)
+                                                                                    throws ShardValueNotFoundException,
+                                                                                    ShardRouteException {
         scName = DDRStringUtils.toLowerCase(scName);
         tbName = DDRStringUtils.toLowerCase(tbName);
         InnerSimpleShardRouteRuleBindingWrapper bindingWrapper = getBinding(scName, tbName);
@@ -219,7 +217,7 @@ public class SimpleShardRouter implements ShardRouter {
 
     @Override
     public List<ShardRouteInfo> getRouteInfos(String scName, String tbName) throws ShardValueNotFoundException,
-                                                                                   ShardRouteException {
+                                                                           ShardRouteException {
         return routeInfoMap.get(buildQueryKey(scName, tbName));
     }
 
@@ -239,9 +237,8 @@ public class SimpleShardRouter implements ShardRouter {
         return sb.toString();
     }
 
-    private ShardRouteInfo getRouteInfo(SimpleShardRouteRuleBinding binding, String scName, String tbName, Object sdValue)
-                                                                                                                     throws ShardRouteException,
-                                                                                                                     ShardValueNotFoundException {
+    private ShardRouteInfo getRouteInfo(SimpleShardRouteRuleBinding binding, String scName, String tbName,
+                                        Object sdValue) throws ShardRouteException, ShardValueNotFoundException {
         ShardRouteRule rule = binding.getRule();
         if (rule == null) {// 未配置rule,参数sdKey 和 sdValue都无效
             ShardRouteInfo info = new ShardRouteInfo();
