@@ -32,8 +32,9 @@ import java.util.Map;
  */
 public class DivideShardRouteRule implements ShardRouteRule {
 
-    private Long scSdValueDividend;
-    private Long tbSdValueDividend;
+    private Long    scSdValueDividend;
+    private Long    tbSdValueDividend;
+    private boolean useOrignalNameIfZero = false;
 
     private DivideShardRouteRule() {
     }
@@ -41,6 +42,13 @@ public class DivideShardRouteRule implements ShardRouteRule {
     public DivideShardRouteRule(Long scSdValueDividend, Long tbSdValueDividend) {
         this.scSdValueDividend = scSdValueDividend;
         this.tbSdValueDividend = tbSdValueDividend;
+        verify();
+    }
+
+    public DivideShardRouteRule(Long scSdValueDividend, Long tbSdValueDividend, boolean useOrignalNameIfZero) {
+        this.scSdValueDividend = scSdValueDividend;
+        this.tbSdValueDividend = tbSdValueDividend;
+        this.useOrignalNameIfZero = useOrignalNameIfZero;
         verify();
     }
 
@@ -74,6 +82,14 @@ public class DivideShardRouteRule implements ShardRouteRule {
     private void setTbSdValueDividend(Long tbSdValueDividend) {
         this.tbSdValueDividend = tbSdValueDividend;
         verify();
+    }
+
+    public boolean isUseOrignalNameIfZero() {
+        return useOrignalNameIfZero;
+    }
+
+    private void setUseOrignalNameIfZero(boolean useOrignalNameIfZero) {
+        this.useOrignalNameIfZero = useOrignalNameIfZero;
     }
 
     @Override
@@ -110,9 +126,15 @@ public class DivideShardRouteRule implements ShardRouteRule {
             int tbBegin = (int) (begin / tbSdValueDividend);
             int tbEnd = (int) (end / tbSdValueDividend);
             for (int i = scBegin; i <= scEnd; i++) {
-                String scName0 = scName + '_' + i;
+                String scName0 = scName;
+                if (i != 0 || !useOrignalNameIfZero) {
+                    scName0 = scName + '_' + i;
+                }
                 for (int j = tbBegin; j < tbEnd; j++) {
-                    String tbName0 = tbName + '_' + j;
+                    String tbName0 = tbName;
+                    if (j != 0 || !useOrignalNameIfZero) {
+                        tbName0 = tbName + '_' + j;
+                    }
                     ShardRouteInfo routeInfo = new ShardRouteInfo(scName0, tbName0);
                     List<RangeShardValue> list = map.get(routeInfo);
                     if (list == null) {
@@ -131,7 +153,10 @@ public class DivideShardRouteRule implements ShardRouteRule {
             int tbBegin = (int) (begin / tbSdValueDividend);
             int tbEnd = (int) (end / tbSdValueDividend);
             for (int j = tbBegin; j < tbEnd; j++) {
-                String tbName0 = tbName + '_' + j;
+                String tbName0 = tbName;
+                if (j != 0 || !useOrignalNameIfZero) {
+                    tbName0 = tbName + '_' + j;
+                }
                 ShardRouteInfo routeInfo = new ShardRouteInfo(null, tbName0);
                 List<RangeShardValue> list = map.get(routeInfo);
                 if (list == null) {
@@ -148,7 +173,10 @@ public class DivideShardRouteRule implements ShardRouteRule {
             int scBegin = (int) (begin / scSdValueDividend);
             int scEnd = (int) (end / scSdValueDividend);
             for (int j = scBegin; j < scEnd; j++) {
-                String scName0 = scName + '_' + j;
+                String scName0 = scName;
+                if (j != 0 || !useOrignalNameIfZero) {
+                    scName0 = scName + '_' + j;
+                }
                 ShardRouteInfo routeInfo = new ShardRouteInfo(scName0, null);
                 List<RangeShardValue> list = map.get(routeInfo);
                 if (list == null) {
@@ -182,11 +210,9 @@ public class DivideShardRouteRule implements ShardRouteRule {
         if (sdValue == null) {
             throw new NullPointerException("sdValue can't be null");
         }
-        StringBuilder sb = new StringBuilder();
-        sb.append(name).append('_');
         if (sdValue instanceof Number) {
             long l = ((Number) sdValue).longValue();
-            return sb.append(l / dividend).toString();
+            return parseName0(name, l, dividend);
         } else if (sdValue instanceof RangeShardValue) {
             Long begin = ((RangeShardValue) sdValue).getBegin();
             Long end = ((RangeShardValue) sdValue).getEnd();
@@ -196,19 +222,33 @@ public class DivideShardRouteRule implements ShardRouteRule {
             if (begin > end) {
                 throw new IllegalArgumentException("rangeShardValue.end must be greater than rangeShardValue.begin");
             }
-            Long a = begin / dividend;
-            Long b = end / dividend;
-            if (a != b) {
-                String prefix = sb.toString();
-                throw new CrossTableException(prefix + a + ", " + prefix + b);
+            Long l = begin / dividend;
+            Long l1 = end / dividend;
+            if (l != l1) {
+                String prefix = name + '_';
+                throw new CrossTableException(prefix + l + ", " + prefix + l1);
             } else {
-                return sb.append(a).toString();
+                if (l == 0 && useOrignalNameIfZero) {
+                    return name;
+                } else {
+                    return new StringBuilder(name).append('_').append(l).toString();
+                }
             }
         } else if (sdValue instanceof String) {
             Long l = Long.valueOf((String) sdValue);
-            return sb.append(l / dividend).toString();
+            return parseName0(name, l, dividend);
         } else {
             throw new UnsupportedShardValueTypeException(sdValue.getClass().toString());
         }
     }
+
+    private String parseName0(String name, Long l, Long dividend) {
+        Long a = l / dividend;
+        if (a == 0 && useOrignalNameIfZero) {
+            return name;
+        } else {
+            return new StringBuilder(name).append('_').append(a).toString();
+        }
+    }
+
 }
