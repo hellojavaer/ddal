@@ -4,7 +4,7 @@
 [![GitHub release](https://img.shields.io/github/release/hellojavaer/ddal.svg)](https://github.com/hellojavaer/ddal/releases)
 
 DDAL(Distributed Data Access Layer) is a simple solution to access database shard.
-<img src="https://github.com/hellojavaer/ddal/blob/master/doc/img/design_01.jpeg" width = "640" height = "320" alt="design" align=center />
+<img src="https://github.com/hellojavaer/ddal/blob/master/doc/img/design_01.jpeg" width = "590" height = "390" alt="design" align=center />
 
 ## License
 
