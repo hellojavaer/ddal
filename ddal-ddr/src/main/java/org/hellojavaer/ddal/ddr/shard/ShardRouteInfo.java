@@ -65,35 +65,14 @@ public class ShardRouteInfo {
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        if (obj == this) {
-            return true;
-        }
-        if (!(obj instanceof ShardRouteInfo)) {
-            return false;
-        }
-        ShardRouteInfo routeInfo = (ShardRouteInfo) obj;
-        if (this.scName == null) {
-            if (routeInfo.getScName() != null) {
-                return false;
-            }
-        } else {
-            if (!this.scName.equals(routeInfo.getScName())) {
-                return false;
-            }
-        }
-        if (this.tbName == null) {
-            if (routeInfo.getTbName() != null) {
-                return false;
-            }
-        } else {
-            if (!this.tbName.equals(routeInfo.getTbName())) {
-                return false;
-            }
-        }
-        return true;
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ShardRouteInfo routeInfo = (ShardRouteInfo) o;
+
+        if (scName != null ? !scName.equals(routeInfo.scName) : routeInfo.scName != null) return false;
+        return tbName != null ? tbName.equals(routeInfo.tbName) : routeInfo.tbName == null;
+
     }
 }

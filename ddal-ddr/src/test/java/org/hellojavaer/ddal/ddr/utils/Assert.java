@@ -15,7 +15,7 @@
  */
 package org.hellojavaer.ddal.ddr.utils;
 
-import java.util.List;
+import java.util.*;
 
 /**
  *
@@ -23,26 +23,79 @@ import java.util.List;
  */
 public class Assert {
 
-    public static void equals(List src, List tar) {
+    public static void equals(Map<? extends Object, ? extends Object> src, Map<? extends Object, ? extends Object> tar) {
         if (src == null && tar == null) {
             return;
-        }
-        if (src == null && tar != null || src != null && tar == null) {
-            throw new IllegalArgumentException("[Assertion failed] - src or tar is null but the other is not null");
+        } else if (src == null && tar != null) {
+            throw new IllegalArgumentException("[Assertion failed] - src is null, but tar is '" + tar + "'");
+        } else if (src != null && tar == null) {
+            throw new IllegalArgumentException("[Assertion failed] - src is '" + src + "', but tar is null");
         }
         if (src.size() != tar.size()) {
-            throw new IllegalArgumentException("[Assertion failed] - src.size()[" + src.size()
-                                               + "] isn't equal to tar.size()[" + tar.size() + "]");
+            throw new IllegalArgumentException("[Assertion failed] - src.size() '" + src.size()
+                                               + "' isn't equal to tar.size() '" + tar.size() + "'");
         }
-        for (int i = 0; i < src.size(); i++) {
-            Object obj0 = src.get(i);
-            Object obj1 = tar.get(i);
-            if (obj0 == null && obj1 == null) {
-                return;
-            } else {
-                if (obj0 != null && !obj0.equals(obj1) && obj1 != null && !obj1.equals(obj0)) {
-                    throw new IllegalArgumentException("[Assertion failed] - src is not equate to tar at index:" + i);
-                }
+        Iterator<? extends Map.Entry<?, ?>> srcIterator = src.entrySet().iterator();
+        Iterator<? extends Map.Entry<?, ?>> tarIterator = tar.entrySet().iterator();
+        int count = -1;
+        while (srcIterator.hasNext() && tarIterator.hasNext()) {
+            count++;
+            Map.Entry<?, ?> srcEntry = srcIterator.next();
+            Map.Entry<?, ?> tarEntry = tarIterator.next();
+            try {
+                equals(srcEntry.getKey(), tarEntry.getKey());
+                equals(srcEntry.getValue(), tarEntry.getValue());
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("[Assertion failed] - src or tar is not equal to tar at index "
+                                                   + count, e);
+            }
+        }
+    }
+
+    public static void equals(Collection<? extends Object> src, Collection<? extends Object> tar) {
+        if (src == null && tar == null) {
+            return;
+        } else if (src == null && tar != null) {
+            throw new IllegalArgumentException("[Assertion failed] - src is null, but tar is '" + tar + "'");
+        } else if (src != null && tar == null) {
+            throw new IllegalArgumentException("[Assertion failed] - src is '" + src + "', but tar is null");
+        }
+        if (src.size() != tar.size()) {
+            throw new IllegalArgumentException("[Assertion failed] - src.size() '" + src.size()
+                                               + "' isn't equal to tar.size() '" + tar.size() + "'");
+        }
+        Iterator<?> srcIterator = src.iterator();
+        Iterator<?> tarIterator = tar.iterator();
+        int count = -1;
+        while (srcIterator.hasNext() && tarIterator.hasNext()) {
+            count++;
+            Object obj0 = srcIterator.next();
+            Object obj1 = tarIterator.next();
+            try {
+                equals(obj0, obj1);
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("[Assertion failed] - src or tar is not equal to tar at index "
+                                                   + count, e);
+            }
+        }
+    }
+
+    public static void equals(Object src, Object tar) {
+        if (src == null && tar == null) {
+            return;
+        } else if (src == null && tar != null) {
+            throw new IllegalArgumentException("[Assertion failed] - src is null, but tar is '" + tar + "'");
+        } else if (src != null && tar == null) {
+            throw new IllegalArgumentException("[Assertion failed] - src is '" + src + "', but tar is null");
+        }
+        if (src instanceof Map && tar instanceof Map) {
+            equals((Map) src, (Map) tar);
+        } else if (src instanceof Collection && tar instanceof Collection) {
+            equals((Collection) src, (Collection) tar);
+        } else {
+            if (!src.equals(tar)) {
+                throw new IllegalArgumentException("[Assertion failed] - src '" + src + "' is not equal to tar '" + tar
+                                                   + "'");
             }
         }
     }
@@ -54,19 +107,6 @@ public class Assert {
     public static void isTrue(boolean expression, String message) {
         if (!expression) {
             throw new IllegalArgumentException(message);
-        }
-    }
-
-    public static void equals(String str0, String str1) {
-        if (str0 == str1) {
-            return;
-        }
-        if (str0 == null && str1 != null //
-            || str0 != null && str1 == null//
-            || !str0.equals(str1)//
-        ) {
-            throw new IllegalArgumentException("[Assertion failed] - str0 is not equal to str1. str0 is '" + str0
-                                               + "' and str1 is '" + str1 + "'");
         }
     }
 }

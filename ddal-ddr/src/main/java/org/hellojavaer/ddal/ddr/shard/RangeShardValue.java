@@ -15,6 +15,8 @@
  */
 package org.hellojavaer.ddal.ddr.shard;
 
+import java.util.Objects;
+
 /**
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 16/09/2017.
@@ -47,4 +49,27 @@ public class RangeShardValue {
     public void setEnd(Long end) {
         this.end = end;
     }
+
+    @Override
+    public String toString() {
+        return "{" + "begin:" + begin + ",end:" + end + '}';
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(begin, end);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        RangeShardValue that = (RangeShardValue) o;
+
+        if (begin != null ? !begin.equals(that.begin) : that.begin != null) return false;
+        return end != null ? end.equals(that.end) : that.end == null;
+
+    }
+
 }

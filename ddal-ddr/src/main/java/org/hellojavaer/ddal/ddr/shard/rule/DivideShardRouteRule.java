@@ -21,10 +21,7 @@ import org.hellojavaer.ddal.ddr.shard.ShardRouteRule;
 import org.hellojavaer.ddal.ddr.shard.exception.CrossTableException;
 import org.hellojavaer.ddal.ddr.shard.exception.UnsupportedShardValueTypeException;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  *
@@ -113,7 +110,7 @@ public class DivideShardRouteRule implements ShardRouteRule {
         if (begin > end) {
             throw new IllegalArgumentException("rangeShardValue.begin can't be greater than rangeShardValue.end");
         }
-        Map<ShardRouteInfo, List<RangeShardValue>> map = new HashMap<>();
+        Map<ShardRouteInfo, List<RangeShardValue>> map = new LinkedHashMap<>();
         if (scSdValueDividend == null && tbSdValueDividend == null) {
             ShardRouteInfo routeInfo = new ShardRouteInfo(scName, tbName);
             List<RangeShardValue> list = new ArrayList(1);
@@ -130,7 +127,7 @@ public class DivideShardRouteRule implements ShardRouteRule {
                 if (i != 0 || !useOrignalNameIfZero) {
                     scName0 = scName + '_' + i;
                 }
-                for (int j = tbBegin; j < tbEnd; j++) {
+                for (int j = tbBegin; j <= tbEnd; j++) {
                     String tbName0 = tbName;
                     if (j != 0 || !useOrignalNameIfZero) {
                         tbName0 = tbName + '_' + j;
@@ -149,15 +146,15 @@ public class DivideShardRouteRule implements ShardRouteRule {
                 }
             }
             return map;
-        } else if (scSdValueDividend == null && tbSdValueDividend == null) {
+        } else if (scSdValueDividend == null && tbSdValueDividend != null) {
             int tbBegin = (int) (begin / tbSdValueDividend);
             int tbEnd = (int) (end / tbSdValueDividend);
-            for (int j = tbBegin; j < tbEnd; j++) {
+            for (int j = tbBegin; j <= tbEnd; j++) {
                 String tbName0 = tbName;
                 if (j != 0 || !useOrignalNameIfZero) {
                     tbName0 = tbName + '_' + j;
                 }
-                ShardRouteInfo routeInfo = new ShardRouteInfo(null, tbName0);
+                ShardRouteInfo routeInfo = new ShardRouteInfo(scName, tbName0);
                 List<RangeShardValue> list = map.get(routeInfo);
                 if (list == null) {
                     list = new ArrayList<>();
@@ -172,12 +169,12 @@ public class DivideShardRouteRule implements ShardRouteRule {
         } else {
             int scBegin = (int) (begin / scSdValueDividend);
             int scEnd = (int) (end / scSdValueDividend);
-            for (int j = scBegin; j < scEnd; j++) {
+            for (int j = scBegin; j <= scEnd; j++) {
                 String scName0 = scName;
                 if (j != 0 || !useOrignalNameIfZero) {
                     scName0 = scName + '_' + j;
                 }
-                ShardRouteInfo routeInfo = new ShardRouteInfo(scName0, null);
+                ShardRouteInfo routeInfo = new ShardRouteInfo(scName0, tbName);
                 List<RangeShardValue> list = map.get(routeInfo);
                 if (list == null) {
                     list = new ArrayList<>();
@@ -193,12 +190,10 @@ public class DivideShardRouteRule implements ShardRouteRule {
     }
 
     private void adjustBorder(RangeShardValue currentRangeShardValue, RangeShardValue originalRangeShardValue) {
-        if (currentRangeShardValue.getBegin() <= originalRangeShardValue.getBegin()
-            && currentRangeShardValue.getEnd() <= originalRangeShardValue.getBegin()) {
+        if (currentRangeShardValue.getBegin() < originalRangeShardValue.getBegin()) {
             currentRangeShardValue.setBegin(originalRangeShardValue.getBegin());
         }
-        if (currentRangeShardValue.getBegin() <= originalRangeShardValue.getEnd()
-            && currentRangeShardValue.getEnd() <= originalRangeShardValue.getEnd()) {
+        if (currentRangeShardValue.getEnd() > originalRangeShardValue.getEnd()) {
             currentRangeShardValue.setEnd(originalRangeShardValue.getEnd());
         }
     }
