@@ -67,7 +67,8 @@ public class HttpUtils {
                 String inputLine;
                 StringBuilder response = new StringBuilder();
                 while ((inputLine = br.readLine()) != null) {
-                    response.append(inputLine + "\n");
+                    response.append(inputLine);
+                    response.append('\n');
                 }
                 int responseCode = con.getResponseCode();
                 if (responseCode != 200) {
