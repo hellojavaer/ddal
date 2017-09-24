@@ -13,21 +13,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddal.datasource;
+package org.hellojavaer.ddal.demo.demo1.dao;
 
-import org.hellojavaer.ddal.ddr.shard.ShardRouter;
-import org.hellojavaer.ddal.sequence.Sequence;
-
-import javax.sql.DataSource;
+import org.hellojavaer.ddal.demo.demo1.entitry.RoleEntity;
 
 /**
- * 
- * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 15/07/2017.
+ *
+ * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 22/07/2017.
  */
-public interface DDALDataSource extends DataSource {
+public interface RoleDao {
 
-    Sequence getSequence();
+    /**
+     * 
+     * @param roleEntity
+     * @return
+     */
+    Long add(RoleEntity roleEntity);
 
-    ShardRouter getShardRouter();
+    /**
+     *
+     * @param id
+     * @return effective lines
+     */
+    int deleteById(Long id);
+
+    /**
+     * 
+     * @param roleEntity
+     * @return
+     */
+    int updateById(RoleEntity roleEntity);
+
+    /**
+     *
+     * @param id
+     * @return
+     */
+    RoleEntity getById(Long id);
 
 }

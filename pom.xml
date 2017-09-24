@@ -21,6 +21,8 @@
         <module>ddal-jsqlparser</module>
         <module>ddal-datasource</module>
         <module>ddal-bom</module>
+        <module>ddal-server</module>
+        <module>ddal-demo</module>
     </modules>
 
     <developers>
