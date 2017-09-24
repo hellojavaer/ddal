@@ -15,8 +15,10 @@
  */
 package org.hellojavaer.ddal.ddr.shard;
 
-import org.hellojavaer.ddal.ddr.shard.simple.SimpleShardParser;
-import org.hellojavaer.ddal.ddr.utils.Assert;
+import org.hellojavaer.ddal.core.utils.Assert;
+import org.hellojavaer.ddal.ddr.shard.rule.SpelShardRouteRule;
+import org.hellojavaer.ddal.ddr.shard.simple.SimpleShardRouteRuleBinding;
+import org.hellojavaer.ddal.ddr.shard.simple.SimpleShardRouter;
 import org.junit.Test;
 
 import java.util.*;
@@ -25,166 +27,55 @@ import java.util.*;
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 22/06/2017.
  */
-public class ShardContextUtilsTest extends BaseTestShardParser {
+public class ShardContextUtilsTest {
 
     @Test
     public void groupSdValuesByRouteInfo() {
-        List<String> expectedResult = new ArrayList();
-        expectedResult.add("db_00.user_0000");
-        expectedResult.add("db_01.user_0001");
-        expectedResult.add("db_02.user_0002");
-        expectedResult.add("db_03.user_0003");
-        expectedResult.add("db_04.user_0004");
-        expectedResult.add("db_05.user_0005");
-        expectedResult.add("db_06.user_0006");
-        expectedResult.add("db_07.user_0007");
-        expectedResult.add("db_00.user_0008");
-        expectedResult.add("db_01.user_0009");
-        expectedResult.add("db_02.user_0010");
-        expectedResult.add("db_03.user_0011");
-        expectedResult.add("db_04.user_0012");
-        expectedResult.add("db_05.user_0013");
-        expectedResult.add("db_06.user_0014");
-        expectedResult.add("db_07.user_0015");
-        expectedResult.add("db_00.user_0016");
-        expectedResult.add("db_01.user_0017");
-        expectedResult.add("db_02.user_0018");
-        expectedResult.add("db_03.user_0019");
-        expectedResult.add("db_04.user_0020");
-        expectedResult.add("db_05.user_0021");
-        expectedResult.add("db_06.user_0022");
-        expectedResult.add("db_07.user_0023");
-        expectedResult.add("db_00.user_0024");
-        expectedResult.add("db_01.user_0025");
-        expectedResult.add("db_02.user_0026");
-        expectedResult.add("db_03.user_0027");
-        expectedResult.add("db_04.user_0028");
-        expectedResult.add("db_05.user_0029");
-        expectedResult.add("db_06.user_0030");
-        expectedResult.add("db_07.user_0031");
-        expectedResult.add("db_00.user_0032");
-        expectedResult.add("db_01.user_0033");
-        expectedResult.add("db_02.user_0034");
-        expectedResult.add("db_03.user_0035");
-        expectedResult.add("db_04.user_0036");
-        expectedResult.add("db_05.user_0037");
-        expectedResult.add("db_06.user_0038");
-        expectedResult.add("db_07.user_0039");
-        expectedResult.add("db_00.user_0040");
-        expectedResult.add("db_01.user_0041");
-        expectedResult.add("db_02.user_0042");
-        expectedResult.add("db_03.user_0043");
-        expectedResult.add("db_04.user_0044");
-        expectedResult.add("db_05.user_0045");
-        expectedResult.add("db_06.user_0046");
-        expectedResult.add("db_07.user_0047");
-        expectedResult.add("db_00.user_0048");
-        expectedResult.add("db_01.user_0049");
-        expectedResult.add("db_02.user_0050");
-        expectedResult.add("db_03.user_0051");
-        expectedResult.add("db_04.user_0052");
-        expectedResult.add("db_05.user_0053");
-        expectedResult.add("db_06.user_0054");
-        expectedResult.add("db_07.user_0055");
-        expectedResult.add("db_00.user_0056");
-        expectedResult.add("db_01.user_0057");
-        expectedResult.add("db_02.user_0058");
-        expectedResult.add("db_03.user_0059");
-        expectedResult.add("db_04.user_0060");
-        expectedResult.add("db_05.user_0061");
-        expectedResult.add("db_06.user_0062");
-        expectedResult.add("db_07.user_0063");
-        expectedResult.add("db_00.user_0064");
-        expectedResult.add("db_01.user_0065");
-        expectedResult.add("db_02.user_0066");
-        expectedResult.add("db_03.user_0067");
-        expectedResult.add("db_04.user_0068");
-        expectedResult.add("db_05.user_0069");
-        expectedResult.add("db_06.user_0070");
-        expectedResult.add("db_07.user_0071");
-        expectedResult.add("db_00.user_0072");
-        expectedResult.add("db_01.user_0073");
-        expectedResult.add("db_02.user_0074");
-        expectedResult.add("db_03.user_0075");
-        expectedResult.add("db_04.user_0076");
-        expectedResult.add("db_05.user_0077");
-        expectedResult.add("db_06.user_0078");
-        expectedResult.add("db_07.user_0079");
-        expectedResult.add("db_00.user_0080");
-        expectedResult.add("db_01.user_0081");
-        expectedResult.add("db_02.user_0082");
-        expectedResult.add("db_03.user_0083");
-        expectedResult.add("db_04.user_0084");
-        expectedResult.add("db_05.user_0085");
-        expectedResult.add("db_06.user_0086");
-        expectedResult.add("db_07.user_0087");
-        expectedResult.add("db_00.user_0088");
-        expectedResult.add("db_01.user_0089");
-        expectedResult.add("db_02.user_0090");
-        expectedResult.add("db_03.user_0091");
-        expectedResult.add("db_04.user_0092");
-        expectedResult.add("db_05.user_0093");
-        expectedResult.add("db_06.user_0094");
-        expectedResult.add("db_07.user_0095");
-        expectedResult.add("db_00.user_0096");
-        expectedResult.add("db_01.user_0097");
-        expectedResult.add("db_02.user_0098");
-        expectedResult.add("db_03.user_0099");
-        expectedResult.add("db_04.user_0100");
-        expectedResult.add("db_05.user_0101");
-        expectedResult.add("db_06.user_0102");
-        expectedResult.add("db_07.user_0103");
-        expectedResult.add("db_00.user_0104");
-        expectedResult.add("db_01.user_0105");
-        expectedResult.add("db_02.user_0106");
-        expectedResult.add("db_03.user_0107");
-        expectedResult.add("db_04.user_0108");
-        expectedResult.add("db_05.user_0109");
-        expectedResult.add("db_06.user_0110");
-        expectedResult.add("db_07.user_0111");
-        expectedResult.add("db_00.user_0112");
-        expectedResult.add("db_01.user_0113");
-        expectedResult.add("db_02.user_0114");
-        expectedResult.add("db_03.user_0115");
-        expectedResult.add("db_04.user_0116");
-        expectedResult.add("db_05.user_0117");
-        expectedResult.add("db_06.user_0118");
-        expectedResult.add("db_07.user_0119");
-        expectedResult.add("db_00.user_0120");
-        expectedResult.add("db_01.user_0121");
-        expectedResult.add("db_02.user_0122");
-        expectedResult.add("db_03.user_0123");
-        expectedResult.add("db_04.user_0124");
-        expectedResult.add("db_05.user_0125");
-        expectedResult.add("db_06.user_0126");
-        expectedResult.add("db_07.user_0127");
+        List<SimpleShardRouteRuleBinding> bindings = new ArrayList<>();
+        SpelShardRouteRule numRule = new SpelShardRouteRule("{scName}_{format('%02d', sdValue % 4)}",
+                                                            "{tbName}_{format('%04d', sdValue % 16)}");
+        SimpleShardRouteRuleBinding user = new SimpleShardRouteRuleBinding();
+        user.setScName("db");
+        user.setTbName("user");
+        user.setSdKey("id");
+        user.setSdValues("[0..31]");
+        user.setRule(numRule);
+        bindings.add(user);
+        SimpleShardRouter shardRouter = new SimpleShardRouter(bindings);
 
         List<Long> list = new ArrayList<>();
-        for (int i = 0; i < 128; i++) {
+        int testDataLength = 32;
+        for (int i = 0; i < testDataLength; i++) {
             list.add((long) i);
         }
-        SimpleShardParser shardParser = this.buildShardParser();
 
-        Map<ShardRouteInfo, List<Long>> map = ShardRouteUtils.groupSdValuesByRouteInfo(shardParser.getShardRouter(), "db",
-                                                                                       "user", list);
-        int count = 0;
-        for (Map.Entry<ShardRouteInfo, List<Long>> entry : map.entrySet()) {
-            Assert.isTrue(entry.getKey().toString().equals(expectedResult.get(count)));
-            count++;
-        }
+        Map<ShardRouteInfo, List<Long>> expectedResult = new LinkedHashMap<>();
+        expectedResult.put(new ShardRouteInfo("db_00", "user_0000"), Arrays.asList(0L, 16L));
+        expectedResult.put(new ShardRouteInfo("db_01", "user_0001"), Arrays.asList(1L, 17L));
+        expectedResult.put(new ShardRouteInfo("db_02", "user_0002"), Arrays.asList(2L, 18L));
+        expectedResult.put(new ShardRouteInfo("db_03", "user_0003"), Arrays.asList(3L, 19L));
+        expectedResult.put(new ShardRouteInfo("db_00", "user_0004"), Arrays.asList(4L, 20L));
+        expectedResult.put(new ShardRouteInfo("db_01", "user_0005"), Arrays.asList(5L, 21L));
+        expectedResult.put(new ShardRouteInfo("db_02", "user_0006"), Arrays.asList(6L, 22L));
+        expectedResult.put(new ShardRouteInfo("db_03", "user_0007"), Arrays.asList(7L, 23L));
+        expectedResult.put(new ShardRouteInfo("db_00", "user_0008"), Arrays.asList(8L, 24L));
+        expectedResult.put(new ShardRouteInfo("db_01", "user_0009"), Arrays.asList(9L, 25L));
+        expectedResult.put(new ShardRouteInfo("db_02", "user_0010"), Arrays.asList(10L, 26L));
+        expectedResult.put(new ShardRouteInfo("db_03", "user_0011"), Arrays.asList(11L, 27L));
+        expectedResult.put(new ShardRouteInfo("db_00", "user_0012"), Arrays.asList(12L, 28L));
+        expectedResult.put(new ShardRouteInfo("db_01", "user_0013"), Arrays.asList(13L, 29L));
+        expectedResult.put(new ShardRouteInfo("db_02", "user_0014"), Arrays.asList(14L, 30L));
+        expectedResult.put(new ShardRouteInfo("db_03", "user_0015"), Arrays.asList(15L, 31L));
+
+        Map<ShardRouteInfo, List<Long>> map = ShardRouteUtils.groupSdValuesByRouteInfo(shardRouter, "db", "user", list);
+        Assert.equals(map, expectedResult);
 
         Set<Long> set = new LinkedHashSet<>();
-        for (int i = 0; i < 128; i++) {
+        for (int i = 0; i < 32; i++) {
             set.add((long) i);
         }
+        Map<ShardRouteInfo, Set<Long>> map1 = ShardRouteUtils.groupSdValuesByRouteInfo(shardRouter, "db", "user", set);
+        Assert.equals(map1, expectedResult);
 
-        Map<ShardRouteInfo, Set<Long>> map1 = ShardRouteUtils.groupSdValuesByRouteInfo(shardParser.getShardRouter(), "db",
-                                                                                       "user", set);
-        int i = 0;
-        for (Map.Entry<ShardRouteInfo, Set<Long>> entry : map1.entrySet()) {
-            Assert.isTrue(entry.getKey().toString().equals(expectedResult.get(i)));
-            i++;
-        }
     }
-
 }

@@ -15,6 +15,7 @@
  */
 package org.hellojavaer.ddal.sequence;
 
+import org.hellojavaer.ddal.core.utils.Assert;
 import org.hellojavaer.ddal.sequence.exception.IllegalSequenceRangeException;
 import org.hellojavaer.ddal.sequence.exception.NoAvailableSequenceRangeFoundException;
 import org.slf4j.Logger;

@@ -15,7 +15,7 @@
  */
 package org.hellojavaer.ddal.ddr.expression.range;
 
-import org.hellojavaer.ddal.ddr.utils.Assert;
+import org.hellojavaer.ddal.core.utils.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;

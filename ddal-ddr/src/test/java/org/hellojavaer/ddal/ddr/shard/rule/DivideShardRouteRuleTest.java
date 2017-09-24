@@ -15,9 +15,15 @@
  */
 package org.hellojavaer.ddal.ddr.shard.rule;
 
+import org.hellojavaer.ddal.core.utils.Assert;
 import org.hellojavaer.ddal.ddr.shard.RangeShardValue;
-import org.hellojavaer.ddal.ddr.utils.Assert;
+import org.hellojavaer.ddal.ddr.shard.ShardRouteInfo;
 import org.junit.Test;
+
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -28,19 +34,101 @@ public class DivideShardRouteRuleTest {
     @Test
     public void test01() {
         DivideShardRouteRule rule = new DivideShardRouteRule(8L, 4L);
-        Assert.equals(rule.parseScName("member", 13), "member_1");
-        Assert.equals(rule.parseTbName("user", 13), "user_3");
+        for (int i = 0; i < 8; i++) {
+            Assert.equals(rule.parseScName("member", i), "member_0");
+        }
+        for (int i = 8; i < 16; i++) {
+            Assert.equals(rule.parseScName("member", i), "member_1");
+        }
+        for (int i = 0; i < 4; i++) {
+            Assert.equals(rule.parseTbName("user", i), "user_0");
+        }
+        for (int i = 4; i < 8; i++) {
+            Assert.equals(rule.parseTbName("user", i), "user_1");
+        }
     }
 
     @Test
     public void test02() {
-        DivideShardRouteRule rule = new DivideShardRouteRule(8L, 4L);
-        Assert.equals(rule.parseScName("member", new RangeShardValue(0L, 3L)), "member_0");
-        Assert.equals(rule.parseTbName("user", new RangeShardValue(0L, 3L)), "user_0");
+        DivideShardRouteRule rule = new DivideShardRouteRule(8L, 4L, true);
+        for (int i = 0; i < 8; i++) {
+            Assert.equals(rule.parseScName("member", i), "member");
+        }
+        for (int i = 8; i < 16; i++) {
+            Assert.equals(rule.parseScName("member", i), "member_1");
+        }
+        for (int i = 0; i < 4; i++) {
+            Assert.equals(rule.parseTbName("user", i), "user");
+        }
+        for (int i = 4; i < 8; i++) {
+            Assert.equals(rule.parseTbName("user", i), "user_1");
+        }
+    }
 
-        DivideShardRouteRule rule1 = new DivideShardRouteRule(8L, 4L);
-        Assert.equals(rule1.parseScName("member", new RangeShardValue(4L, 7L)), "member_0");
-        Assert.equals(rule1.parseTbName("user", new RangeShardValue(4L, 7L)), "user_1");
+    @Test
+    public void test03() {
+        DivideShardRouteRule rule = new DivideShardRouteRule(8L, 4L);
+        Map<ShardRouteInfo, List<RangeShardValue>> map = rule.groupSdValuesByRouteInfo("member", "user",
+                                                                                       new RangeShardValue(2l, 7l));
+        Map<ShardRouteInfo, List<RangeShardValue>> expectedResult = new LinkedHashMap<>();
+        expectedResult.put(new ShardRouteInfo("member_0", "user_0"), Arrays.asList(new RangeShardValue(2l, 3l)));
+        expectedResult.put(new ShardRouteInfo("member_0", "user_1"), Arrays.asList(new RangeShardValue(4l, 7l)));
+        Assert.equals(map, expectedResult);
+
+        //
+        rule = new DivideShardRouteRule(null, 4L);
+        map = rule.groupSdValuesByRouteInfo("member", "user", new RangeShardValue(2l, 7l));
+        expectedResult = new LinkedHashMap<>();
+        expectedResult.put(new ShardRouteInfo("member", "user_0"), Arrays.asList(new RangeShardValue(2l, 3l)));
+        expectedResult.put(new ShardRouteInfo("member", "user_1"), Arrays.asList(new RangeShardValue(4l, 7l)));
+        Assert.equals(map, expectedResult);
+
+        //
+        rule = new DivideShardRouteRule(8l, null);
+        map = rule.groupSdValuesByRouteInfo("member", "user", new RangeShardValue(2l, 7l));
+        expectedResult = new LinkedHashMap<>();
+        expectedResult.put(new ShardRouteInfo("member_0", "user"), Arrays.asList(new RangeShardValue(2l, 7l)));
+        Assert.equals(map, expectedResult);
+
+        //
+        rule = new DivideShardRouteRule(null, null);
+        map = rule.groupSdValuesByRouteInfo("member", "user", new RangeShardValue(2l, 7l));
+        expectedResult = new LinkedHashMap<>();
+        expectedResult.put(new ShardRouteInfo("member", "user"), Arrays.asList(new RangeShardValue(2l, 7l)));
+        Assert.equals(map, expectedResult);
+    }
+
+    @Test
+    public void test04() {
+        DivideShardRouteRule rule = new DivideShardRouteRule(8L, 4L, true);
+        Map<ShardRouteInfo, List<RangeShardValue>> map = rule.groupSdValuesByRouteInfo("member", "user",
+                                                                                       new RangeShardValue(2l, 7l));
+        Map<ShardRouteInfo, List<RangeShardValue>> expectedResult = new LinkedHashMap<>();
+        expectedResult.put(new ShardRouteInfo("member", "user"), Arrays.asList(new RangeShardValue(2l, 3l)));
+        expectedResult.put(new ShardRouteInfo("member", "user_1"), Arrays.asList(new RangeShardValue(4l, 7l)));
+        Assert.equals(map, expectedResult);
+
+        //
+        rule = new DivideShardRouteRule(null, 4L, true);
+        map = rule.groupSdValuesByRouteInfo("member", "user", new RangeShardValue(2l, 7l));
+        expectedResult = new LinkedHashMap<>();
+        expectedResult.put(new ShardRouteInfo("member", "user"), Arrays.asList(new RangeShardValue(2l, 3l)));
+        expectedResult.put(new ShardRouteInfo("member", "user_1"), Arrays.asList(new RangeShardValue(4l, 7l)));
+        Assert.equals(map, expectedResult);
+
+        //
+        rule = new DivideShardRouteRule(8l, null, true);
+        map = rule.groupSdValuesByRouteInfo("member", "user", new RangeShardValue(2l, 7l));
+        expectedResult = new LinkedHashMap<>();
+        expectedResult.put(new ShardRouteInfo("member", "user"), Arrays.asList(new RangeShardValue(2l, 7l)));
+        Assert.equals(map, expectedResult);
+
+        //
+        rule = new DivideShardRouteRule(null, null, true);
+        map = rule.groupSdValuesByRouteInfo("member", "user", new RangeShardValue(2l, 7l));
+        expectedResult = new LinkedHashMap<>();
+        expectedResult.put(new ShardRouteInfo("member", "user"), Arrays.asList(new RangeShardValue(2l, 7l)));
+        Assert.equals(map, expectedResult);
     }
 
 }
