@@ -84,7 +84,7 @@ public class DefaultDDALDataSource implements DDALDataSource {
                 context = new FileSystemXmlApplicationContext(url2);
             } else if (url2.startsWith("//")) {
                 url2 = "http:" + url2;
-                Map<String, Object> param = new LinkedHashMap<>();
+                Map<String, String> param = new LinkedHashMap<>();
                 param.put("username", username);
                 param.put("password", password);
                 String content = HttpUtils.sendPost(url2, param);
@@ -188,7 +188,7 @@ public class DefaultDDALDataSource implements DDALDataSource {
 
         private static final String USER_AGENT = "Mozilla/5.0";
 
-        public static String sendPost(String url, Map<String, Object> params) {
+        public static String sendPost(String url, Map<String, String> params) {
             try {
                 URL obj = new URL(url);
                 HttpURLConnection con = (HttpURLConnection) obj.openConnection();
@@ -202,10 +202,10 @@ public class DefaultDDALDataSource implements DDALDataSource {
                     wr = new DataOutputStream(con.getOutputStream());
                     if (params != null && !params.isEmpty()) {
                         StringBuilder sb = new StringBuilder();
-                        for (Map.Entry<String, Object> entry : params.entrySet()) {
-                            sb.append(URLEncoder.encode(entry.getKey(), "UTF-8"));
+                        for (Map.Entry<String, String> entry : params.entrySet()) {
+                            sb.append(encode(entry.getKey()));
                             sb.append('=');
-                            sb.append(URLEncoder.encode(entry.getValue().toString(), "UTF-8"));
+                            sb.append(encode(entry.getValue()));
                             sb.append('&');
                         }
                         sb.deleteCharAt(sb.length() - 1);
@@ -246,6 +246,17 @@ public class DefaultDDALDataSource implements DDALDataSource {
                 } else {
                     throw new RuntimeException(e);
                 }
+            }
+        }
+
+        private static String encode(String str) {
+            if (str == null) {
+                return "";
+            }
+            try {
+                return URLEncoder.encode(str, "UTF-8");
+            } catch (UnsupportedEncodingException e) {
+                throw new RuntimeException(e);
             }
         }
 

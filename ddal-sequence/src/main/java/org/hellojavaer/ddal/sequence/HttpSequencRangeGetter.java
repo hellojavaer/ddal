@@ -47,7 +47,7 @@ public class HttpSequencRangeGetter implements SequenceRangeGetter {
      * return: access_url=http&access_token=1&error_code=1
      */
     private void authorize() {
-        Map<String, Object> param = new HashMap<>();
+        Map<String, String> param = new HashMap<>();
         param.put("app_name", appName);
         param.put("authorize_token", authorizeToken);
         String result = HttpUtils.sendPost(authorizeUrl, param);
@@ -82,7 +82,7 @@ public class HttpSequencRangeGetter implements SequenceRangeGetter {
      */
     @Override
     public SequenceRange get(String schemaName, String tableName, int step) throws Exception {
-        Map<String, Object> param = new HashMap<>();
+        Map<String, String> param = new HashMap<>();
         param.put("client_id", appName);
         param.put("access_token", accessToken);
         String result = HttpUtils.sendPost(accessUrl, param);
@@ -127,7 +127,7 @@ public class HttpSequencRangeGetter implements SequenceRangeGetter {
 
         private static final String USER_AGENT = "Mozilla/5.0";
 
-        public static String sendPost(String url, Map<String, Object> params) {
+        public static String sendPost(String url, Map<String, String> params) {
             try {
                 URL obj = new URL(url);
                 HttpURLConnection con = (HttpURLConnection) obj.openConnection();
@@ -141,10 +141,10 @@ public class HttpSequencRangeGetter implements SequenceRangeGetter {
                     wr = new DataOutputStream(con.getOutputStream());
                     if (params != null && !params.isEmpty()) {
                         StringBuilder sb = new StringBuilder();
-                        for (Map.Entry<String, Object> entry : params.entrySet()) {
-                            sb.append(URLEncoder.encode(entry.getKey(), "UTF-8"));
+                        for (Map.Entry<String, String> entry : params.entrySet()) {
+                            sb.append(encode(entry.getKey()));
                             sb.append('=');
-                            sb.append(URLEncoder.encode(entry.getValue().toString(), "UTF-8"));
+                            sb.append(encode(entry.getValue()));
                             sb.append('&');
                         }
                         sb.deleteCharAt(sb.length() - 1);
@@ -185,6 +185,17 @@ public class HttpSequencRangeGetter implements SequenceRangeGetter {
                 } else {
                     throw new RuntimeException(e);
                 }
+            }
+        }
+
+        private static String encode(String str) {
+            if (str == null) {
+                return "";
+            }
+            try {
+                return URLEncoder.encode(str, "UTF-8");
+            } catch (UnsupportedEncodingException e) {
+                throw new RuntimeException(e);
             }
         }
 
