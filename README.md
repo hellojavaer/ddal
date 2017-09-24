@@ -14,6 +14,25 @@ DDAL is dual licensed under **LGPL V2.1** and **Apache Software License, Version
 
 See [ddal-example](https://github.com/hellojavaer/ddal/tree/master/ddal-example)
 
+## Documentation
+
+- [Documentation Home](https://github.com/hellojavaer/ddal/wiki)
+- [Frequently Asked Questions](https://github.com/hellojavaer/ddal/wiki/faq)
+
+
+## Download
+
+http://repo1.maven.org/maven2/org/hellojavaer/ddal/
+
+## Maven
+
+```xml
+<dependency>
+    <groupId>org.hellojavaer.ddal</groupId>
+    <artifactId>ddal-datasource</artifactId>
+    <version>x.x.x</version>
+</dependency>
+```
 
 ### [Release Notes](https://github.com/hellojavaer/ddal/releases)
 
@@ -42,24 +61,3 @@ rule.setTbRouteRule("{tbName}_{format('%04d', sdValue % 8)}");
 "[0..1][0..1]" => 00,01,10,11
 "Hi![' Allen',' Bob']" => Hi! Allen,Hi! Bob
 ```
-
-## Documentation
-
-- [Documentation Home](https://github.com/hellojavaer/ddal/wiki)
-- [Frequently Asked Questions](https://github.com/hellojavaer/ddal/wiki/faq)
-
-
-## Download
-
-http://repo1.maven.org/maven2/org/hellojavaer/ddal/
-
-## Maven
-
-```xml
-<dependency>
-    <groupId>org.hellojavaer.ddal</groupId>
-    <artifactId>ddal-datasource</artifactId>
-    <version>x.x.x</version>
-</dependency>
-```
-
