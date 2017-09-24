@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="role">
+
+    <insert id="add" parameterType="org.hellojavaer.ddal.example.example1.entitry.RoleEntity">
+        INSERT INTO role(id, name)
+        VALUES (#{id}, #{name})
+        <selectKey resultType="long" keyProperty="id">
+            SELECT last_insert_id() as id;
+        </selectKey>
+    </insert>
+
+    <delete id="deleteById" parameterType="long">
+        DELETE FROM role
+        WHERE id = #{id}
+    </delete>
+
+    <update id="updateById" parameterType="org.hellojavaer.ddal.example.example1.entitry.RoleEntity">
+        UPDATE role
+        SET    name = #{name}
+        WHERE  id= #{id}
+    </update>
+
+    <select id="getById" parameterType="long" resultType="org.hellojavaer.ddal.example.example1.entitry.RoleEntity">
+        SELECT id, name
+        FROM role
+        WHERE id = #{id}
+    </select>
+
+</mapper>
