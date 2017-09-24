@@ -144,17 +144,17 @@ public class SpelShardRouteRule implements ShardRouteRule {
         if (rangeSizeLimit != null && end - begin + 1 > rangeSizeLimit) {
             throw new OutOfRangeSizeLimitException((end - begin) + " > " + rangeSizeLimit);
         }
-        Map<ShardRouteInfo, List<RangeShardValue>> map = new HashMap<>();
+        Map<ShardRouteInfo, List<RangeShardValue>> map = new LinkedHashMap<>();
         if (scRouteRuleExpression == null && tbRouteRuleExpression == null) {
-            ShardRouteInfo routeInfo = new ShardRouteInfo(scName, tbName);
             List<RangeShardValue> list = new ArrayList(1);
             list.add(new RangeShardValue(begin, end));
+            ShardRouteInfo routeInfo = new ShardRouteInfo(scName, tbName);
             map.put(routeInfo, list);
             return map;
         }
         for (long l = begin; l <= end; l++) {
             String scName0 = parseScName(scName, l);
-            String tbName0 = parseScName(tbName, l);
+            String tbName0 = parseTbName(tbName, l);
             ShardRouteInfo routeInfo = new ShardRouteInfo();
             routeInfo.setScName(scName0);
             routeInfo.setTbName(tbName0);
