@@ -55,21 +55,28 @@ public class HttpUtils {
                 closeIO(wr);
             }
             // get
-            BufferedReader in = null;
+            BufferedReader br = null;
+            InputStream in;
+            if (con.getResponseCode() < HttpURLConnection.HTTP_BAD_REQUEST) {
+                in = con.getInputStream();
+            } else {
+                in = con.getErrorStream();
+            }
             try {
-                int responseCode = con.getResponseCode();
-                if (responseCode != 200) {
-                    throw new IllegalStateException(responseCode + "");
-                }
-                in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+                br = new BufferedReader(new InputStreamReader(in));
                 String inputLine;
                 StringBuilder response = new StringBuilder();
-                while ((inputLine = in.readLine()) != null) {
-                    response.append(inputLine);
+                while ((inputLine = br.readLine()) != null) {
+                    response.append(inputLine + "\n");
                 }
-                return response.toString();
+                int responseCode = con.getResponseCode();
+                if (responseCode != 200) {
+                    throw new IllegalStateException("http code " + responseCode + "\n" + response.toString());
+                } else {
+                    return response.toString();
+                }
             } finally {
-                closeIO(in);
+                closeIO(br);
             }
         } catch (Exception e) {
             if (e instanceof RuntimeException) {
