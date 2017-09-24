@@ -28,7 +28,7 @@ import java.util.Map;
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 09/09/2017.
  */
-public class HttpSequencRangeGetter implements SequenceRangeGetter {
+public class HttpSequenceRangeGetter implements SequenceRangeGetter {
 
     private String authorizeUrl;
     private String appName;
@@ -36,7 +36,7 @@ public class HttpSequencRangeGetter implements SequenceRangeGetter {
     private String accessToken;
     private String accessUrl;
 
-    public HttpSequencRangeGetter(String authorizeUrl, String appName, String authorizeToken) {
+    public HttpSequenceRangeGetter(String authorizeUrl, String appName, String authorizeToken) {
         this.authorizeUrl = authorizeUrl;
         this.appName = appName;
         this.authorizeToken = authorizeToken;
