@@ -19,7 +19,6 @@
 
     <properties>
         <maven.test.skip>true</maven.test.skip>
-        <ddal.version>1.0.0-SNAPSHOT</ddal.version>
         <spring.version>4.2.6.RELEASE</spring.version>
         <jdk.version>1.7</jdk.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -98,7 +97,7 @@
             <dependency>
                 <groupId>org.hellojavaer.ddal</groupId>
                 <artifactId>ddal-bom</artifactId>
-                <version>${ddal.version}</version>
+                <version>${project.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
