@@ -12,7 +12,7 @@ DDAL is dual licensed under **LGPL V2.1** and **Apache Software License, Version
 
 ## Qick start
 
-See [ddal-demo](https://github.com/hellojavaer/ddal/tree/master/ddal-demo)
+See [ddal-demo](https://github.com/hellojavaer/ddal/tree/master/ddal-example)
 
 
 ### [Release Notes](https://github.com/hellojavaer/ddal/releases)
