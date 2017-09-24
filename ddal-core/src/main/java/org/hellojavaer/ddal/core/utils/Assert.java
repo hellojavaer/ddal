@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddal.ddr.utils;
+package org.hellojavaer.ddal.core.utils;
 
 import java.util.*;
 
@@ -108,5 +108,13 @@ public class Assert {
         if (!expression) {
             throw new IllegalArgumentException(message);
         }
+    }
+
+    public static void notNull(Object obj, String msg) {
+        isTrue(obj != null, msg);
+    }
+
+    public static void notNull(Object obj) {
+        isTrue(obj != null, "[Assertion failed] - this object can't be null");
     }
 }

@@ -15,6 +15,7 @@
  */
 package org.hellojavaer.ddal.ddr.utils;
 
+import org.hellojavaer.ddal.core.utils.Assert;
 import org.junit.Test;
 
 /**

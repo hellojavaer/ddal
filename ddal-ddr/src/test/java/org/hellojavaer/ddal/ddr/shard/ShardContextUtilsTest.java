@@ -15,10 +15,10 @@
  */
 package org.hellojavaer.ddal.ddr.shard;
 
+import org.hellojavaer.ddal.core.utils.Assert;
 import org.hellojavaer.ddal.ddr.shard.rule.SpelShardRouteRule;
 import org.hellojavaer.ddal.ddr.shard.simple.SimpleShardRouteRuleBinding;
 import org.hellojavaer.ddal.ddr.shard.simple.SimpleShardRouter;
-import org.hellojavaer.ddal.ddr.utils.Assert;
 import org.junit.Test;
 
 import java.util.*;

@@ -21,6 +21,7 @@
  */
 package org.hellojavaer.ddal.jsqlparser;
 
+import org.hellojavaer.ddal.core.utils.Assert;
 import org.hellojavaer.ddal.ddr.shard.ShardParser;
 import org.hellojavaer.ddal.ddr.sqlparse.SQLParsedResult;
 import org.junit.Test;

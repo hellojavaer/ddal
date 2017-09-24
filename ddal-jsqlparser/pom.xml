@@ -145,6 +145,11 @@
         </dependency>
         <dependency>
             <groupId>org.hellojavaer.ddal</groupId>
+            <artifactId>ddal-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.hellojavaer.ddal</groupId>
             <artifactId>ddal-ddr</artifactId>
             <version>${project.version}</version>
         </dependency>
