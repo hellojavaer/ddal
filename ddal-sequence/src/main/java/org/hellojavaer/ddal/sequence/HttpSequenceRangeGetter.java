@@ -15,9 +15,12 @@
  */
 package org.hellojavaer.ddal.sequence;
 
-import org.hellojavaer.ddal.core.utils.HttpUtils;
 import org.hellojavaer.ddal.sequence.exception.GetSequenceFailedException;
 
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,7 +28,7 @@ import java.util.Map;
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 09/09/2017.
  */
-public class HttpSequencRangeGetter implements SequenceRangeGetter {
+public class HttpSequenceRangeGetter implements SequenceRangeGetter {
 
     private String authorizeUrl;
     private String appName;
@@ -33,7 +36,7 @@ public class HttpSequencRangeGetter implements SequenceRangeGetter {
     private String accessToken;
     private String accessUrl;
 
-    public HttpSequencRangeGetter(String authorizeUrl, String appName, String authorizeToken) {
+    public HttpSequenceRangeGetter(String authorizeUrl, String appName, String authorizeToken) {
         this.authorizeUrl = authorizeUrl;
         this.appName = appName;
         this.authorizeToken = authorizeToken;
@@ -44,7 +47,7 @@ public class HttpSequencRangeGetter implements SequenceRangeGetter {
      * return: access_url=http&access_token=1&error_code=1
      */
     private void authorize() {
-        Map<String, Object> param = new HashMap<>();
+        Map<String, String> param = new HashMap<>();
         param.put("app_name", appName);
         param.put("authorize_token", authorizeToken);
         String result = HttpUtils.sendPost(authorizeUrl, param);
@@ -79,7 +82,7 @@ public class HttpSequencRangeGetter implements SequenceRangeGetter {
      */
     @Override
     public SequenceRange get(String schemaName, String tableName, int step) throws Exception {
-        Map<String, Object> param = new HashMap<>();
+        Map<String, String> param = new HashMap<>();
         param.put("client_id", appName);
         param.put("access_token", accessToken);
         String result = HttpUtils.sendPost(accessUrl, param);
@@ -118,5 +121,91 @@ public class HttpSequencRangeGetter implements SequenceRangeGetter {
         sequenceRange.setBeginValue(beginValue);
         sequenceRange.setEndValue(endValue);
         return sequenceRange;
+    }
+
+    static class HttpUtils {
+
+        private static final String USER_AGENT = "Mozilla/5.0";
+
+        public static String sendPost(String url, Map<String, String> params) {
+            try {
+                URL obj = new URL(url);
+                HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+                con.setRequestMethod("POST");
+                con.setRequestProperty("User-Agent", USER_AGENT);
+                con.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
+                con.setDoOutput(true);
+                // send
+                DataOutputStream wr = null;
+                try {
+                    wr = new DataOutputStream(con.getOutputStream());
+                    if (params != null && !params.isEmpty()) {
+                        StringBuilder sb = new StringBuilder();
+                        for (Map.Entry<String, String> entry : params.entrySet()) {
+                            sb.append(encode(entry.getKey()));
+                            sb.append('=');
+                            sb.append(encode(entry.getValue()));
+                            sb.append('&');
+                        }
+                        sb.deleteCharAt(sb.length() - 1);
+                        wr.write(sb.toString().getBytes("UTF-8"));
+                    }
+                    wr.flush();
+                } finally {
+                    closeIO(wr);
+                }
+                // get
+                BufferedReader br = null;
+                InputStream in;
+                if (con.getResponseCode() < HttpURLConnection.HTTP_BAD_REQUEST) {
+                    in = con.getInputStream();
+                } else {
+                    in = con.getErrorStream();
+                }
+                try {
+                    br = new BufferedReader(new InputStreamReader(in));
+                    String inputLine;
+                    StringBuilder response = new StringBuilder();
+                    while ((inputLine = br.readLine()) != null) {
+                        response.append(inputLine);
+                        response.append('\n');
+                    }
+                    int responseCode = con.getResponseCode();
+                    if (responseCode != 200) {
+                        throw new IllegalStateException("http code " + responseCode + "\n" + response.toString());
+                    } else {
+                        return response.toString();
+                    }
+                } finally {
+                    closeIO(br);
+                }
+            } catch (Exception e) {
+                if (e instanceof RuntimeException) {
+                    throw (RuntimeException) e;
+                } else {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+
+        private static String encode(String str) {
+            if (str == null) {
+                return "";
+            }
+            try {
+                return URLEncoder.encode(str, "UTF-8");
+            } catch (UnsupportedEncodingException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        private static void closeIO(Closeable closeable) {
+            if (closeable != null) {
+                try {
+                    closeable.close();
+                } catch (IOException e) {
+                }
+            }
+        }
     }
 }
