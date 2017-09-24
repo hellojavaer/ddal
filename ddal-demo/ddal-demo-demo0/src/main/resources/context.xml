@@ -14,7 +14,7 @@
     <context:component-scan base-package="org.hellojavaer.ddal.demo.demo0"/>
 
     <bean name="dataSource" class="org.hellojavaer.ddal.datasource.DefaultDDALDataSource">
-        <constructor-arg index="0" value="jdbc:ddal:thick:classpath:/spring/datasource.xml"/>
+        <constructor-arg index="0" value="jdbc:ddal:thick:classpath:/datasource.xml"/>
     </bean>
 
     <bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
