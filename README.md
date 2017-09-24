@@ -10,6 +10,10 @@ DDAL(Distributed Data Access Layer) is a simple solution to access database shar
 
 DDAL is dual licensed under **LGPL V2.1** and **Apache Software License, Version 2.0**.
 
+## Qick start
+
+See [ddal-demo](https://github.com/hellojavaer/ddal/ddal-demo/)
+
 ### [Release Notes](https://github.com/hellojavaer/ddal/releases)
 
 ## Extensions in the latest version 1.0.0.M5
@@ -51,77 +55,10 @@ http://repo1.maven.org/maven2/org/hellojavaer/ddal/
 ## Maven
 
 ```xml
-<!-- dependencyManagement -->
 <dependency>
     <groupId>org.hellojavaer.ddal</groupId>
-    <artifactId>ddal-bom</artifactId>
-    <version>x.x.x</version>
-    <type>pom</type>
-    <scope>import</scope>
-</dependency>
-
-<!-- dependencies -->
-<dependency>
-    <groupId>org.hellojavaer.ddal</groupId>
-    <artifactId>ddal-ddr</artifactId>
+    <artifactId>ddal-datasource</artifactId>
     <version>x.x.x</version>
 </dependency>
-<dependency>
-    <groupId>org.hellojavaer.ddal</groupId>
-    <artifactId>ddal-jsqlparser</artifactId>
-    <version>x.x.x</version>
-</dependency>
-
-<!-- use annotation to route in spring environment -->
-<dependency>
-    <groupId>org.hellojavaer.ddal</groupId>
-    <artifactId>ddal-spring</artifactId>
-    <version>x.x.x</version>
-</dependency>
-<!-- use sequence service -->
-<dependency>
-    <groupId>org.hellojavaer.ddal</groupId>
-    <artifactId>ddal-sequence</artifactId>
-    <version>x.x.x</version>
-</dependency>
-
 ```
 
-## Qick start
-
-See [ddal-demos](https://github.com/hellojavaer/ddal-demos/)
-```
-// TODO: define raw datasource
-DataSource wds00 = null;
-DataSource rds00 = null;
-
-// 1. Define route rule
-SpelShardRouteRule routeRule = new SpelShardRouteRule();
-routeRule.setScRouteRule("{scName}_{format('%02d', sdValue % 2)}");
-routeRule.setTbRouteRule("{tbName}_{format('%04d', sdValue % 8)}");
-
-// 2. Route rules bind to logical table name
-List<SimpleShardRouteRuleBinding> ruleBindings = new ArrayList<>();
-ruleBindings.add(new SimpleShardRouteRuleBinding("schema_name", "table_name", "id", routeRule, "[0..7]"));
-// TODO: add more route-rule-binding here ...
-SimpleShardRouter shardRouter = new SimpleShardRouter(ruleBindings);
-
-// 3. Schema names bind to datasource
-List<WeightedDataSource> weightedDataSources = new ArrayList<>();
-weightedDataSources.add(new WeightedDataSource(rds00, 9));
-weightedDataSources.add(new WeightedDataSource(wds00, 1));
-// TODO: add more datasource here ...
-List<ReadOnlyDataSourceBinding> readOnlyDataSourceBindings = new ArrayList<>();
-readOnlyDataSourceBindings.add(new ReadOnlyDataSourceBinding("schema_name_0[0..1]", weightedDataSources));
-List<WriteOnlyDataSourceBinding> writeOnlyDataSourceBindings = new ArrayList<>();
-writeOnlyDataSourceBindings.add(new WriteOnlyDataSourceBinding("schema_name_0[0..1]", (DataSource) Arrays.asList(wds00)));
-// TODO: add more datasource here ...
-DefaultReadWriteDataSourceManager dataSourceManager = new DefaultReadWriteDataSourceManager();
-dataSourceManager.setShardRouter(shardRouter);
-dataSourceManager.setReadOnlyDataSources(readOnlyDataSourceBindings);
-dataSourceManager.setWriteOnlyDataSources(writeOnlyDataSourceBindings);
-
-// 4. Define a 'DDRDataSource' to proxy the raw datasources
-DataSource ddrDataSource = new DefaultDDRDataSource(dataSourceManager, new SimpleShardParser(new JSQLParser(), shardRouter));
-// TODO: use 'ddrDataSource' to do your business here ...
-```

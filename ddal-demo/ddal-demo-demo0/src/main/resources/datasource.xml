@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+          http://www.springframework.org/schema/beans
+          http://www.springframework.org/schema/beans/spring-beans-3.1.xsd"
+       default-autowire="byName">
+
+    <bean name="baseDataSource" class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close"
+          abstract="true">
+        <!--TODO: set the properties for your datasource-->
+    </bean>
+
+    <bean name="wDs00" parent="baseDataSource">
+        <property name="url" value="jdbc:mysql://127.0.0.1:3306/base_00?verifyServerCertificate=false&amp;useSSL=true"/>
+        <property name="username" value="username"/>
+        <property name="password" value="password"/>
+    </bean>
+    <bean name="rDs00" parent="baseDataSource">
+        <property name="url" value="jdbc:mysql://127.0.0.1:3306/base_00?verifyServerCertificate=false&amp;useSSL=true"/>
+        <property name="username" value="username"/>
+        <property name="password" value="password"/>
+    </bean>
+
+    <bean id="idRule" class="org.hellojavaer.ddal.ddr.shard.rule.SpelShardRouteRule">
+        <property name="scRouteRule" value="{scName}_{format('%02d', sdValue % 2)}"/>
+        <property name="tbRouteRule" value="{tbName}_{format('%04d', sdValue % 8)}"/>
+    </bean>
+    <bean id="shardRouter" class="org.hellojavaer.ddal.ddr.shard.simple.SimpleShardRouter">
+        <property name="routeRuleBindings">
+            <list>
+                <bean class="org.hellojavaer.ddal.ddr.shard.simple.SimpleShardRouteRuleBinding">
+                    <property name="scName" value="base"></property>
+                    <property name="tbName" value="user"></property>
+                    <property name="rule" ref="idRule"></property>
+                    <property name="sdKey" value="id"></property>
+                    <property name="sdValues" value="[0..7]"></property>
+                </bean>
+            </list>
+        </property>
+    </bean>
+    <bean id="shardParser" class="org.hellojavaer.ddal.ddr.shard.simple.SimpleShardParser">
+        <property name="sqlParser">
+            <bean class="org.hellojavaer.ddal.ddr.sqlparse.cache.LRUSQLParserCache">
+                <property name="sqlParser">
+                    <bean class="org.hellojavaer.ddal.jsqlparser.JSQLParser"/>
+                </property>
+                <property name="capacity" value="1000"/>
+            </bean>
+        </property>
+        <property name="shardRouter" ref="shardRouter"/>
+    </bean>
+    <!--<bean id="dataSourceManager" class="org.hellojavaer.ddal.ddr.datasource.manager.SingleDataSourceManager">-->
+    <!--<constructor-arg index="0" ref="wDs00"></constructor-arg>-->
+    <!--</bean>-->
+    <bean id="dataSourceManager"
+          class="org.hellojavaer.ddal.ddr.datasource.manager.rw.DefaultReadWriteDataSourceManager">
+        <property name="shardRouter" ref="shardRouter"/>
+        <property name="readOnlyDataSources">
+            <list>
+                <bean class="org.hellojavaer.ddal.ddr.datasource.manager.rw.ReadOnlyDataSourceBinding">
+                    <property name="scNames" value="base_0[0..1]"></property>
+                    <property name="dataSources">
+                        <list>
+                            <bean class="org.hellojavaer.ddal.ddr.datasource.WeightedDataSource">
+                                <property name="name" value="rDs00"></property>
+                                <property name="weight" value="9"></property>
+                                <property name="dataSource" ref="rDs00"></property>
+                            </bean>
+                            <bean class="org.hellojavaer.ddal.ddr.datasource.WeightedDataSource">
+                                <property name="name" value="wDs00"></property>
+                                <property name="weight" value="1"></property>
+                                <property name="dataSource" ref="wDs00"></property>
+                            </bean>
+                        </list>
+                    </property>
+                </bean>
+            </list>
+        </property>
+        <property name="readOnlyDataSourceMonitorServer">
+            <bean class="org.hellojavaer.ddal.ddr.datasource.manager.rw.monitor.mbean.MBeanReadOnlyDataSourceMonitorServer"></bean>
+        </property>
+        <property name="writeOnlyDataSources">
+            <list>
+                <bean class="org.hellojavaer.ddal.ddr.datasource.manager.rw.WriteOnlyDataSourceBinding">
+                    <property name="scNames" value="base_0[0..1]"></property>
+                    <property name="dataSource" ref="wDs00"></property>
+                </bean>
+            </list>
+        </property>
+    </bean>
+    <bean id="dataSource" class="org.hellojavaer.ddal.ddr.datasource.jdbc.DefaultDDRDataSource">
+        <property name="dataSourceManager" ref="dataSourceManager"/>
+        <property name="shardParser" ref="shardParser"/>
+    </bean>
+    <bean name="sequence" class="org.hellojavaer.ddal.sequence.SingleSequence" init-method="init">
+        <property name="schemaName" value="base"/>
+        <property name="tableName" value="user"/>
+        <property name="step" value="100"/>
+        <property name="cacheNSteps" value="5"/>
+        <property name="initTimeout" value="3000"/>
+        <property name="sequenceRangeGetter">
+            <bean class="org.hellojavaer.ddal.sequence.DatabaseSequenceRangeGetter" init-method="init">
+                <property name="dataSource" ref="wDs00"/>
+                <property name="scName" value="base_00"/>
+            </bean>
+        </property>
+    </bean>
+
+</beans>

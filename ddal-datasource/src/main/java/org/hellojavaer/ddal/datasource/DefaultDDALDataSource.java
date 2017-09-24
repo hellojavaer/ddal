@@ -19,7 +19,6 @@ import org.hellojavaer.ddal.core.utils.HttpUtils;
 import org.hellojavaer.ddal.ddr.datasource.jdbc.DDRDataSource;
 import org.hellojavaer.ddal.ddr.shard.ShardRouter;
 import org.hellojavaer.ddal.sequence.Sequence;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.NoUniqueBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
@@ -109,7 +108,7 @@ public class DefaultDDALDataSource implements DDALDataSource {
     private <T> T getBean(ApplicationContext context, Class<T> requiredType, String beanName) {
         Map<String, T> map = context.getBeansOfType(requiredType);
         if (map == null || map.isEmpty()) {
-            throw new NoSuchBeanDefinitionException(requiredType);
+            return null;
         }
         if (map.size() == 1) {
             return map.values().iterator().next();
@@ -178,6 +177,7 @@ public class DefaultDDALDataSource implements DDALDataSource {
         return sequence;
     }
 
+    @Override
     public ShardRouter getShardRouter() {
         return shardRouter;
     }
