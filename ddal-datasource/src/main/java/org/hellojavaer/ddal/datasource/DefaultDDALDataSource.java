@@ -64,7 +64,7 @@ public class DefaultDDALDataSource implements DDALDataSource {
      * jdbc:ddal:thin:
      * 
      */
-    public DefaultDDALDataSource(String url, String username, String password) {
+    public DefaultDDALDataSource(String url, String user, String password) {
         if (url != null) {
             url = url.trim();
         }
@@ -84,7 +84,7 @@ public class DefaultDDALDataSource implements DDALDataSource {
                 context = new FileSystemXmlApplicationContext(url2);
             } else if (url2.startsWith("http:") || url2.startsWith("https:")) {
                 Map<String, String> param = new LinkedHashMap<>();
-                param.put("username", username);
+                param.put("user", user);
                 param.put("password", password);
                 String content = HttpUtils.sendPost(url2, param);
                 Resource resource = new ByteArrayResource(content.getBytes());
