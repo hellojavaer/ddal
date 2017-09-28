@@ -59,19 +59,23 @@ public class HttpSequenceRangeGetter implements SequenceRangeGetter {
         param.put("step", String.valueOf(step));
         String result = HttpUtils.sendPost(accessUrl, param);
         Map<String, String> resultMap = parseHttpKvString(result);
-        if (resultMap.get("errorCode") != null) {
-            authorize();
-            result = HttpUtils.sendPost(accessUrl, param);
-            resultMap = parseHttpKvString(result);
+        if (resultMap.isEmpty()) {
+            return null;
+        } else {
             if (resultMap.get("errorCode") != null) {
-                throw new GetSequenceFailedException("clientId:" + clientId + " access data failed, return message is:"
-                                                     + result);
+                authorize();
+                result = HttpUtils.sendPost(accessUrl, param);
+                resultMap = parseHttpKvString(result);
+                if (resultMap.get("errorCode") != null) {
+                    throw new GetSequenceFailedException("clientId:" + clientId
+                                                         + " access data failed, return message is:" + result);
+                }
             }
+            SequenceRange sequenceRange = new SequenceRange();
+            sequenceRange.setBeginValue(parseLong(resultMap.get("beginValue")));
+            sequenceRange.setEndValue(parseLong(resultMap.get("endValue")));
+            return sequenceRange;
         }
-        SequenceRange sequenceRange = new SequenceRange();
-        sequenceRange.setBeginValue(parseLong(resultMap.get("beginValue")));
-        sequenceRange.setEndValue(parseLong(resultMap.get("endValue")));
-        return sequenceRange;
     }
 
     /**
