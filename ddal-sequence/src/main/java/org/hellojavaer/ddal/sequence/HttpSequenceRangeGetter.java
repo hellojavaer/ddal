@@ -22,6 +22,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -45,90 +46,111 @@ public class HttpSequenceRangeGetter implements SequenceRangeGetter {
     }
 
     /**
-     * param: client_id=1&access_token=12
-     * return: begin_value=1&end_value=2
+     * param: clientId= &accessToken= &schemaName= &tableName= &step=
+     * return: beginValue= &endValue= &errorCode= &errorMessage=
      */
     @Override
     public SequenceRange get(String schemaName, String tableName, int step) throws Exception {
         Map<String, String> param = new HashMap<>();
-        param.put("client_id", clientId);
-        param.put("access_token", accessToken);
-        param.put("schema_name", schemaName);
-        param.put("table_name", tableName);
+        param.put("clientId", clientId);
+        param.put("accessToken", accessToken);
+        param.put("schemaName", schemaName);
+        param.put("tableName", tableName);
         param.put("step", String.valueOf(step));
         String result = HttpUtils.sendPost(accessUrl, param);
-        String[] kvs = result.split("&");
-        Long beginValue = null;
-        Long endValue = null;
-        boolean hasErrorCode = false;
-        for (String item : kvs) {
-            String[] kv = item.split("=");
-            if ("error_code".equals(kv[0])) {
-                hasErrorCode = true;
-                break;
-            } else if ("begin_value".equals(kv[0])) {
-                beginValue = Long.valueOf(kv[1].trim());
-            } else if ("end_value".equals(kv[0])) {
-                endValue = Long.valueOf(kv[1].trim());
-            }
-        }
-        if (hasErrorCode) {
-            authorize();
-            result = HttpUtils.sendPost(accessUrl, param);
-            kvs = result.split("&");
-            for (String item : kvs) {
-                String[] kv = item.split("=");
-                if ("error_code".equals(kv[0])) {
+        Map<String, String> resultMap = parseHttpKvString(result);
+        if (resultMap.isEmpty()) {
+            return null;
+        } else {
+            if (resultMap.get("errorCode") != null) {
+                authorize();
+                result = HttpUtils.sendPost(accessUrl, param);
+                resultMap = parseHttpKvString(result);
+                if (resultMap.get("errorCode") != null) {
                     throw new GetSequenceFailedException("clientId:" + clientId
                                                          + " access data failed, return message is:" + result);
-                } else if ("begin_value".equals(kv[0])) {
-                    beginValue = Long.valueOf(kv[1].trim());
-                } else if ("end_value".equals(kv[0])) {
-                    endValue = Long.valueOf(kv[1].trim());
                 }
             }
+            SequenceRange sequenceRange = new SequenceRange();
+            sequenceRange.setBeginValue(parseLong(resultMap.get("beginValue")));
+            sequenceRange.setEndValue(parseLong(resultMap.get("endValue")));
+            return sequenceRange;
         }
-        SequenceRange sequenceRange = new SequenceRange();
-        sequenceRange.setBeginValue(beginValue);
-        sequenceRange.setEndValue(endValue);
-        return sequenceRange;
     }
 
     /**
-     * param: client_id=&client_token=
-     * return: access_url=http&access_token=1&error_code=1
+     * param: clientId= &clientToken=
+     * return: accessUrl= &accessToken= &errorCode= &errorMessage=
      */
     private void authorize() {
         Map<String, String> param = new HashMap<>();
-        param.put("client_id", clientId);
-        param.put("authorize_token", authorizeToken);
+        param.put("clientId", clientId);
+        param.put("authorizeToken", authorizeToken);
         String result = HttpUtils.sendPost(authorizeUrl, param);
-        String[] kvs = result.split("&");
-        for (String item : kvs) {
-            String[] kv = item.split("=");
-            if ("error_code".equals(kv[0]) && kv.length >= 2 && kv[1] != null && kv[1].trim().length() > 0) {
+        Map<String, String> resultMap = parseHttpKvString(result);
+        if (resultMap.isEmpty()) {
+            throw new GetSequenceFailedException("clientId:" + clientId + " authorize failed, return message is empty");
+        } else {
+            if (resultMap.get("errorCode") != null) {
                 throw new GetSequenceFailedException("clientId:" + clientId + " authorize failed, return message is: "
                                                      + result);
-            } else if ("access_url".equals(kv[0])) {
-                this.accessUrl = kv[1];
-            } else if ("access_token".equals(kv[0])) {
-                this.accessToken = kv[1];
             }
-        }
-        if (accessUrl != null) {
+            String accessUrl = resultMap.get("accessUrl");
+            String accessToken = resultMap.get("accessToken");
+            if (accessUrl == null || accessToken == null) {
+                throw new GetSequenceFailedException(
+                                                     "clientId:"
+                                                             + clientId
+                                                             + " authorize failed, accessUrl or accessToken is null, detail message is "
+                                                             + result);
+            }
             try {
                 accessUrl = URLDecoder.decode(accessUrl.trim(), "UTF-8");
             } catch (UnsupportedEncodingException e) {
-                throw new RuntimeException(e);
+                throw new GetSequenceFailedException(e);
+            }
+            this.accessUrl = accessUrl;
+            this.accessToken = accessToken;
+        }
+    }
+
+    private Map<String, String> parseHttpKvString(String string) {
+        if (string == null) {
+            return Collections.emptyMap();
+        }
+        string = string.trim();
+        if (string.length() == 0) {
+            return Collections.emptyMap();
+        }
+        Map<String, String> map = new HashMap<>();
+        String[] kvs = string.split("&");
+        for (String kvString : kvs) {
+            String[] kv = kvString.split("=");
+            if (kv.length == 2) {
+                String val = kv[1];
+                val = val.trim();
+                if (val.length() == 0) {
+                    val = null;
+                }
+                map.put(kv[0], val);
+            } else if (kv.length == 1) {
+                map.put(kv[0], null);
+            } else {
+                throw new RuntimeException("Illegaled http kv string:" + kvString);
             }
         }
-        if (accessToken != null) {
-            accessToken = accessToken.trim();
+        return map;
+    }
+
+    private Long parseLong(String str) {
+        if (str == null) {
+            return null;
         }
-        if (accessUrl == null || accessUrl.length() == 0 || accessToken == null || accessToken.length() == 0) {
-            throw new GetSequenceFailedException("clientId:" + clientId + " authorize failed, return message is: "
-                                                 + result);
+        str = str.trim();
+        if (str.length() == 0) {
+            return null;
         }
+        return Long.parseLong(str);
     }
 
     static class HttpUtils {
