@@ -232,7 +232,8 @@ public class DefaultDDALDataSource implements DDALDataSource {
                     }
                     int responseCode = con.getResponseCode();
                     if (responseCode != 200) {
-                        throw new IllegalStateException("http code " + responseCode + "\n" + response.toString());
+                        throw new IllegalStateException("the requested url: " + url + " returned error code: "
+                                                        + responseCode + "\n" + response.toString());
                     } else {
                         return response.toString();
                     }
