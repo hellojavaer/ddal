@@ -16,6 +16,18 @@
     <bean name="dataSource" class="org.hellojavaer.ddal.datasource.DefaultDDALDataSource">
         <constructor-arg index="0" value="jdbc:ddal:thick:classpath:/datasource.xml"/>
     </bean>
+    <bean id="sequence" class="org.springframework.aop.framework.ProxyFactoryBean">
+        <property name="proxyInterfaces">
+            <value>org.hellojavaer.ddal.sequence.Sequence</value>
+        </property>
+        <property name="target" value="#{dataSource.sequence}"/>
+    </bean>
+    <bean id="shardRouter" class="org.springframework.aop.framework.ProxyFactoryBean">
+        <property name="proxyInterfaces">
+            <value>org.hellojavaer.ddal.ddr.shard.ShardRouter</value>
+        </property>
+        <property name="target" value="#{dataSource.shardRouter}"/>
+    </bean>
 
     <bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
         <property name="defaultTimeout" value="6000"/>
