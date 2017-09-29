@@ -36,7 +36,19 @@ http://repo1.maven.org/maven2/org/hellojavaer/ddal/
 
 ### [Release Notes](https://github.com/hellojavaer/ddal/releases)
 
-## Extensions in the latest version 1.0.0.M5
+## Extensions in the latest version 1.0.0.M6
+
+- implement DefaultDDALDataSource in ddal-datasource module
+
+```
+<bean name="dataSource" class="org.hellojavaer.ddal.datasource.DefaultDDALDataSource">
+    <constructor-arg index="0" value="jdbc:ddal:thick:classpath:/datasource.xml"/>
+</bean>
+```
+
+- implement DivideShardRouteRule for range route
+
+## Extensions in version 1.0.0.M5
 
 - optimize route rule expression parser
 
