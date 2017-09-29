@@ -30,7 +30,7 @@ http://repo1.maven.org/maven2/org/hellojavaer/ddal/
 <dependency>
     <groupId>org.hellojavaer.ddal</groupId>
     <artifactId>ddal-datasource</artifactId>
-    <version>x.x.x</version>
+    <version>1.0.0.M6</version>
 </dependency>
 ```
 
