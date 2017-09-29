@@ -20,7 +20,6 @@ import org.hellojavaer.ddal.example.example0.entity.UserEntity;
 import org.hellojavaer.ddal.sequence.Sequence;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -36,7 +35,7 @@ public class UserDaoImpl implements UserDao {
     @Autowired
     private SqlSessionTemplate sqlSessionTemplate;
 
-    @Value("#{dataSource.sequence}")
+    @Autowired
     private Sequence           sequence;
 
     @Override
