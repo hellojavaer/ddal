@@ -4,6 +4,7 @@
 [![GitHub release](https://img.shields.io/github/release/hellojavaer/ddal.svg)](https://github.com/hellojavaer/ddal/releases)
 
 DDAL(Distributed Data Access Layer) is a simple solution to access database shard.
+
 <img src="https://github.com/hellojavaer/ddal/blob/master/doc/img/design_01.jpeg" width = "590" height = "390" alt="design" align=center />
 
 ## License
@@ -23,7 +24,7 @@ DDAL is dual licensed under **LGPL V2.1** and **Apache Software License, Version
 </dependency>
 ```
 
-- 2. use DefaultDDALDataSource to proxy orginal dataSource
+- 2. use DefaultDDALDataSource to proxy the orginal dataSource
 
 ```
 <bean name="dataSource" class="org.hellojavaer.ddal.datasource.DefaultDDALDataSource">
@@ -34,7 +35,7 @@ DDAL is dual licensed under **LGPL V2.1** and **Apache Software License, Version
 
 - see [datasource.xml](https://github.com/hellojavaer/ddal/blob/master/ddal-example/ddal-example-example0/src/main/resources/datasource.xml)
 
-- see a full example [ddal-example](https://github.com/hellojavaer/ddal/tree/master/ddal-example)
+- see a [full example](https://github.com/hellojavaer/ddal/tree/master/ddal-example)
 
 ## Download
 
