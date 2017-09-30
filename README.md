@@ -10,21 +10,10 @@ DDAL(Distributed Data Access Layer) is a simple solution to access database shar
 
 DDAL is dual licensed under **LGPL V2.1** and **Apache Software License, Version 2.0**.
 
-## Qick start
 
-See [ddal-example](https://github.com/hellojavaer/ddal/tree/master/ddal-example)
+## Useage
 
-## Documentation
-
-- [Documentation Home](https://github.com/hellojavaer/ddal/wiki)
-- [Frequently Asked Questions](https://github.com/hellojavaer/ddal/wiki/faq)
-
-
-## Download
-
-http://repo1.maven.org/maven2/org/hellojavaer/ddal/
-
-## Maven
+- 1. add the following dependency in your pom.xml
 
 ```xml
 <dependency>
@@ -33,6 +22,30 @@ http://repo1.maven.org/maven2/org/hellojavaer/ddal/
     <version>1.0.0.M6</version>
 </dependency>
 ```
+
+- 2. use DefaultDDALDataSource to proxy orginal dataSource
+
+```
+<bean name="dataSource" class="org.hellojavaer.ddal.datasource.DefaultDDALDataSource">
+    <constructor-arg index="0" value="jdbc:ddal:thick:classpath:/datasource.xml"/>
+    <!-- <constructor-arg index="0" value="jdbc:ddal:thick:http://{host}:{port}/{appName}"/> -->
+</bean>
+```
+
+- see [datasource.xml](https://github.com/hellojavaer/ddal/blob/master/ddal-example/ddal-example-example0/src/main/resources/datasource.xml)
+
+- see a full example [ddal-example](https://github.com/hellojavaer/ddal/tree/master/ddal-example)
+
+## Download
+
+http://repo1.maven.org/maven2/org/hellojavaer/ddal/
+
+## Documentation
+
+- [Documentation Home](https://github.com/hellojavaer/ddal/wiki)
+- [Frequently Asked Questions](https://github.com/hellojavaer/ddal/wiki/faq)
+
+
 
 ### [Release Notes](https://github.com/hellojavaer/ddal/releases)
 
