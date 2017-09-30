@@ -35,7 +35,7 @@ DDAL is dual licensed under **LGPL V2.1** and **Apache Software License, Version
 
 - see [datasource.xml](https://github.com/hellojavaer/ddal/blob/master/ddal-example/ddal-example-example0/src/main/resources/datasource.xml)
 
-- see a [full example](https://github.com/hellojavaer/ddal/tree/master/ddal-example)
+- see [a full example](https://github.com/hellojavaer/ddal/tree/master/ddal-example)
 
 ## Download
 
@@ -47,8 +47,7 @@ http://repo1.maven.org/maven2/org/hellojavaer/ddal/
 - [Frequently Asked Questions](https://github.com/hellojavaer/ddal/wiki/faq)
 
 
-
-### [Release Notes](https://github.com/hellojavaer/ddal/releases)
+## [Release Notes](https://github.com/hellojavaer/ddal/releases)
 
 ## Extensions in the latest version 1.0.0.M6
 
