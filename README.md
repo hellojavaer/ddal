@@ -14,7 +14,7 @@ DDAL is dual licensed under **LGPL V2.1** and **Apache Software License, Version
 
 ## Useage
 
-- 1. add the following dependency in your pom.xml
+- add the following dependency in your pom.xml
 
 ```xml
 <dependency>
@@ -24,7 +24,7 @@ DDAL is dual licensed under **LGPL V2.1** and **Apache Software License, Version
 </dependency>
 ```
 
-- 2. use DefaultDDALDataSource to proxy the orginal dataSource
+- use DefaultDDALDataSource to proxy the orginal dataSource
 
 ```
 <bean name="dataSource" class="org.hellojavaer.ddal.datasource.DefaultDDALDataSource">
