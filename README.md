@@ -66,12 +66,12 @@ http://repo1.maven.org/maven2/org/hellojavaer/ddal/
 - optimize route rule expression parser
 
 ```
-// old
+// older
 SpelShardRouteRule rule = new SpelShardRouteRule();
 rule.setScRouteRule("{#scName}_{#format('%02d', #sdValue % 4)}");
 rule.setTbRouteRule("{#tbName}_{#format('%04d', #sdValue % 8)}");
 
-// new
+// newer
 SpelShardRouteRule rule = new SpelShardRouteRule();
 rule.setScRouteRule("{scName}_{format('%02d', sdValue % 4)}");
 rule.setTbRouteRule("{tbName}_{format('%04d', sdValue % 8)}");
