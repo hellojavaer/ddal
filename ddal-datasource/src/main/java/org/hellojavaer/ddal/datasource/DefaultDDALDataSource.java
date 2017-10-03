@@ -15,11 +15,9 @@
  */
 package org.hellojavaer.ddal.datasource;
 
-import org.hellojavaer.ddal.ddr.datasource.jdbc.DDRDataSource;
 import org.hellojavaer.ddal.ddr.shard.ShardRouter;
 import org.hellojavaer.ddal.sequence.Sequence;
 import org.springframework.beans.factory.NoUniqueBeanDefinitionException;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
@@ -48,7 +46,6 @@ public class DefaultDDALDataSource implements DDALDataSource {
     private static final String THICK_PROTOCOL_PREFIX     = "thick:";
     private static final String THIN_PROTOCOL_PREFIX      = "thin:";
 
-    @Qualifier
     private DataSource          dataSource;
     private Sequence            sequence;
     private ShardRouter         shardRouter;
@@ -101,7 +98,7 @@ public class DefaultDDALDataSource implements DDALDataSource {
         } else {
             throw new IllegalArgumentException("Unsupported protocol " + url);
         }
-        this.dataSource = getBean(context, DDRDataSource.class, "ddrDataSource");
+        this.dataSource = getBean(context, DataSource.class, "dataSource");
         this.sequence = getBean(context, Sequence.class, "sequence");
         this.shardRouter = getBean(context, ShardRouter.class, "shardRouter");
     }
