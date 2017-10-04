@@ -17,7 +17,6 @@ package org.hellojavaer.ddal.datasource;
 
 import org.hellojavaer.ddal.ddr.shard.ShardRouter;
 import org.hellojavaer.ddal.sequence.Sequence;
-import org.springframework.beans.factory.NoUniqueBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
@@ -93,17 +92,17 @@ public class DefaultDDALDataSource implements DDALDataSource {
                 throw new IllegalArgumentException("Unsupported protocol " + url);
             }
         } else if (url1.startsWith(THIN_PROTOCOL_PREFIX)) {
-            // TODOD
+            // TODO
             throw new IllegalArgumentException("Unsupported protocol jdbc:ddal:thin:");
         } else {
             throw new IllegalArgumentException("Unsupported protocol " + url);
         }
-        this.dataSource = getBean(context, DataSource.class, "dataSource");
-        this.sequence = getBean(context, Sequence.class, "sequence");
-        this.shardRouter = getBean(context, ShardRouter.class, "shardRouter");
+        this.dataSource = getBean(context, "dataSource", DataSource.class);
+        this.sequence = getBean(context, "sequence", Sequence.class);
+        this.shardRouter = getBean(context, "shardRouter", ShardRouter.class);
     }
 
-    private <T> T getBean(ApplicationContext context, Class<T> requiredType, String beanName) {
+    private <T> T getBean(ApplicationContext context, String name, Class<T> requiredType) {
         Map<String, T> map = context.getBeansOfType(requiredType);
         if (map == null || map.isEmpty()) {
             return null;
@@ -111,13 +110,7 @@ public class DefaultDDALDataSource implements DDALDataSource {
         if (map.size() == 1) {
             return map.values().iterator().next();
         } else {
-            if (beanName != null) {
-                T t = map.get(beanName);
-                if (t != null) {
-                    return t;
-                }
-            }
-            throw new NoUniqueBeanDefinitionException(requiredType, map.keySet());
+            return context.getBean(name, requiredType);
         }
     }
 
