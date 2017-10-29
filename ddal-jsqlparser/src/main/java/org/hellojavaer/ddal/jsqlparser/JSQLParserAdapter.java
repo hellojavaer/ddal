@@ -93,8 +93,8 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
         JdbcParameter jdbcParameter = (JdbcParameter) equalsTo.getRightExpression();
         Integer index1 = jdbcParameter.getIndex();
         if (index1 != 1) {
-            throw new IllegalStateException(
-                                            "Current version of JSQLParser dones't support the feture of 'support get jdbc parameter index'");
+            throw new IllegalStateException("Current version of JSQLParser doesn't support the feature of 'support "
+                                            + "get jdbc parameter index'");
         }
         //
         InExpression inExpression = (InExpression) andExpression.getRightExpression();
@@ -104,20 +104,20 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
         LikeExpression likeExpression = (LikeExpression) subAndExpression.getLeftExpression();
         if (((JdbcParameter) likeExpression.getRightExpression()).getIndex() != 2) {
             throw new IllegalStateException(
-                                            "Current version of JSQLParser dones't support the feture of 'support get jdbc parameter index'");
+                                            "Current version of JSQLParser doesn't support the feature of 'support get jdbc parameter index'");
         }
         //
         GreaterThan greaterThan = (GreaterThan) subAndExpression.getRightExpression();
         if (((JdbcParameter) greaterThan.getRightExpression()).getIndex() != 3) {
             throw new IllegalStateException(
-                                            "Current version of JSQLParser dones't support the feture of 'support get jdbc parameter index'");
+                                            "Current version of JSQLParser doesn't support the feature of 'support get jdbc parameter index'");
         }
         //
         Expression offset = selectBody.getLimit().getOffset();
         Expression rowCount = selectBody.getLimit().getRowCount();
         if (((JdbcParameter) offset).getIndex() != 4 || ((JdbcParameter) rowCount).getIndex() != 5) {
             throw new IllegalStateException(
-                                            "Current version of JSQLParser dones't support the feture of 'support get jdbc parameter index'");
+                                            "Current version of JSQLParser doesn't support the feature of 'support get jdbc parameter index'");
         }
     }
 
@@ -711,15 +711,15 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
             }
         }
 
-        private Table        table;
+        private Table            table;
 
-        private Table        originalConfig = new Table();
+        private Table            originalConfig = new Table();
 
         private ShardRouteConfig routeConfig;                       // route config info
 
-        private String       routedFullTableName;               // 由routeInfo计算出,如果有sql路由时该字段不为空,如果该参数为空,表示需要jdbc路由
+        private String           routedFullTableName;               // 由routeInfo计算出,如果有sql路由时该字段不为空,如果该参数为空,表示需要jdbc路由
 
-        private List<Object> jdbcParamKeys  = new ArrayList<>(); // table 关联的jdbc列
+        private List<Object>     jdbcParamKeys  = new ArrayList<>(); // table 关联的jdbc列
 
         public ShardRouteConfig getRouteConfig() {
             return routeConfig;
