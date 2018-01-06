@@ -44,7 +44,7 @@ public class LRUSQLParserCache implements SQLParserCache {
         return capacity;
     }
 
-    private void setCapacity(Integer capacity) {
+    public void setCapacity(Integer capacity) {
         this.capacity = capacity;
     }
 
@@ -52,7 +52,7 @@ public class LRUSQLParserCache implements SQLParserCache {
         return sqlParser;
     }
 
-    private void setSqlParser(SQLParser sqlParser) {
+    public void setSqlParser(SQLParser sqlParser) {
         this.sqlParser = sqlParser;
     }
 

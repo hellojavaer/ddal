@@ -44,7 +44,7 @@ public class SimpleShardParser implements ShardParser {
         return shardRouter;
     }
 
-    private void setShardRouter(ShardRouter shardRouter) {
+    public void setShardRouter(ShardRouter shardRouter) {
         this.shardRouter = shardRouter;
     }
 
@@ -52,7 +52,7 @@ public class SimpleShardParser implements ShardParser {
         return sqlParser;
     }
 
-    private void setSqlParser(SQLParser sqlParser) {
+    public void setSqlParser(SQLParser sqlParser) {
         this.sqlParser = sqlParser;
     }
 

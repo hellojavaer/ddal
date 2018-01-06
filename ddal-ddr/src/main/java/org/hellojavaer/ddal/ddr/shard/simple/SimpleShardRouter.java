@@ -48,7 +48,7 @@ public class SimpleShardRouter implements ShardRouter {
         return routeRuleBindings;
     }
 
-    private void setRouteRuleBindings(List<SimpleShardRouteRuleBinding> bindings) {
+    public void setRouteRuleBindings(List<SimpleShardRouteRuleBinding> bindings) {
         Map<String, InnerSimpleShardRouteRuleBindingWrapper> cache = new HashMap<>();
         Map<String, List<ShardRouteInfo>> routeInfoMap = new HashMap<>();
         Map<String, Set<String>> routedTables = new HashMap<>();

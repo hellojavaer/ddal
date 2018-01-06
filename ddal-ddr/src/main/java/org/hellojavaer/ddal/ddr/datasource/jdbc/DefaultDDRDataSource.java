@@ -54,7 +54,7 @@ public class DefaultDDRDataSource extends AbstractDDRDataSource {
         return dataSourceManager;
     }
 
-    private void setDataSourceManager(DataSourceManager dataSourceManager) {
+    public void setDataSourceManager(DataSourceManager dataSourceManager) {
         this.dataSourceManager = dataSourceManager;
     }
 
@@ -62,7 +62,7 @@ public class DefaultDDRDataSource extends AbstractDDRDataSource {
         return shardParser;
     }
 
-    private void setShardParser(ShardParser shardParser) {
+    public void setShardParser(ShardParser shardParser) {
         this.shardParser = shardParser;
     }
 
