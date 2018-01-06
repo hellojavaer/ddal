@@ -12,7 +12,7 @@ DDAL(Distributed Data Access Layer) is a simple solution to access database shar
 DDAL is dual licensed under **LGPL V2.1** and **Apache Software License, Version 2.0**.
 
 
-## Useage
+## Quick start
 
 - add the following dependency in your pom.xml
 
