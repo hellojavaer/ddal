@@ -26,7 +26,10 @@ import org.springframework.core.io.Resource;
 
 import javax.sql.DataSource;
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.sql.Connection;
@@ -54,9 +57,7 @@ public class DefaultDDALDataSource implements DDALDataSource {
     }
 
     /**
-     *
      * jdbc:ddal:thick:
-     * 
      * jdbc:ddal:thin:
      * 
      */
@@ -71,8 +72,8 @@ public class DefaultDDALDataSource implements DDALDataSource {
             throw new IllegalArgumentException("url must be start with '" + JDBC_DDAL_PROTOCOL_PREFIX + "'");
         }
         String url1 = url.substring(JDBC_DDAL_PROTOCOL_PREFIX.length()).trim();
-        ApplicationContext context;
-        if (url1.startsWith(THICK_PROTOCOL_PREFIX)) {
+        if (url1.startsWith(THICK_PROTOCOL_PREFIX)) {// jdbc:ddal:thick:
+            ApplicationContext context;
             String url2 = url1.substring(THICK_PROTOCOL_PREFIX.length());
             if (url2.startsWith("classpath:") || url2.startsWith("classpath*:")) {
                 context = new ClassPathXmlApplicationContext(url2);
@@ -91,15 +92,58 @@ public class DefaultDDALDataSource implements DDALDataSource {
             } else {
                 throw new IllegalArgumentException("Unsupported protocol " + url);
             }
-        } else if (url1.startsWith(THIN_PROTOCOL_PREFIX)) {
+            this.dataSource = getBean(context, "dataSource", DataSource.class);
+            this.sequence = getBean(context, "sequence", Sequence.class);
+            this.shardRouter = getBean(context, "shardRouter", ShardRouter.class);
+        } else if (url1.startsWith(THIN_PROTOCOL_PREFIX)) {// jdbc:ddal:thin:
             // TODO
-            throw new IllegalArgumentException("Unsupported protocol jdbc:ddal:thin:");
-        } else {
             throw new IllegalArgumentException("Unsupported protocol " + url);
+        } else { // jdbc:ddal:
+            procCustomProtocol(url);
         }
-        this.dataSource = getBean(context, "dataSource", DataSource.class);
-        this.sequence = getBean(context, "sequence", Sequence.class);
-        this.shardRouter = getBean(context, "shardRouter", ShardRouter.class);
+    }
+
+    private void procCustomProtocol(String url) {
+        try {
+            URL url0 = new URL(url);
+            Object obj = url0.getContent();
+            if (obj == null) {
+                return;
+            }
+            Class<?> clazz = obj.getClass();
+            Method getDataSourceMethod = getMethod(clazz, "getDataSource");
+            if (getDataSourceMethod != null) {
+                this.dataSource = (DataSource) getDataSourceMethod.invoke(obj);
+            }
+            Method getSequenceMethod = getMethod(clazz, "getSequence");
+            if (getSequenceMethod != null) {
+                this.sequence = (Sequence) getSequenceMethod.invoke(obj);
+            }
+            Method getShardRouterMethod = getMethod(clazz, "getShardRouter");
+            if (getShardRouterMethod != null) {
+                this.shardRouter = (ShardRouter) getShardRouterMethod.invoke(obj);
+            }
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (InvocationTargetException e) {
+            throw new RuntimeException(e);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private Method getMethod(Class<?> clazz, String methodName) {
+        try {
+            Method method = clazz.getMethod(methodName);
+            if (method.isAccessible() == false) {
+                method.setAccessible(true);
+            }
+            return method;
+        } catch (NoSuchMethodException e) {
+            return null;
+        }
     }
 
     private <T> T getBean(ApplicationContext context, String name, Class<T> requiredType) {

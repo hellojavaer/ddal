@@ -110,7 +110,7 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
         return readOnlyDataSources;
     }
 
-    private synchronized void setReadOnlyDataSources(List<ReadOnlyDataSourceBinding> readOnlyDataSources) {
+    public synchronized void setReadOnlyDataSources(List<ReadOnlyDataSourceBinding> readOnlyDataSources) {
         initReadOnlyDataSource(readOnlyDataSources);
         check(readOnlyDataSourceIndexCacheOriginalValues);
         this.readOnlyDataSources = readOnlyDataSources;
@@ -121,7 +121,7 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
         return this.readOnlyDataSourceMonitorServer;
     }
 
-    private void setReadOnlyDataSourceMonitorServer(ReadOnlyDataSourceMonitorServer readOnlyDataSourceMonitorServer) {
+    public void setReadOnlyDataSourceMonitorServer(ReadOnlyDataSourceMonitorServer readOnlyDataSourceMonitorServer) {
         this.readOnlyDataSourceMonitorServer = readOnlyDataSourceMonitorServer;
     }
 
@@ -129,7 +129,7 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
         return writeOnlyDataSources;
     }
 
-    private synchronized void setWriteOnlyDataSources(List<WriteOnlyDataSourceBinding> writeOnlyDataSources) {
+    public synchronized void setWriteOnlyDataSources(List<WriteOnlyDataSourceBinding> writeOnlyDataSources) {
         initWriteOnlyDataSource(writeOnlyDataSources);
         check(writeOnlyDataSourceQueryCache);
         this.writeOnlyDataSources = writeOnlyDataSources;
@@ -139,7 +139,7 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
         return shardRouter;
     }
 
-    private void setShardRouter(ShardRouter shardRouter) {
+    public void setShardRouter(ShardRouter shardRouter) {
         this.shardRouter = shardRouter;
     }
 
@@ -147,7 +147,7 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
         return metaDataChecker;
     }
 
-    private void setMetaDataChecker(MetaDataChecker metaDataChecker) {
+    public void setMetaDataChecker(MetaDataChecker metaDataChecker) {
         this.metaDataChecker = metaDataChecker;
     }
 

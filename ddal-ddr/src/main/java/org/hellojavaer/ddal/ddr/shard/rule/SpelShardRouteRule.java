@@ -64,7 +64,7 @@ public class SpelShardRouteRule implements ShardRouteRule {
         this.rangeSizeLimit = rangeSizeLimit;
     }
 
-    private void setScRouteRule(String scRouteRule) {
+    public void setScRouteRule(String scRouteRule) {
         scRouteRule = filter(scRouteRule);
         this.scRouteRule = scRouteRule;
         if (scRouteRule != null) {
@@ -77,7 +77,7 @@ public class SpelShardRouteRule implements ShardRouteRule {
         return scRouteRule;
     }
 
-    private void setTbRouteRule(String tbRouteRule) {
+    public void setTbRouteRule(String tbRouteRule) {
         tbRouteRule = filter(tbRouteRule);
         this.tbRouteRule = tbRouteRule;
         if (tbRouteRule != null) {
@@ -94,7 +94,7 @@ public class SpelShardRouteRule implements ShardRouteRule {
         return rangeSizeLimit;
     }
 
-    private void setRangeSizeLimit(Integer rangeSizeLimit) {
+    public void setRangeSizeLimit(Integer rangeSizeLimit) {
         this.rangeSizeLimit = rangeSizeLimit;
     }
 
