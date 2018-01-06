@@ -6,7 +6,7 @@
 
     <groupId>org.hellojavaer.ddal</groupId>
     <artifactId>ddal-example</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0.M7</version>
     <packaging>pom</packaging>
 
     <modules>
@@ -18,8 +18,8 @@
     <url>https://github.com/hellojavaer/ddal</url>
 
     <properties>
-        <maven.test.skip>true</maven.test.skip>
-        <spring.version>4.2.6.RELEASE</spring.version>
+        <maven.test.skip>false</maven.test.skip>
+        <spring.version>4.2.5.RELEASE</spring.version>
         <jdk.version>1.7</jdk.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
