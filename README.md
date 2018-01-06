@@ -20,7 +20,7 @@ DDAL is dual licensed under **LGPL V2.1** and **Apache Software License, Version
 <dependency>
     <groupId>org.hellojavaer.ddal</groupId>
     <artifactId>ddal-datasource</artifactId>
-    <version>1.0.0.M6</version>
+    <version>1.0.0.M7</version>
 </dependency>
 ```
 
@@ -49,7 +49,11 @@ http://repo1.maven.org/maven2/org/hellojavaer/ddal/
 
 ## [Release Notes](https://github.com/hellojavaer/ddal/releases)
 
-## Extensions in the latest version 1.0.0.M6
+## Extensions in the latest version 1.0.0.M7
+
+support custom protocol jdbc:ddal:
+
+## Extensions in version 1.0.0.M6
 
 - implement DefaultDDALDataSource in ddal-datasource module
 
