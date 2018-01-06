@@ -12,14 +12,14 @@
 
     <bean name="wDs00" parent="baseDataSource">
         <property name="url" value="jdbc:mysql://127.0.0.1:3306/base_00?verifyServerCertificate=false&amp;useSSL=true"/>
-        <property name="username" value="root"/>
-        <property name="password" value="root"/>
+        <property name="username" value="username"/>
+        <property name="password" value="password"/>
     </bean>
 
     <bean name="rDs00" parent="baseDataSource">
         <property name="url" value="jdbc:mysql://127.0.0.1:3306/base_00?verifyServerCertificate=false&amp;useSSL=true"/>
-        <property name="username" value="root"/>
-        <property name="password" value="root"/>
+        <property name="username" value="username"/>
+        <property name="password" value="password"/>
     </bean>
 
     <bean id="shardRouter" class="org.hellojavaer.ddal.ddr.shard.simple.SimpleShardRouter">
