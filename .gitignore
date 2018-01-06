@@ -1,0 +1,24 @@
+*.java.hsp
+*.sonarj
+*.sw*
+jxl.log
+jmx.log
+.settings
+.DS_Store
+.springBeans
+
+classes/
+target/
+
+# Eclipse
+.classpath
+.project
+
+# IDEA
+*.iml
+*.ipr
+*.iws
+.idea
+out
+test-output
+atlassian-ide-plugin.xml
