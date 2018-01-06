@@ -13,13 +13,13 @@
 
     <bean name="wDs00" parent="baseDataSource">
         <property name="url" value="jdbc:mysql://127.0.0.1:3306/base_00?verifyServerCertificate=false&amp;useSSL=true"/>
-        <property name="username" value="username"/>
-        <property name="password" value="password"/>
+        <property name="username" value="root"/>
+        <property name="password" value="root"/>
     </bean>
     <bean name="rDs00" parent="baseDataSource">
         <property name="url" value="jdbc:mysql://127.0.0.1:3306/base_00?verifyServerCertificate=false&amp;useSSL=true"/>
-        <property name="username" value="username"/>
-        <property name="password" value="password"/>
+        <property name="username" value="root"/>
+        <property name="password" value="root"/>
     </bean>
 
     <bean id="idRule" class="org.hellojavaer.ddal.ddr.shard.rule.SpelShardRouteRule">
