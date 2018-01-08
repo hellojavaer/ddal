@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.org/hellojavaer/ddal.svg?branch=master)](https://travis-ci.org/hellojavaer/ddal)
 [![GitHub release](https://img.shields.io/github/release/hellojavaer/ddal.svg)](https://github.com/hellojavaer/ddal/releases)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.hellojavaer.ddal/ddal-datasource/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.hellojavaer.ddal/ddal-datasource/)
 
 DDAL(Distributed Data Access Layer) is a simple solution to access database shard.
 
