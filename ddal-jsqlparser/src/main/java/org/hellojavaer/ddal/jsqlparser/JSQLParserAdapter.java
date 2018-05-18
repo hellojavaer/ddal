@@ -53,7 +53,14 @@ import java.util.*;
 
 /**
  *
- *
+ * 解析sql
+ *   0.只支持解析insert,update,delete,select 4种类型的sql,但支持子语句嵌套和union all;
+ *   1.分表字段支持 '=', 'between and' 和 'in()' 操作;
+ *   2.解析过程如果没有匹配到分表配置,sql格式化后返回(关键字大写);
+ *   3.解析过程如果匹配到关键信息
+ *     3.1 select操作都会被自动添加别名;
+ *     3.2 非select操作不会被自动添加别名,如果column有表名前缀,前缀会根据路由信息动态被替换;
+ *     
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 12/11/2016.
  */
 public class JSQLParserAdapter extends JSQLBaseVisitor {
@@ -63,6 +70,8 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
     private String             sql;
     private ShardRouter        shardRouter;
     private Statement          statement;
+
+    // the schemas which used in current sql
     private Set<String>        schemas             = new HashSet<>();
 
     private boolean            enableLimitCheck    = false;
@@ -72,6 +81,7 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
     static {
         try {
             checkJSqlParserFeature();
+            checkCompatibilityWithJSqlParser();
         } catch (Exception e) {
             throw new RuntimeException("JSqlParser feature check failed", e);
         }
@@ -121,6 +131,11 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
         }
     }
 
+    private static void checkCompatibilityWithJSqlParser(){
+
+
+    }
+
     public JSQLParserAdapter(String sql, ShardRouter shardRouter, boolean enableLimitCheck) {
         this.sql = sql;
         this.shardRouter = shardRouter;
@@ -165,6 +180,7 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
             String splitString = generateSplitString(targetSql);
             for (int i = 0; i < toBeConvertedTables.size(); i++) {
                 TableWrapper tab = toBeConvertedTables.get(i);
+                // sql param的解析结果已经存储在routedFullTableName中,因此可以覆盖schemaName和name中的值;
                 tab.setSchemaName(null);
                 tab.setName("_" + i + splitString);
             }
@@ -378,46 +394,24 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
         }
     }
 
-    private void route0(TableWrapper tab, ShardRouteInfo routeInfo) {
-        String fullTableName = routeInfo.toString();
-        if (tab.getRoutedFullTableName() != null) {// 多重路由
-            if (!tab.getRoutedFullTableName().equals(fullTableName)) {
-                throw new AmbiguousRouteResultException("In sql[" + sql + "], table:'"
-                                                        + tab.getOriginalConfig().toString()
-                                                        + "' has multiple routing results["
-                                                        + tab.getRoutedFullTableName() + "," + fullTableName + "]");
-            }
-        } else {// 是否使用alias在put的时候设置,这里只需要设置scName和tbName
-            tab.setRoutedFullTableName(fullTableName);//
-            tab.setSchemaName(routeInfo.getScName());
-            tab.setName(routeInfo.getTbName());
-            schemas.add(routeInfo.getScName());
-        }
-    }
-
     @Override
     public void visit(Insert insert) {
-        this.getStack().push(new FrameContext());
-        ShardRouteConfig routeConfig = shardRouter.getRouteConfig(insert.getTable().getSchemaName(),
-                                                                  insert.getTable().getName());
-        if (routeConfig != null) {
-            TableWrapper table = new TableWrapper(insert.getTable(), routeConfig);
-            addRoutedTableIntoContext(table, routeConfig, false);
-            List<Column> columns = insert.getColumns();
-            if (columns != null) {
-                ExpressionList expressionList = (ExpressionList) insert.getItemsList();
-                List<Expression> valueList = expressionList.getExpressions();
-                for (int i = 0; i < columns.size(); i++) {
-                    Column column = columns.get(i);
-                    TableWrapper tab = getTableFromContext(column);
-                    if (tab != null) {
-                        Expression expression = valueList.get(i);
-                        routeTable(tab, column, expression);
-                    }
+        this.getStack().push(new FrameContext(StatementType.INSERT));
+        super.visit(insert);
+        // route table
+        List<Column> columns = insert.getColumns();
+        if (columns != null) {
+            ExpressionList expressionList = (ExpressionList) insert.getItemsList();
+            List<Expression> valueList = expressionList.getExpressions();
+            for (int i = 0; i < columns.size(); i++) {
+                Column column = columns.get(i);
+                TableWrapper tab = getTableFromContext(column);
+                if (tab != null) {
+                    Expression expression = valueList.get(i);
+                    routeTable(tab, column, expression);
                 }
             }
         }
-        super.visit(insert);
         afterVisitBaseStatement();
     }
 
@@ -429,14 +423,7 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
         if (enableLimitCheck && delete.getLimit() == null) {
             throw new IllegalStateException("no limit in sql: " + sql);
         }
-        this.getStack().push(new FrameContext());
-        ShardRouteConfig routeConfig = shardRouter.getRouteConfig(delete.getTable().getSchemaName(),
-                                                                  delete.getTable().getName());
-        if (routeConfig != null) {
-            TableWrapper tab = new TableWrapper(delete.getTable(), routeConfig);
-            delete.setTable(tab);
-            addRoutedTableIntoContext(tab, routeConfig, false);
-        }
+        this.getStack().push(new FrameContext(StatementType.DELETE));
         super.visit(delete);
         afterVisitBaseStatement();
     }
@@ -446,16 +433,7 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
         if (enableLimitCheck && update.getLimit() == null) {
             throw new IllegalStateException("no limit in sql: " + sql);
         }
-        this.getStack().push(new FrameContext());
-        if (update.getTables() != null) {
-            for (Table table : update.getTables()) {
-                ShardRouteConfig routeConfig = shardRouter.getRouteConfig(table.getSchemaName(), table.getName());
-                if (routeConfig != null) {
-                    TableWrapper tab = new TableWrapper(table, routeConfig);
-                    addRoutedTableIntoContext(tab, routeConfig, true);
-                }
-            }
-        }
+        this.getStack().push(new FrameContext(StatementType.UPDATE));
         super.visit(update);
         afterVisitBaseStatement();
     }
@@ -466,14 +444,14 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
             && ((PlainSelect) select.getSelectBody()).getLimit() == null) {
             throw new IllegalStateException("no limit in sql: " + sql);
         }
-        this.getStack().push(new FrameContext());
+        this.getStack().push(new FrameContext(StatementType.SELECT));
         super.visit(select);
         afterVisitBaseStatement();
     }
 
     @Override
     public void visit(SubSelect subSelect) {
-        this.getStack().push(new FrameContext());
+        this.getStack().push(new FrameContext(StatementType.SELECT));
         super.visit(subSelect);
         afterVisitBaseStatement();
 
@@ -484,10 +462,6 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
         String colFullName = col.toString();
         colFullName = DDRStringUtils.toLowerCase(colFullName);
         return frameContext.get(colFullName);
-    }
-
-    private void addRoutedTableIntoContext(TableWrapper table, ShardRouteConfig routeInfo) {
-        addRoutedTableIntoContext(table, routeInfo, true);
     }
 
     /**
@@ -656,16 +630,51 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
                                        + sql + "]");
         }
         ShardRouteInfo routeInfo = getRouteInfo(tab, sdValue);
+        // 当没有设置别名,但分表字段使用了表前缀时,别前缀需要根据路由结果进行重写;
+        // 这里之所有没有采用将table取名的方式是因为update/delete/insert不全支持别名;
+        // 由于select都是支持别名的,所有都会被添加别名,因此不会执行下面的操作;
+        Table columnTable = column.getTable();
+        if (tab.getAlias() == null && columnTable != null && columnTable.getName() != null
+            && columnTable.getName().length() > 0) {
+            if (columnTable.getSchemaName() != null) {
+                columnTable.setSchemaName(routeInfo.getScName());
+            }
+            columnTable.setName(routeInfo.getTbName());
+        }
         route0(tab, routeInfo);
+    }
+
+    private void route0(TableWrapper tab, ShardRouteInfo routeInfo) {
+        String fullTableName = routeInfo.toString();
+        if (tab.getRoutedFullTableName() != null) {// 多重路由
+            if (!tab.getRoutedFullTableName().equals(fullTableName)) {
+                throw new AmbiguousRouteResultException("In sql[" + sql + "], table:'"
+                                                        + tab.getOriginalConfig().toString()
+                                                        + "' has multiple routing results["
+                                                        + tab.getRoutedFullTableName() + "," + fullTableName + "]");
+            }
+        } else {// 是否使用alias在put的时候设置,这里只需要设置scName和tbName
+            tab.setRoutedFullTableName(fullTableName);//
+            tab.setSchemaName(routeInfo.getScName());
+            tab.setName(routeInfo.getTbName());
+            schemas.add(routeInfo.getScName());
+        }
     }
 
     @Override
     public void visit(Table table) {
         String tbName = table.getName();
+
         ShardRouteConfig routeConfig = shardRouter.getRouteConfig(table.getSchemaName(), tbName);
         if (routeConfig != null) {
             TableWrapper tab = new TableWrapper(table, routeConfig);
-            addRoutedTableIntoContext(tab, routeConfig);
+            FrameContext frameContext = this.getStack().peek();
+            StatementType statementType = frameContext.getStatementType();
+            if (statementType == StatementType.SELECT) {
+                addRoutedTableIntoContext(tab, routeConfig, true);
+            } else {
+                addRoutedTableIntoContext(tab, routeConfig, false);
+            }
         }
     }
 
@@ -688,7 +697,21 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
                                                                  }
                                                              };
 
+    private enum StatementType {
+        INSERT, DELETE, UPDATE, SELECT;
+    }
+
     private class FrameContext extends HashMap<String, TableWrapper> {
+
+        private StatementType statementType;
+
+        public FrameContext(StatementType statementType) {
+            this.statementType = statementType;
+        }
+
+        public StatementType getStatementType() {
+            return statementType;
+        }
 
     }
 

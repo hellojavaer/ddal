@@ -41,7 +41,7 @@ public class UpdateTest extends BaseTestShardParser {
         SQLParsedResult parsedResult = parser.parse("update db.user set `desc` = null where id = 11 and name = 'allen'",
                                                     null);
         Assert.equals(parsedResult.getSql(),
-                      "UPDATE db_03.user_0011 AS user SET `desc` = NULL WHERE id = 11 AND name = 'allen'");
+                      "UPDATE db_03.user_0011 SET `desc` = NULL WHERE id = 11 AND name = 'allen'");
     }
 
     @Test
@@ -50,7 +50,7 @@ public class UpdateTest extends BaseTestShardParser {
         SQLParsedResult parsedResult = parser.parse("update db.user set `desc` = null where id= 11 and name = 'allen'",
                                                     null);
         Assert.equals(parsedResult.getSql(),
-                      "UPDATE db_02.user_0010 AS user SET `desc` = NULL WHERE id = 11 AND name = 'allen'");
+                      "UPDATE db_02.user_0010 SET `desc` = NULL WHERE id = 11 AND name = 'allen'");
     }
 
     @Test
@@ -61,8 +61,7 @@ public class UpdateTest extends BaseTestShardParser {
         map.put(2, "allen");
         map.put(3, "desc");
         SQLParsedResult parsedResult = parser.parse("update db.user set `desc` = null where id= ? and name = ?", map);
-        Assert.equals(parsedResult.getSql(),
-                      "UPDATE db_02.user_0122 AS user SET `desc` = NULL WHERE id = ? AND name = ?");
+        Assert.equals(parsedResult.getSql(), "UPDATE db_02.user_0122 SET `desc` = NULL WHERE id = ? AND name = ?");
     }
 
     @Test
@@ -73,8 +72,7 @@ public class UpdateTest extends BaseTestShardParser {
         map.put(2, "allen");
         map.put(3, "desc");
         SQLParsedResult parsedResult = parser.parse("update db.user set `desc` = null where id= ? and name = ?", map);
-        Assert.equals(parsedResult.getSql(),
-                      "UPDATE db_02.user_0010 AS user SET `desc` = NULL WHERE id = ? AND name = ?");
+        Assert.equals(parsedResult.getSql(), "UPDATE db_02.user_0010 SET `desc` = NULL WHERE id = ? AND name = ?");
     }
 
     @Test
@@ -83,6 +81,6 @@ public class UpdateTest extends BaseTestShardParser {
         SQLParsedResult parsedResult = parser.parse("update db.user set `desc` = null where id= 506 and id in (select user_id from shop where user_id = 507)",
                                                     null);
         Assert.equals(parsedResult.getSql(),
-                      "UPDATE db_02.user_0122 AS user SET `desc` = NULL WHERE id = 506 AND id IN (SELECT user_id FROM db_03.shop_0123 AS shop WHERE user_id = 507)");
+                      "UPDATE db_02.user_0122 SET `desc` = NULL WHERE id = 506 AND id IN (SELECT user_id FROM db_03.shop_0123 AS shop WHERE user_id = 507)");
     }
 }

@@ -16,7 +16,7 @@
     <properties>
         <gpg.skip>true</gpg.skip>
         <javadoc.skip>false</javadoc.skip>
-        <jsqlparser.version>1.0</jsqlparser.version>
+        <jsqlparser.version>1.2</jsqlparser.version>
         <junit.version>4.11</junit.version>
         <jdk.version>1.7</jdk.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
