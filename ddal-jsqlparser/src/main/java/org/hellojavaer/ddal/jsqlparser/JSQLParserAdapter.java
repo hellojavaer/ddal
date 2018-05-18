@@ -40,6 +40,10 @@ import org.hellojavaer.ddal.ddr.shard.RangeShardValue;
 import org.hellojavaer.ddal.ddr.shard.ShardRouteConfig;
 import org.hellojavaer.ddal.ddr.shard.ShardRouteInfo;
 import org.hellojavaer.ddal.ddr.shard.ShardRouter;
+import org.hellojavaer.ddal.ddr.shard.rule.SpelShardRouteRule;
+import org.hellojavaer.ddal.ddr.shard.simple.SimpleShardParser;
+import org.hellojavaer.ddal.ddr.shard.simple.SimpleShardRouteRuleBinding;
+import org.hellojavaer.ddal.ddr.shard.simple.SimpleShardRouter;
 import org.hellojavaer.ddal.ddr.sqlparse.SQLParsedResult;
 import org.hellojavaer.ddal.ddr.sqlparse.SQLParsedState;
 import org.hellojavaer.ddal.ddr.sqlparse.exception.*;
@@ -83,7 +87,7 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
             checkJSqlParserFeature();
             checkCompatibilityWithJSqlParser();
         } catch (Exception e) {
-            throw new RuntimeException("JSqlParser feature check failed", e);
+            throw new IllegalStateException("JSqlParser feature check failed", e);
         }
     }
 
@@ -92,7 +96,7 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
      * And this feature is provided on the version of {@link <a href="https://github.com/JSQLParser/JSqlParser/releases/tag/jsqlparser-0.9.7">0.9.7</a>}.
      * This method is designed to check the necessary feature.
      */
-    private static void checkJSqlParserFeature() throws JSQLParserException {
+    public static void checkJSqlParserFeature() throws JSQLParserException {
         CCJSqlParserManager parserManager = new CCJSqlParserManager();
         String sql = "SELECT * FROM tab_1 WHERE tab_1.col_1 = ? AND col_2 IN (SELECT DISTINCT col_2 FROM tab_2 WHERE col_3 LIKE ? AND col_4 > ?) LIMIT ?, ?";
         Select select = (Select) parserManager.parse(new StringReader(sql));
@@ -131,9 +135,39 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
         }
     }
 
-    private static void checkCompatibilityWithJSqlParser(){
-
-
+    public static void checkCompatibilityWithJSqlParser() {
+        List<SimpleShardRouteRuleBinding> bindings = new ArrayList<>();
+        SpelShardRouteRule numRule = new SpelShardRouteRule("{scName}_{format('%02d', sdValue % 8)}",
+                                                            "{tbName}_{format('%04d', sdValue % 128)}");
+        SimpleShardRouteRuleBinding user = new SimpleShardRouteRuleBinding();
+        user.setScName("db");
+        user.setTbName("user");
+        user.setSdKey("id");
+        user.setSdValues("[1..128]");
+        user.setRule(numRule);
+        bindings.add(user);
+        SimpleShardRouter shardRouter = new SimpleShardRouter(bindings);
+        SimpleShardParser parser = new SimpleShardParser(new JSQLParser(), shardRouter);
+        // insert
+        SQLParsedResult parsedResult = parser.parse("insert into db.user(id,`desc`) values(506,'desc')", null);
+        if (!parsedResult.getSql().equals("INSERT INTO db_02.user_0122 (id, `desc`) VALUES (506, 'desc')")) {
+            throw new IllegalStateException("ddal-jsqlparser is not compatibility with current version of JSqlParser");
+        }
+        // delete
+        parsedResult = parser.parse("delete from db.user where id = 506 and `desc` = 'desc'", null);
+        if (!parsedResult.getSql().equals("DELETE FROM db_02.user_0122 WHERE id = 506 AND `desc` = 'desc'")) {
+            throw new IllegalStateException("ddal-jsqlparser is not compatibility with current version of JSqlParser");
+        }
+        // update
+        parsedResult = parser.parse("update db.user set `desc` = 'desc' where id = 506", null);
+        if (!parsedResult.getSql().equals("UPDATE db_02.user_0122 SET `desc` = 'desc' WHERE id = 506")) {
+            throw new IllegalStateException("ddal-jsqlparser is not compatibility with current version of JSqlParser");
+        }
+        // select
+        parsedResult = parser.parse("select * from db.user where id = 506 and `desc` = 'desc'", null);
+        if (!parsedResult.getSql().equals("SELECT * FROM db_02.user_0122 AS user WHERE id = 506 AND `desc` = 'desc'")) {
+            throw new IllegalStateException("ddal-jsqlparser is not compatibility with current version of JSqlParser");
+        }
     }
 
     public JSQLParserAdapter(String sql, ShardRouter shardRouter, boolean enableLimitCheck) {
