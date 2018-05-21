@@ -40,11 +40,12 @@ DDAL is dual licensed under **LGPL V2.1** and **Apache Software License, Version
 
 ## Features
 
-- Fully support ACID and only proxy original datasource for business
+- Only proxy original datasource for business
+- Fully support ACID
 - Support insert, select, update and delete expression
 - Support sub-select, union all and exists expression
 - Support table alias
-- Support no shard key schema/table routing
+- Support no shard-key schema/table routing
 - Support '=', 'in' and 'between' operation to route schema/table and support mixed sql parameter and jdbc parameter in routing values
 	- eg: 'select * from tb where id in(1,?,3)'
 	- eg: 'select * from tb where id between 1 and ?'
@@ -71,7 +72,7 @@ http://repo1.maven.org/maven2/org/hellojavaer/ddal/
 
 ## Extensions in the latest version 1.0.0-RELEASE
 
-- upgrade jsqlparser version to 1.2 to support more sql features
+- upgrade jsqlparser's version to 1.2 to support more sql features
 - optimize JSQLParserAdapter
 
 ## Extensions in version 1.0.0.M7
