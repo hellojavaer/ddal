@@ -41,8 +41,8 @@ DDAL is dual licensed under **LGPL V2.1** and **Apache Software License, Version
 ## Features
 
 - Fully support ACID and only proxy original datasource for business
-- Support insert, select, update and delete expression
-- Support sub-select and union all expression
+- Support 'insert', 'select', 'update' and 'delete' expression
+- Support 'sub-select', 'union all' and 'exists' expression
 - Support table alias
 - Support no shard key schema/table routing
 - Support annotation routing
