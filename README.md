@@ -38,6 +38,19 @@ DDAL is dual licensed under **LGPL V2.1** and **Apache Software License, Version
 
 - see [a full example](https://github.com/hellojavaer/ddal/tree/master/ddal-example)
 
+## Features
+
+- Support insert, select, update and delete expression
+- Support sub-select and union all expression
+- Support table alias
+- Support no shard key schema/table routing
+- Support custom route rule
+- Support scan all schemas and tables
+- Support limit check
+- Support read-write splitting
+- Support load balance of read
+- Provide sequence implements
+
 ## Download
 
 http://repo1.maven.org/maven2/org/hellojavaer/ddal/
