@@ -40,15 +40,18 @@ DDAL is dual licensed under **LGPL V2.1** and **Apache Software License, Version
 
 ## Features
 
+- Fully support ACID and only proxy original datasource for business
 - Support insert, select, update and delete expression
 - Support sub-select and union all expression
 - Support table alias
 - Support no shard key schema/table routing
+- Support annotation routing
 - Support custom route rule
 - Support scan all schemas and tables
 - Support limit check
 - Support read-write splitting
 - Support load balance of read
+- Support config at server-side
 - Provide sequence implements
 
 ## Download
@@ -63,9 +66,14 @@ http://repo1.maven.org/maven2/org/hellojavaer/ddal/
 
 ## [Release Notes](https://github.com/hellojavaer/ddal/releases)
 
-## Extensions in the latest version 1.0.0.M7
+## Extensions in the latest version 1.0.0-RELEASE
 
-support custom protocol jdbc:ddal:
+- upgrade jsqlparser version to 1.2 to support more sql features
+- optimize JSQLParserAdapter
+
+## Extensions in version 1.0.0.M7
+
+- support custom protocol jdbc:ddal:
 
 ## Extensions in version 1.0.0.M6
 
