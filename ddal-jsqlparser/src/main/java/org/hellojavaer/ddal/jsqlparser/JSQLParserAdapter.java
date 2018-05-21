@@ -57,14 +57,20 @@ import java.util.*;
 
 /**
  *
- * 解析sql
- *   0.只支持解析insert,update,delete,select 4种类型的sql,但支持子语句嵌套和union all;
- *   1.分表字段支持 '=', 'between and' 和 'in()' 操作;
- *   2.解析过程如果没有匹配到分表配置,sql格式化后返回(关键字大写);
- *   3.解析过程如果匹配到关键信息
- *     3.1 select操作都会被自动添加别名;
- *     3.2 非select操作不会被自动添加别名,如果column有表名前缀,前缀会根据路由信息动态被替换;
- *     
+ * JSQLParserAdapter sql解析适配器
+ *   1.支持解析insert,update,delete,select 4种类型的sql解析,支持子语句嵌套和union all语法;
+ *   2.如果sql匹配到分表信息
+ *     2.1 分表select会被自动添加别名;
+ *     2.2 分表非select操作不会被自动添加别名,如果column有表名前缀,前缀会根据路由信息动态被替换;
+ *     2.3 分表路由值的获取
+ *         2.3.1 如果路由规则中配置了分片字段,则检查sql参数及jdbc参数是否命中路由
+ *             2.3.1.1 如果分表字段是不含'not'修饰符的'=','between'或'in()'操作,则命中分表路由;
+ *             2.3.1.2 between和in操作允许混合使用sql参数和jdbc参数(eg:'id between(1 and ?)' 或者 'id in(1,2,?)');
+ *         2.3.2 如果路由规则中未配置分片字段或(2.3.1)未命中路由值则通过ShardRoute注解或ShardRouteContext设置的路由信息进行路由,
+ *         若ShardRouteContext中也未获取到匹配的路由信息则抛异常;
+ *     (注:在指定分表字段后支持ShardRouteContext方式是为了能够提供'扫表'功能)
+ *   3.如果解析过程如果没有匹配到分表配置,sql语句中的关键字格式化后返回(关键字大写);
+ *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 12/11/2016.
  */
 public class JSQLParserAdapter extends JSQLBaseVisitor {

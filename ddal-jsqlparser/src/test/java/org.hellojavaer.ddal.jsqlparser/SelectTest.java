@@ -27,6 +27,7 @@ import org.hellojavaer.ddal.ddr.shard.ShardRouteContext;
 import org.hellojavaer.ddal.ddr.shard.ShardRouteInfo;
 import org.hellojavaer.ddal.ddr.shard.simple.SimpleShardParser;
 import org.hellojavaer.ddal.ddr.sqlparse.SQLParsedResult;
+import org.hellojavaer.ddal.ddr.sqlparse.exception.AmbiguousRouteResultException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -113,7 +114,7 @@ public class SelectTest extends BaseTestShardParser {
 
     // =============== 分片列命中查询 ================
     @Test
-    public void testHitSdKey00a() {
+    public void testHitSdKeyWithEqual00() {
         ShardParser parser = buildParserForId();
         SQLParsedResult parsedResult = parser.parse("select * from db.user where id = 506", null);
         Assert.equals(parsedResult.getSql(), "SELECT * FROM db_02.user_0122 AS user WHERE id = 506");
@@ -123,9 +124,9 @@ public class SelectTest extends BaseTestShardParser {
     }
 
     @Test
-    public void testHitSdKey00b() {
+    public void testHitSdKeyWithEqual01() {
         ShardParser parser = buildParserForId();
-        Map<Object, Object> map = new HashMap<Object, Object>();
+        Map<Object, Object> map = new HashMap<>();
         map.put(1, 506);
         SQLParsedResult parsedResult = parser.parse("select * from db.user where id = ?", map);
         Assert.equals(parsedResult.getSql(), "SELECT * FROM db_02.user_0122 AS user WHERE id = ?");
@@ -142,7 +143,7 @@ public class SelectTest extends BaseTestShardParser {
     }
 
     @Test
-    public void testHitSdKey01a() {
+    public void testHitSdKeyWithIn00() {
         ShardParser parser = buildParserForId();
         SQLParsedResult parsedResult = parser.parse("select * from db.user where id in (506,634,762)", null);
         Assert.equals(parsedResult.getSql(), "SELECT * FROM db_02.user_0122 AS user WHERE id IN (506, 634, 762)");
@@ -152,9 +153,54 @@ public class SelectTest extends BaseTestShardParser {
     }
 
     @Test
-    public void testHitSdKey01b() {
+    public void testHitSdKeyWithIn01() {
         ShardParser parser = buildParserForId();
-        Map<Object, Object> map = new HashMap<Object, Object>();
+        Map<Object, Object> map = new HashMap<>();
+        map.put(1, 506);
+        map.put(2, 634);
+        map.put(3, 762);
+        SQLParsedResult parsedResult = parser.parse("select * from db.user where id in (?,?,?)", map);
+        Assert.equals(parsedResult.getSql(), "SELECT * FROM db_02.user_0122 AS user WHERE id IN (?, ?, ?)");
+        Set<String> expectedSchemas = new HashSet<>();
+        expectedSchemas.add("db_02");
+        Assert.isTrue(parsedResult.getSchemas().equals(expectedSchemas));
+    }
+
+    // between 和 in 允许混合jdbc参数和sql参数
+    @Test
+    public void testHitSdKeyWithIn02() {
+        ShardParser parser = buildParserForId();
+        Map<Object, Object> map = new HashMap<>();
+        map.put(1, 506);
+        map.put(2, 634);
+        // case 1
+        try {
+            parser.parse("select * from db.user where id in (?,?,763)", map);
+            throw new Error();
+        } catch (AmbiguousRouteResultException e) {
+        }
+        // case 2
+        SQLParsedResult parsedResult = parser.parse("select * from db.user where id in (?,?,762)", map);
+        Assert.equals(parsedResult.getSql(), "SELECT * FROM db_02.user_0122 AS user WHERE id IN (?, ?, 762)");
+        Set<String> expectedSchemas = new HashSet<>();
+        expectedSchemas.add("db_02");
+        Assert.isTrue(parsedResult.getSchemas().equals(expectedSchemas));
+    }
+
+    @Test
+    public void testHitSdKeyWithBetween00() {
+        ShardParser parser = buildParserForId();
+        SQLParsedResult parsedResult = parser.parse("select * from db.user where id between 506 and 506", null);
+        Assert.equals(parsedResult.getSql(), "SELECT * FROM db_02.user_0122 AS user WHERE id BETWEEN 506 AND 506");
+        Set<String> expectedSchemas = new HashSet<>();
+        expectedSchemas.add("db_02");
+        Assert.isTrue(parsedResult.getSchemas().equals(expectedSchemas));
+    }
+
+    @Test
+    public void testHitSdKeyWithBetween01() {
+        ShardParser parser = buildParserForId();
+        Map<Object, Object> map = new HashMap<>();
         map.put(1, 506);
         map.put(2, 634);
         map.put(3, 762);
@@ -166,19 +212,9 @@ public class SelectTest extends BaseTestShardParser {
     }
 
     @Test
-    public void testHitSdKey02a() {
+    public void testHitSdKeyWithBetween02() {
         ShardParser parser = buildParserForId();
-        SQLParsedResult parsedResult = parser.parse("select * from db.user where id between 506 and 506", null);
-        Assert.equals(parsedResult.getSql(), "SELECT * FROM db_02.user_0122 AS user WHERE id BETWEEN 506 AND 506");
-        Set<String> expectedSchemas = new HashSet<>();
-        expectedSchemas.add("db_02");
-        Assert.isTrue(parsedResult.getSchemas().equals(expectedSchemas));
-    }
-
-    @Test
-    public void testHitSdKey02b() {
-        ShardParser parser = buildParserForId();
-        Map<Object, Object> map = new HashMap<Object, Object>();
+        Map<Object, Object> map = new HashMap<>();
         map.put(1, 506);
         map.put(2, 506);
         SQLParsedResult parsedResult = parser.parse("select * from db.user where id between ? and ?", map);
@@ -188,18 +224,40 @@ public class SelectTest extends BaseTestShardParser {
         Assert.isTrue(parsedResult.getSchemas().equals(expectedSchemas));
     }
 
+    @Test
+    public void testHitSdKeyWithBetween03() {
+        ShardParser parser = buildParserForId();
+        Map<Object, Object> map = new HashMap<>();
+        map.put(1, 507);
+        SQLParsedResult parsedResult = parser.parse("select * from db.user where id between 507 and ?", map);
+        Assert.equals(parsedResult.getSql(), "SELECT * FROM db_03.user_0123 AS user WHERE id BETWEEN 507 AND ?");
+        Set<String> expectedSchemas = new HashSet<>();
+        expectedSchemas.add("db_03");
+        Assert.isTrue(parsedResult.getSchemas().equals(expectedSchemas));
+    }
+
     // =============== 分片列非命中查询 ================
     @Test
-    public void testNotHitSdKey00a() {
+    public void testNotHitSdKeyWithEqual00() {
+        ShardParser parser = buildParserForId();
+        try {
+            parser.parse("select * from db.user where id != 506", null);
+            throw new Error();
+        } catch (RuntimeException e) {
+        }
+    }
+
+    @Test
+    public void testNotHitSdKeyWithEqual01() {
         ShardParser parser = buildParserForId();
         SQLParsedResult parsedResult = parser.parse("select * from db.user where id != 506 and id = 507 ", null);
         Assert.equals(parsedResult.getSql(), "SELECT * FROM db_03.user_0123 AS user WHERE id != 506 AND id = 507");
     }
 
     @Test
-    public void testNotHitSdKey00b() {
+    public void testNotHitSdKeyWithIn00() {
         ShardParser parser = buildParserForId();
-        Map<Object, Object> map = new HashMap<Object, Object>();
+        Map<Object, Object> map = new HashMap<>();
         map.put(1, 507);
         SQLParsedResult parsedResult = parser.parse("select * from db.user where id != 506 and id = ?", map);
         Assert.equals(parsedResult.getSql(), "SELECT * FROM db_03.user_0123 AS user WHERE id != 506 AND id = ?");
@@ -209,7 +267,17 @@ public class SelectTest extends BaseTestShardParser {
     }
 
     @Test
-    public void testNotHitSdKey01a() {
+    public void testNotHitSdKeyWithIn01() {
+        try {
+            ShardParser parser = buildParserForId();
+            parser.parse("select * from db.user where id not in (506,634,762)", null);
+            throw new Error();
+        } catch (RuntimeException e) {
+        }
+    }
+
+    @Test
+    public void testNotHitSdKeyWithIn02() {
         ShardParser parser = buildParserForId();
         SQLParsedResult parsedResult = parser.parse("select * from db.user where id not in (506,634,762) and id in (507,635,763)",
                                                     null);
@@ -221,9 +289,9 @@ public class SelectTest extends BaseTestShardParser {
     }
 
     @Test
-    public void testNotHitSdKey01b() {
+    public void testNotHitSdKeyWithIn03() {
         ShardParser parser = buildParserForId();
-        Map<Object, Object> map = new HashMap<Object, Object>();
+        Map<Object, Object> map = new HashMap<>();
         map.put(1, 507);
         map.put(2, 635);
         map.put(3, 763);
@@ -237,7 +305,17 @@ public class SelectTest extends BaseTestShardParser {
     }
 
     @Test
-    public void testNotHitSdKey02a() {
+    public void testNotHitSdKeyWithBetween00() {
+        try {
+            ShardParser parser = buildParserForId();
+            parser.parse("select * from db.user where id not between 506 and 506", null);
+            throw new Error();
+        } catch (RuntimeException e) {
+        }
+    }
+
+    @Test
+    public void testNotHitSdKeyWithBetween01() {
         ShardParser parser = buildParserForId();
         SQLParsedResult parsedResult = parser.parse("select * from db.user where id not between 506 and 506 and id between 507 and 507",
                                                     null);
@@ -249,9 +327,9 @@ public class SelectTest extends BaseTestShardParser {
     }
 
     @Test
-    public void testNotHitSdKey02b() {
+    public void testNotHitSdKeyWithBetween02() {
         ShardParser parser = buildParserForId();
-        Map<Object, Object> map = new HashMap<Object, Object>();
+        Map<Object, Object> map = new HashMap<>();
         map.put(1, 507);
         map.put(2, 507);
         SQLParsedResult parsedResult = parser.parse("select * from db.user where id not between 506 and 506 and id between ? and ?",
@@ -263,7 +341,7 @@ public class SelectTest extends BaseTestShardParser {
         Assert.isTrue(parsedResult.getSchemas().equals(expectedSchemas));
     }
 
-    // =============== 单表 =================
+    // =============== 单表 ==================
     /**
      * sql参数
      */
