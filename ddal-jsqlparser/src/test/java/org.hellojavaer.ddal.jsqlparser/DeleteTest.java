@@ -24,6 +24,7 @@ package org.hellojavaer.ddal.jsqlparser;
 import org.hellojavaer.ddal.core.utils.Assert;
 import org.hellojavaer.ddal.ddr.shard.ShardParser;
 import org.hellojavaer.ddal.ddr.sqlparse.SQLParsedResult;
+import org.hellojavaer.ddal.ddr.sqlparse.exception.AmbiguousRouteResultException;
 import org.junit.Test;
 
 import java.util.HashMap;
@@ -36,11 +37,40 @@ import java.util.Map;
 public class DeleteTest extends BaseTestShardParser {
 
     @Test
+    public void test0() {
+        ShardParser parser = buildParserForId();
+        SQLParsedResult parsedResult = parser.parse("delete from db.user where user.id = 506 and name = " + "'allen'",
+                                                    null);
+        Assert.equals(parsedResult.getSql(), "DELETE FROM db_02.user_0122 WHERE user_0122.id = 506 AND name = 'allen'");
+    }
+
+    @Test
+    public void test1() {
+        ShardParser parser = buildParserForId();
+        SQLParsedResult parsedResult = parser.parse("delete from db.user where db.user.id = 506 and name = "
+                                                    + "'allen'", null);
+        Assert.equals(parsedResult.getSql(), "DELETE FROM db_02.user_0122 WHERE db_02.user_0122.id = 506 AND "
+                                             + "name = 'allen'");
+    }
+
+    @Test
+    public void test2() {
+        ShardParser parser = buildParserForId();
+        try {
+            SQLParsedResult parsedResult = parser.parse("delete from db.user where (db.user.id = 506 or db.user.id = 507) "
+                                                                + "and name = " + "'allen'", null);
+            throw new Error();
+        } catch (AmbiguousRouteResultException e) {
+            // ok
+        }
+    }
+
+    @Test
     public void test00() {
         ShardParser parser = buildParserForId();
         SQLParsedResult parsedResult = parser.parse("delete from db.user AS user where id = 506 and name = 'allen'",
                                                     null);
-        Assert.equals(parsedResult.getSql(), "DELETE FROM db_02.user_0122 WHERE id = 506 AND name = 'allen'");
+        Assert.equals(parsedResult.getSql(), "DELETE FROM db_02.user_0122 AS user WHERE id = 506 AND name = 'allen'");
     }
 
     @Test
