@@ -93,7 +93,7 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
             checkJSqlParserFeature();
             checkCompatibilityWithJSqlParser();
         } catch (Exception e) {
-            throw new IllegalStateException("JSqlParser feature check failed", e);
+            throw new RuntimeException("JSqlParser feature check failed", e);
         }
     }
 
