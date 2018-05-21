@@ -45,6 +45,9 @@ DDAL is dual licensed under **LGPL V2.1** and **Apache Software License, Version
 - Support sub-select, union all and exists expression
 - Support table alias
 - Support no shard key schema/table routing
+- Support '=', 'in' and 'between' operation to route schema/table and support mixed sql parameter and jdbc parameter for routing value 
+	- eg: 'select * from tb where id in(1,?,3)'
+	- eg: 'select * from tb where id between 1 and ?'
 - Support annotation routing
 - Support custom route rule
 - Support scan all schemas and tables
