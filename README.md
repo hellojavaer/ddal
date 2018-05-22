@@ -40,17 +40,18 @@ DDAL is dual licensed under **LGPL V2.1** and **Apache Software License, Version
 
 ## Features
 
-- Only proxy original datasource for business
+- Only need to proxy the original datasources for business
 - Fully support ACID
 - Support insert, select, update and delete expression
-- Support sub-select, union all and exists expression
+- Support join(inner join,left join,right join,full jion), sub-select, union all and exists expression
 - Support table alias
 - Support no shard-key schema/table routing
-- Support '=', 'in' and 'between' operation to route schema/table and support mixed sql parameter and jdbc parameter in routing values
-	- eg: 'select * from tb where id in(1,?,3)'
-	- eg: 'select * from tb where id between 1 and ?'
+- Support '=', in' and 'between' operation to route schema/table and support mixed sql parameter and jdbc parameter in routing values
+    - eg: 'select * from tb where id in(1,?,3)'
+    - eg: 'select * from tb where id between 1 and ?'
+- Support Date, Timestamp, Long, String, Hex value type for shard-value
 - Support annotation routing
-- Support custom route rule
+- Support custom route rule (eg: '{scName}_{format('%02d', sdValue % 4)}')
 - Support scan all schemas and tables
 - Support limit check
 - Support read-write splitting
