@@ -437,7 +437,7 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
     @Override
     public void visit(Insert insert) {
         this.getStack().push(new FrameContext(StatementType.INSERT));
-        super.visit(insert);
+        visit0(insert);
         // route table
         List<Column> columns = insert.getColumns();
         if (columns != null) {
@@ -464,7 +464,7 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
             throw new IllegalStateException("no limit in sql: " + sql);
         }
         this.getStack().push(new FrameContext(StatementType.DELETE));
-        super.visit(delete);
+        visit0(delete);
         afterVisitBaseStatement();
     }
 
@@ -474,7 +474,7 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
             throw new IllegalStateException("no limit in sql: " + sql);
         }
         this.getStack().push(new FrameContext(StatementType.UPDATE));
-        super.visit(update);
+        visit0(update);
         afterVisitBaseStatement();
     }
 
@@ -485,14 +485,14 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
             throw new IllegalStateException("no limit in sql: " + sql);
         }
         this.getStack().push(new FrameContext(StatementType.SELECT));
-        super.visit(select);
+        visit0(select);
         afterVisitBaseStatement();
     }
 
     @Override
     public void visit(SubSelect subSelect) {
         this.getStack().push(new FrameContext(StatementType.SELECT));
-        super.visit(subSelect);
+        visit0(subSelect);
         afterVisitBaseStatement();
 
     }
@@ -572,26 +572,26 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
     @Override
     public void visit(InExpression inExpression) {
         if (inExpression.isNot()) {
-            super.visit(inExpression);
+            visit0(inExpression);
             return;
         }
         Column column = (Column) inExpression.getLeftExpression();
         if (inExpression.getRightItemsList() instanceof ExpressionList) {
             TableWrapper tab = getTableFromContext(column);
             if (tab == null) {
-                super.visit(inExpression);
+                visit0(inExpression);
                 return;
             }
             ExpressionList itemsList = (ExpressionList) inExpression.getRightItemsList();
             List<Expression> list = itemsList.getExpressions();
             if (list == null || list.isEmpty()) {
-                super.visit(inExpression);
+                visit0(inExpression);
             }
             for (Expression exp : list) {
                 routeTable(tab, column, exp);
             }
         } else {
-            super.visit(inExpression);
+            visit0(inExpression);
             return;
         }
     }
@@ -599,19 +599,19 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
     @Override
     public void visit(Between between) {
         if (between.isNot()) {
-            super.visit(between);
+            visit0(between);
             return;
         }
         Column column = (Column) between.getLeftExpression();
         TableWrapper tab = getTableFromContext(column);
         if (tab == null) {
-            super.visit(between);
+            visit0(between);
             return;
         }
         Expression begin = between.getBetweenExpressionStart();
         Expression end = between.getBetweenExpressionEnd();
         if (begin instanceof SubSelect || end instanceof SubSelect) {
-            super.visit(between);
+            visit0(between);
             return;
         } else if ((begin instanceof JdbcParameter || begin instanceof JdbcNamedParameter) //
                    || (end instanceof JdbcParameter || end instanceof JdbcNamedParameter)) {
@@ -635,7 +635,7 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
     public void visit(EqualsTo equalsTo) {
         Column column = (Column) equalsTo.getLeftExpression();
         if (equalsTo.getRightExpression() instanceof SubSelect) {
-            super.visit(equalsTo);
+            visit0(equalsTo);
             return;
         } else {
             String fullColumnName = column.toString();
@@ -644,7 +644,7 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
             if (tab != null) {// 需要路由的table
                 routeTable(tab, column, equalsTo.getRightExpression());
             } else {// there maybe contains sub query,so we show invoke super.visit
-                super.visit(equalsTo);
+                visit0(equalsTo);
             }
         }
     }
@@ -716,6 +716,38 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
                 addRoutedTableIntoContext(tab, routeConfig, false);
             }
         }
+    }
+
+    protected void visit0(Select select) {
+        super.visit(select);
+    }
+
+    protected void visit0(SubSelect subSelect) {
+        super.visit(subSelect);
+    }
+
+    protected void visit0(Insert insert) {
+        super.visit(insert);
+    }
+
+    protected void visit0(Update update) {
+        super.visit(update);
+    }
+
+    protected void visit0(Delete delete) {
+        super.visit(delete);
+    }
+
+    protected void visit0(EqualsTo equalsTo) {
+        super.visit(equalsTo);
+    }
+
+    protected void visit0(InExpression inExpression) {
+        super.visit(inExpression);
+    }
+
+    protected void visit0(Between between) {
+        super.visit(between);
     }
 
     private void putIntoContext(FrameContext frameContext, String key, TableWrapper tab) {
