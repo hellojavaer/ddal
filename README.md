@@ -49,7 +49,7 @@ DDAL is dual licensed under **LGPL V2.1** and **Apache Software License, Version
 - Support '=', in' and 'between' operation to route schema/table and support mixed sql parameter and jdbc parameter in routing values
     - eg: 'select * from tb where id in(1,?,3)'
     - eg: 'select * from tb where id between 1 and ?'
-- Support Date, Timestamp, Byte, Short, Integr, Long, String, Character, Hex value type for shard-value
+- Support Date, Timestamp, Byte, Short, Integer, Long, String, Character, Hex value type for shard-value
 - Support annotation routing
 - Support custom route rule (eg: '{scName}_{format('%02d', sdValue % 4)}')
 - Support route rule binding on a schema (instead of a table)
@@ -58,7 +58,7 @@ DDAL is dual licensed under **LGPL V2.1** and **Apache Software License, Version
 - Support read-write splitting
 - Support load balance of read
 - Support config at server-side
-- Provide sequence implements
+- Provide multiple sequence implements
 
 ## Download
 
