@@ -565,7 +565,12 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
             return;
         }
         Map<String, Set<String>> physicalTables = getPhysicalTables();
-        metaDataChecker.check(conn, scName, physicalTables.get(scName));
+        if (physicalTables != null) {
+            Set<String> tbNames = physicalTables.get(scName);
+            if (tbNames != null && !tbNames.isEmpty()) {
+                metaDataChecker.check(conn, scName, tbNames);
+            }
+        }
     }
 
     private void initWriteOnlyDataSource(List<WriteOnlyDataSourceBinding> bindings) {
