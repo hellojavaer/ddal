@@ -52,7 +52,7 @@ DDAL is dual licensed under **LGPL V2.1** and **Apache Software License, Version
 - Support Date, Timestamp, Byte, Short, Integr, Long, String, Character, Hex value type for shard-value
 - Support annotation routing
 - Support custom route rule (eg: '{scName}_{format('%02d', sdValue % 4)}')
-- Support route rule binding on a schema (not a table)
+- Support route rule binding on a schema (instead of a table)
 - Support scan all schemas and tables
 - Support limit check
 - Support read-write splitting
@@ -74,7 +74,7 @@ http://repo1.maven.org/maven2/org/hellojavaer/ddal/
 
 ## Extensions in the latest version 1.0.1-RELEASE
 
-- Support route rule binding on a schema (not a table)
+- Support route rule binding on a schema (instead of a table)
 
 ```
 <bean class="org.hellojavaer.ddal.ddr.shard.simple.SimpleShardRouteRuleBinding">
