@@ -15,7 +15,7 @@
 
     <logger name="org.hellojavaer.ddr.ds" additivity="false">
         <!-- if the value of 'value' is 'trace', target datasource will be printed out -->
-        <priority value="error"/>
+        <priority value="info"/>
         <appender-ref ref="console"/>
     </logger>
 

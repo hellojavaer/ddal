@@ -27,7 +27,7 @@
             <list>
                 <bean class="org.hellojavaer.ddal.ddr.shard.simple.SimpleShardRouteRuleBinding">
                     <property name="scName" value="acl"></property>
-                    <property name="tbName" value="role"></property>
+                    <!--<property name="tbName" value="role"></property>-->
                 </bean>
             </list>
         </property>
@@ -45,6 +45,7 @@
     </bean>
     <bean id="dataSourceManager"
           class="org.hellojavaer.ddal.ddr.datasource.manager.rw.DefaultReadWriteDataSourceManager">
+        <property name="shardRouter" ref="shardRouter"/>
         <property name="readOnlyDataSourceMonitorServer">
             <bean class="org.hellojavaer.ddal.ddr.datasource.manager.rw.monitor.mbean.MBeanReadOnlyDataSourceMonitorServer"></bean>
         </property>

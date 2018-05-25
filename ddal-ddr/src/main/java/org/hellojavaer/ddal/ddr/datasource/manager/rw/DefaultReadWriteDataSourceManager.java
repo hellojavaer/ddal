@@ -76,7 +76,7 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
     private boolean                                                initialized                                = false;
 
     // cache
-    private Map<String, Set<String>>                               physicalTables                             = null;
+    private volatile Map<String, Set<String>>                      physicalTables                             = null;
 
     private DefaultReadWriteDataSourceManager() {
         this.metaDataChecker = new DefaultMetaDataChecker("mysql");
@@ -565,7 +565,15 @@ public class DefaultReadWriteDataSourceManager implements ReadWriteDataSourceMan
             return;
         }
         Map<String, Set<String>> physicalTables = getPhysicalTables();
-        metaDataChecker.check(conn, scName, physicalTables.get(scName));
+        if (physicalTables != null) {
+            Set<String> tbNames = physicalTables.get(scName);
+            if (tbNames != null && !tbNames.isEmpty()) {
+                metaDataChecker.check(conn, scName, tbNames);
+                if (stdLogger.isInfoEnabled()) {
+                    stdLogger.info("MetaDataCheck - sc:{}, tb:{} meta data checking is passed", scName, tbNames);
+                }
+            }
+        }
     }
 
     private void initWriteOnlyDataSource(List<WriteOnlyDataSourceBinding> bindings) {

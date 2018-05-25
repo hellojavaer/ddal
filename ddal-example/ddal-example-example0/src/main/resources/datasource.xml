@@ -31,7 +31,7 @@
             <list>
                 <bean class="org.hellojavaer.ddal.ddr.shard.simple.SimpleShardRouteRuleBinding">
                     <property name="scName" value="base"></property>
-                    <property name="tbName" value="user"></property>
+                    <!--<property name="tbName" value="user"></property>-->
                     <property name="rule" ref="idRule"></property>
                     <property name="sdKey" value="id"></property>
                     <property name="sdValues" value="[0..7]"></property>
