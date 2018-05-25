@@ -6,7 +6,7 @@
 
     <groupId>org.hellojavaer.ddal</groupId>
     <artifactId>ddal-example</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.1-RELEASE</version>
     <packaging>pom</packaging>
 
     <modules>
