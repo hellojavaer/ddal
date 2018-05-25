@@ -52,6 +52,7 @@ DDAL is dual licensed under **LGPL V2.1** and **Apache Software License, Version
 - Support Date, Timestamp, Byte, Short, Integr, Long, String, Character, Hex value type for shard-value
 - Support annotation routing
 - Support custom route rule (eg: '{scName}_{format('%02d', sdValue % 4)}')
+- Support route rule binding on a schema (not a table)
 - Support scan all schemas and tables
 - Support limit check
 - Support read-write splitting
@@ -71,7 +72,25 @@ http://repo1.maven.org/maven2/org/hellojavaer/ddal/
 
 ## [Release Notes](https://github.com/hellojavaer/ddal/releases)
 
-## Extensions in the latest version 1.0.0-RELEASE
+## Extensions in the latest version 1.0.1-RELEASE
+
+- Support route rule binding on a schema (not a table)
+
+```
+<bean class="org.hellojavaer.ddal.ddr.shard.simple.SimpleShardRouteRuleBinding">
+    <property name="scName" value="base"/>
+    <property name="rule">
+        <bean class="org.hellojavaer.ddal.ddr.shard.rule.SpelShardRouteRule">
+            <property name="scRouteRule" value="{scName}_{format('%02d', sdValue % 2)}"/>
+            <property name="tbRouteRule" value="{tbName}_{format('%04d', sdValue % 8)}"/>
+        </bean>
+    </property>
+    <property name="sdKey" value="id"/>
+    <property name="sdValues" value="[0..7]"/>
+</bean>
+```
+
+## Extensions in version 1.0.0-RELEASE
 
 - upgrade jsqlparser's version to 1.2 to support more sql features
 - optimize JSQLParserAdapter
