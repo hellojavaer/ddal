@@ -86,16 +86,24 @@ public class SimpleShardRouter implements ShardRouter {
                     putToCache(cache, sb.toString(), b0, true);
                     putToCache(cache, tbName, b0, false);
 
+                    // 构建 逻辑sc+逻辑tb下包含的所有物理表信息
                     final Set<ShardRouteInfo> routeInfos = new LinkedHashSet<>();
-                    if (sdValues != null) {
-                        new RangeExpressionParser(sdValues).visit(new RangeExpressionItemVisitor() {
+                    if (binding.getRule() == null) {// 如果路由规则为空,则使用原表名
+                        ShardRouteInfo routeInfo = new ShardRouteInfo();
+                        routeInfo.setScName(scName);
+                        routeInfo.setTbName(tbName);
+                        routeInfos.add(routeInfo);
+                    } else {
+                        if (sdValues != null) {
+                            new RangeExpressionParser(sdValues).visit(new RangeExpressionItemVisitor() {
 
-                            @Override
-                            public void visit(Object val) {
-                                ShardRouteInfo routeInfo = getRouteInfo(b0, scName, tbName, val);
-                                routeInfos.add(routeInfo);
-                            }
-                        });
+                                @Override
+                                public void visit(Object val) {
+                                    ShardRouteInfo routeInfo = getRouteInfo(b0, scName, tbName, val);
+                                    routeInfos.add(routeInfo);
+                                }
+                            });
+                        }
                     }
                     String key = buildQueryKey(scName, tbName);
                     if (routeInfoMap.containsKey(key)) {
