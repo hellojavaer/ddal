@@ -15,7 +15,7 @@
  */
 package org.hellojavaer.ddal.ddr.shard.rule;
 
-import org.hellojavaer.ddal.ddr.expression.el.ELVariableManager;
+import org.hellojavaer.ddal.ddr.expression.ShardRouteRuleExpressionContext;
 import org.hellojavaer.ddal.ddr.shard.RangeShardValue;
 import org.hellojavaer.ddal.ddr.shard.ShardRouteInfo;
 import org.hellojavaer.ddal.ddr.shard.ShardRouteRule;
@@ -271,7 +271,7 @@ public class SpelShardRouteRule implements ShardRouteRule {
                                                                    + expression + "'");
                     }
                 } else {
-                    val = ELVariableManager.getVariable(name);
+                    val = ShardRouteRuleExpressionContext.getVariable(name);
                 }
                 return val;
             }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddal.ddr.expression.el;
+package org.hellojavaer.ddal.ddr.expression;
 
 import org.hellojavaer.ddal.ddr.expression.el.function.FormatFunction;
 import org.hellojavaer.ddal.ddr.expression.el.function.MathFunction;
@@ -28,11 +28,15 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 14/12/2016.
  */
-public class ELVariableManager {
+public class ShardRouteRuleExpressionContext {
 
-    private static Map<String, Object> map = new ConcurrentHashMap<>(128);
+    private static ConcurrentHashMap<String, Object> map = new ConcurrentHashMap<>(128);
 
     static {
+        init();
+    }
+
+    private static void init() {
         registerMethodVariable(MathFunction.class);
         registerMethodVariable(FormatFunction.class);
     }
@@ -40,7 +44,7 @@ public class ELVariableManager {
     private static void registerMethodVariable(Class<?> clazz) {
         Method[] methods = clazz.getDeclaredMethods();
         for (Method method : methods) {
-            ELVariableManager.registerVariable(method.getName(), method);
+            ShardRouteRuleExpressionContext.registerVariable(method.getName(), method);
         }
     }
 
@@ -52,7 +56,9 @@ public class ELVariableManager {
         if (value == null) {
             throw new IllegalArgumentException("value can't be null");
         }
-        map.put(variableName, value);
+        if (map.putIfAbsent(variableName, value) != null) {
+            throw new IllegalStateException("Duplicate register variable:" + variableName);
+        }
     }
 
     public static Object unregisterVariable(String variableName) {
@@ -73,5 +79,6 @@ public class ELVariableManager {
 
     public static void reset() {
         map.clear();
+        init();
     }
 }
