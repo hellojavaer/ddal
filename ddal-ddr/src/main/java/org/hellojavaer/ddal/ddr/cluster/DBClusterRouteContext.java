@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018 the original author or authors.
+ * Copyright 2018-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.hellojavaer.ddal.ddr.expression;
+package org.hellojavaer.ddal.ddr.cluster;
 
 import org.hellojavaer.ddal.ddr.expression.el.function.FormatFunction;
 import org.hellojavaer.ddal.ddr.expression.el.function.MathFunction;
@@ -24,29 +24,40 @@ import java.util.Map;
 
 /**
  *
- * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 14/12/2016.
+ * @author <a href="mailto:hellojavaer@gmail.com">Kaiming Zou</a>,created on 2018/5/27.
  */
-public class ShardRouteRuleExpressionContext {
+public class DBClusterRouteContext {
 
-    private static final Map<String, Object>              systemVariables = new HashMap<>();
-    private static final ThreadLocal<Map<String, Object>> variables       = new ThreadLocal() {
+    private static final ThreadLocal<String>              clusterNameCache = new ThreadLocal();
 
-                                                                              @Override
-                                                                              protected Map initialValue() {
-                                                                                  return new HashMap();
-                                                                              }
-                                                                          };
+    private static final Map<String, Object>              systemVariables  = new HashMap<>();
+
+    private static final ThreadLocal<Map<String, Object>> variables        = new ThreadLocal() {
+
+                                                                               @Override
+                                                                               protected Map initialValue() {
+                                                                                   return new HashMap();
+                                                                               }
+                                                                           };
 
     static {
-        setMethodVariable(MathFunction.class);
-        setMethodVariable(FormatFunction.class);
+        setSystemVariable(MathFunction.class);
+        setSystemVariable(FormatFunction.class);
     }
 
-    private static void setMethodVariable(Class<?> clazz) {
+    private static void setSystemVariable(Class<?> clazz) {
         Method[] methods = clazz.getDeclaredMethods();
         for (Method method : methods) {
-            ShardRouteRuleExpressionContext.setVariable(method.getName(), method);
+            systemVariables.put(method.getName(), method);
         }
+    }
+
+    public static void setClusterName(String name) {
+        clusterNameCache.set(name);
+    }
+
+    public static String getClusterName() {
+        return clusterNameCache.get();
     }
 
     public static Object getVariable(String name) {
@@ -77,7 +88,8 @@ public class ShardRouteRuleExpressionContext {
         return variables.get().remove(name);
     }
 
-    public static void reset() {
+    public static void clearContext() {
+        clusterNameCache.remove();
         variables.get().clear();
     }
 }
