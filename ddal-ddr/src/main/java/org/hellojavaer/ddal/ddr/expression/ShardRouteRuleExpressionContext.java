@@ -45,7 +45,7 @@ public class ShardRouteRuleExpressionContext {
     private static void setMethodVariable(Class<?> clazz) {
         Method[] methods = clazz.getDeclaredMethods();
         for (Method method : methods) {
-            ShardRouteRuleExpressionContext.setVariable(method.getName(), method);
+            systemVariables.put(method.getName(), method);
         }
     }
 

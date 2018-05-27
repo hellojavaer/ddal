@@ -26,7 +26,6 @@ import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 
 import java.lang.reflect.Method;
-import java.util.List;
 
 /**
  *
@@ -61,20 +60,7 @@ class MethodBasedSpelExpression {
                 context.setVariable("$" + i, args[i]);
             }
         }
-        T ret = expression.getValue(context, type);
-        if (ret == null) {
-            return null;
-        } else {// FIXME: spel will return a list
-            if (ret instanceof List) {
-                if (((List) ret).isEmpty()) {
-                    return null;
-                } else {
-                    return (T) ((List) ret).get(0);
-                }
-            } else {
-                return ret;
-            }
-        }
+        return expression.getValue(context, type);
     }
 
     /**
