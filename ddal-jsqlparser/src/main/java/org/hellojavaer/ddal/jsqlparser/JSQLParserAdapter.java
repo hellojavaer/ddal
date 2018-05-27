@@ -2,7 +2,7 @@
  * #%L
  * ddal-jsqlparser
  * %%
- * Copyright (C) 2016 - 2017 the original author or authors.
+ * Copyright (C) 2016 - 2018 the original author or authors.
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
@@ -92,8 +92,8 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
         try {
             checkJSqlParserFeature();
             checkCompatibilityWithJSqlParser();
-        } catch (Exception e) {
-            throw new RuntimeException("JSqlParser feature check failed", e);
+        } catch (Throwable e) {
+            throw new SQLParserCompatibilityException("JSqlParser feature check failed", e);
         }
     }
 
