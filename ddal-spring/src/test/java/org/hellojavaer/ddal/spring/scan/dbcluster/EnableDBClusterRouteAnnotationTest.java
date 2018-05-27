@@ -15,6 +15,7 @@
  */
 package org.hellojavaer.ddal.spring.scan.dbcluster;
 
+import org.hellojavaer.ddal.spring.scan.UserEntity;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +49,15 @@ public class EnableDBClusterRouteAnnotationTest {
     public void test02() {
         for (int i = 0; i < 100; i++) {
             dbClusterRouteTestComponent.test02(i);
+        }
+    }
+
+    @Test
+    public void testFormat() {
+        for (long i = 0; i < 100; i++) {
+            UserEntity userEntity = new UserEntity();
+            userEntity.setId(i);
+            dbClusterRouteTestComponent.testFunction(userEntity);
         }
     }
 
