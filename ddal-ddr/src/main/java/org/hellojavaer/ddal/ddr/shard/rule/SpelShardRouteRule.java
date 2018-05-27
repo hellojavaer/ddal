@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2017 the original author or authors.
+ * Copyright 2017-2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 package org.hellojavaer.ddal.ddr.shard.rule;
 
-import org.hellojavaer.ddal.ddr.expression.el.function.ELFunctionManager;
+import org.hellojavaer.ddal.ddr.expression.el.ELVariableManager;
 import org.hellojavaer.ddal.ddr.shard.RangeShardValue;
 import org.hellojavaer.ddal.ddr.shard.ShardRouteInfo;
 import org.hellojavaer.ddal.ddr.shard.ShardRouteRule;
@@ -271,8 +271,7 @@ public class SpelShardRouteRule implements ShardRouteRule {
                                                                    + expression + "'");
                     }
                 } else {
-                    val = ELFunctionManager.getRegisteredFunction(name);
-                    // TODO: user-define var
+                    val = ELVariableManager.getVariable(name);
                 }
                 return val;
             }
