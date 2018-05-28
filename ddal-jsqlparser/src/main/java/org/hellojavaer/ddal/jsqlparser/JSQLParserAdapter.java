@@ -2,7 +2,7 @@
  * #%L
  * ddal-jsqlparser
  * %%
- * Copyright (C) 2016 - 2017 the original author or authors.
+ * Copyright (C) 2016 - 2018 the original author or authors.
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
@@ -92,8 +92,8 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
         try {
             checkJSqlParserFeature();
             checkCompatibilityWithJSqlParser();
-        } catch (Exception e) {
-            throw new RuntimeException("JSqlParser feature check failed", e);
+        } catch (Throwable e) {
+            throw new SQLParserCompatibilityException("JSqlParser feature check failed", e);
         }
     }
 
@@ -441,18 +441,30 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
         // route table
         List<Column> columns = insert.getColumns();
         if (columns != null) {
-            ExpressionList expressionList = (ExpressionList) insert.getItemsList();
-            List<Expression> valueList = expressionList.getExpressions();
-            for (int i = 0; i < columns.size(); i++) {
-                Column column = columns.get(i);
-                TableWrapper tab = getTableFromContext(column);
-                if (tab != null) {
-                    Expression expression = valueList.get(i);
-                    routeTable(tab, column, expression);
+            ItemsList itemsList = insert.getItemsList();
+            if (itemsList instanceof ExpressionList) {
+                procInsertColumns(columns, (ExpressionList) itemsList);
+            } else if (itemsList instanceof MultiExpressionList) {
+                for (ExpressionList expressionList : ((MultiExpressionList) itemsList).getExprList()) {
+                    procInsertColumns(columns, expressionList);
                 }
+            } else {
+                throw new UnsupportedSQLExpressionException(insert.toString());
             }
         }
         afterVisitBaseStatement();
+    }
+
+    private void procInsertColumns(List<Column> columns, ExpressionList expressionList) {
+        List<Expression> valueList = expressionList.getExpressions();
+        for (int i = 0; i < columns.size(); i++) {
+            Column column = columns.get(i);
+            TableWrapper tab = getTableFromContext(column);
+            if (tab != null) {
+                Expression expression = valueList.get(i);
+                routeTable(tab, column, expression);
+            }
+        }
     }
 
     /**

@@ -15,10 +15,10 @@
  */
 package org.hellojavaer.ddal.spring.scan;
 
-import org.hellojavaer.ddal.ddr.shard.ShardRouteContext;
+import org.hellojavaer.ddal.core.utils.Assert;
 import org.hellojavaer.ddal.ddr.shard.ShardRoute;
+import org.hellojavaer.ddal.ddr.shard.ShardRouteContext;
 import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
 
 /**
  *
@@ -39,4 +39,9 @@ public class ShardRouteTestComponent {
         Assert.isTrue(ShardRouteContext.getRouteInfo("shop") == userEntity.getId());
     }
 
+    @ShardRoute(scName = "user,shop", sdValue = "tb_{format('%04d',$0.id)}")
+    public void testFunction(UserEntity userEntity) {
+        Assert.isTrue(ShardRouteContext.getRouteInfo("user").equals(String.format("tb_%04d", userEntity.getId())));
+        Assert.isTrue(ShardRouteContext.getRouteInfo("shop").equals(String.format("tb_%04d", userEntity.getId())));
+    }
 }
