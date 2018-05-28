@@ -64,16 +64,12 @@ public class DBClusterRouteContext {
         systemVariables.put(name, value);
     }
 
-    public static Object getSystemVariable(String name) {
-        return systemVariables.get(name);
-    }
-
-    public static Object getVariable(String name) {
+    public static Object lookupVariable(String name) {
         if (name == null) {
             throw new IllegalArgumentException("name can't be null");
         }
         for (Context context : STACK.get()) {
-            Object value = context.getLocalVariables().get(name);
+            Object value = context.getVariables().get(name);
             if (value != null) {
                 return value;
             }
@@ -81,28 +77,28 @@ public class DBClusterRouteContext {
         return systemVariables.get(name);
     }
 
-    public static Object getLocalVariable(String name) {
+    public static Object getVariable(String name) {
         if (name == null) {
             throw new IllegalArgumentException("name can't be null");
         }
-        return getCurrentContext().getLocalVariables().get(name);
+        return getCurrentContext().getVariables().get(name);
     }
 
-    public static Object setLocalVariable(String name, Object value) {
+    public static Object setVariable(String name, Object value) {
         if (name == null) {
             throw new IllegalArgumentException("name can't be null");
         }
         if (value == null) {
             throw new IllegalArgumentException("value can't be null");
         }
-        return getCurrentContext().getLocalVariables().put(name, value);
+        return getCurrentContext().getVariables().put(name, value);
     }
 
-    public static Object removeLocalVariable(String name) {
+    public static Object removeVariable(String name) {
         if (name == null) {
             throw new IllegalArgumentException("name can't be null");
         }
-        return getCurrentContext().getLocalVariables().remove(name);
+        return getCurrentContext().getVariables().remove(name);
     }
 
     public static void pushContext() {
@@ -119,7 +115,7 @@ public class DBClusterRouteContext {
 
     public static void clearContext() {
         Context context = getCurrentContext();
-        context.getLocalVariables().clear();
+        context.getVariables().clear();
         context.setClusterName(null);
     }
 
@@ -129,8 +125,8 @@ public class DBClusterRouteContext {
 
     private static class Context {
 
-        private String              clusterName    = null;
-        private Map<String, Object> localVariables = new HashMap<>();
+        private String              clusterName = null;
+        private Map<String, Object> variables   = new HashMap<>();
 
         public String getClusterName() {
             return clusterName;
@@ -140,12 +136,12 @@ public class DBClusterRouteContext {
             this.clusterName = clusterName;
         }
 
-        public Map<String, Object> getLocalVariables() {
-            return localVariables;
+        public Map<String, Object> getVariables() {
+            return variables;
         }
 
-        public void setLocalVariables(Map<String, Object> localVariables) {
-            this.localVariables = localVariables;
+        public void setVariables(Map<String, Object> variables) {
+            this.variables = variables;
         }
     }
 

@@ -26,25 +26,24 @@ public class ShardRouteRuleExpressionContextTest {
 
     @Test
     public void test00() {
-        Assert.notNull(ShardRouteRuleExpressionContext.getVariable("format"));
-        Assert.notNull(ShardRouteRuleExpressionContext.getSystemVariable("format"));
-        Assert.equals(ShardRouteRuleExpressionContext.getLocalVariable("format"), null);
+        Assert.notNull(ShardRouteRuleExpressionContext.lookupVariable("format"));
+        Assert.equals(ShardRouteRuleExpressionContext.getVariable("format"), null);
         //
-        ShardRouteRuleExpressionContext.setLocalVariable("a", "1");
-        Assert.equals(ShardRouteRuleExpressionContext.getLocalVariable("a"), "1");
+        ShardRouteRuleExpressionContext.setVariable("a", "1");
         Assert.equals(ShardRouteRuleExpressionContext.getVariable("a"), "1");
+        Assert.equals(ShardRouteRuleExpressionContext.lookupVariable("a"), "1");
         //
         ShardRouteRuleExpressionContext.pushContext();
-        Assert.equals(ShardRouteRuleExpressionContext.getLocalVariable("a"), null);
-        Assert.equals(ShardRouteRuleExpressionContext.getVariable("a"), "1");
+        Assert.equals(ShardRouteRuleExpressionContext.getVariable("a"), null);
+        Assert.equals(ShardRouteRuleExpressionContext.lookupVariable("a"), "1");
         //
-        ShardRouteRuleExpressionContext.setLocalVariable("a", "2");
-        Assert.equals(ShardRouteRuleExpressionContext.getLocalVariable("a"), "2");
+        ShardRouteRuleExpressionContext.setVariable("a", "2");
         Assert.equals(ShardRouteRuleExpressionContext.getVariable("a"), "2");
+        Assert.equals(ShardRouteRuleExpressionContext.lookupVariable("a"), "2");
         //
         ShardRouteRuleExpressionContext.popContext();
-        Assert.equals(ShardRouteRuleExpressionContext.getLocalVariable("a"), "1");
         Assert.equals(ShardRouteRuleExpressionContext.getVariable("a"), "1");
+        Assert.equals(ShardRouteRuleExpressionContext.lookupVariable("a"), "1");
     }
 
 }

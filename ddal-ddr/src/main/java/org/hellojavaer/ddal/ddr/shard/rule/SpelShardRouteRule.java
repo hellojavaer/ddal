@@ -266,7 +266,7 @@ public class SpelShardRouteRule implements ShardRouteRule {
                                                                    + expression + "'");
                     }
                 } else {
-                    val = ShardRouteRuleExpressionContext.getVariable(name);
+                    val = ShardRouteRuleExpressionContext.lookupVariable(name);
                 }
                 return val;
             }

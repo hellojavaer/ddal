@@ -26,31 +26,30 @@ public class DBClusterRouteContextTest {
 
     @Test
     public void test00() {
-        Assert.notNull(DBClusterRouteContext.getVariable("format"));
-        Assert.notNull(DBClusterRouteContext.getSystemVariable("format"));
-        Assert.equals(DBClusterRouteContext.getLocalVariable("format"), null);
+        Assert.notNull(DBClusterRouteContext.lookupVariable("format"));
+        Assert.equals(DBClusterRouteContext.getVariable("format"), null);
         Assert.equals(DBClusterRouteContext.getClusterName(), null);
         //
-        DBClusterRouteContext.setLocalVariable("a", "1");
+        DBClusterRouteContext.setVariable("a", "1");
         DBClusterRouteContext.setClusterName("US");
-        Assert.equals(DBClusterRouteContext.getLocalVariable("a"), "1");
         Assert.equals(DBClusterRouteContext.getVariable("a"), "1");
+        Assert.equals(DBClusterRouteContext.lookupVariable("a"), "1");
         Assert.equals(DBClusterRouteContext.getClusterName(), "US");
         //
         DBClusterRouteContext.pushContext();
-        Assert.equals(DBClusterRouteContext.getLocalVariable("a"), null);
-        Assert.equals(DBClusterRouteContext.getVariable("a"), "1");
+        Assert.equals(DBClusterRouteContext.getVariable("a"), null);
+        Assert.equals(DBClusterRouteContext.lookupVariable("a"), "1");
         Assert.equals(DBClusterRouteContext.getClusterName(), null);
         //
-        DBClusterRouteContext.setLocalVariable("a", "2");
+        DBClusterRouteContext.setVariable("a", "2");
         DBClusterRouteContext.setClusterName("CN");
-        Assert.equals(DBClusterRouteContext.getLocalVariable("a"), "2");
         Assert.equals(DBClusterRouteContext.getVariable("a"), "2");
+        Assert.equals(DBClusterRouteContext.lookupVariable("a"), "2");
         Assert.equals(DBClusterRouteContext.getClusterName(), "CN");
         //
         DBClusterRouteContext.popContext();
-        Assert.equals(DBClusterRouteContext.getLocalVariable("a"), "1");
         Assert.equals(DBClusterRouteContext.getVariable("a"), "1");
+        Assert.equals(DBClusterRouteContext.lookupVariable("a"), "1");
         Assert.equals(DBClusterRouteContext.getClusterName(), "US");
     }
 }

@@ -97,7 +97,7 @@ class MethodBasedSpelExpression {
                 } catch (Throwable ignore) {
                 }
                 if (obj == null) {
-                    obj = DBClusterRouteContext.getVariable(name);
+                    obj = DBClusterRouteContext.lookupVariable(name);
                 }
                 return obj;
             }
