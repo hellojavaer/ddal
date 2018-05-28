@@ -21,6 +21,7 @@ import javax.sql.DataSource;
 import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.SQLFeatureNotSupportedException;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -53,41 +54,37 @@ public class DefaultDBClusterManager implements DBClusterManager {
 
     @Override
     public int getLoginTimeout() throws SQLException {
-        return 0;
+        return determineDataSource().getLoginTimeout();
     }
 
     @Override
     public void setLoginTimeout(int timeout) throws SQLException {
-        throw new UnsupportedOperationException("setLoginTimeout");
+        determineDataSource().setLoginTimeout(timeout);
     }
 
     @Override
-    public PrintWriter getLogWriter() {
-        throw new UnsupportedOperationException("getLogWriter");
+    public PrintWriter getLogWriter() throws SQLException {
+        return determineDataSource().getLogWriter();
     }
 
     @Override
     public void setLogWriter(PrintWriter pw) throws SQLException {
-        throw new UnsupportedOperationException("setLogWriter");
+        determineDataSource().setLogWriter(pw);
     }
 
     @Override
     public <T> T unwrap(Class<T> iface) throws SQLException {
-        if (iface.isInstance(this)) {
-            return (T) this;
-        }
-        throw new SQLException("DataSource of type [" + getClass().getName() + "] cannot be unwrapped as ["
-                               + iface.getName() + "]");
+        return determineDataSource().unwrap(iface);
     }
 
     @Override
     public boolean isWrapperFor(Class<?> iface) throws SQLException {
-        return iface.isInstance(this);
+        return determineDataSource().isWrapperFor(iface);
     }
 
     @Override
-    public Logger getParentLogger() {
-        return Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
+    public Logger getParentLogger() throws SQLFeatureNotSupportedException {
+        return determineDataSource().getParentLogger();
     }
 
     @Override
