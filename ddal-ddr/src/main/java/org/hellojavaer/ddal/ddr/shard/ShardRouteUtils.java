@@ -15,6 +15,10 @@
  */
 package org.hellojavaer.ddal.ddr.shard;
 
+import org.hellojavaer.ddal.ddr.datasource.jdbc.DDRDataSource;
+import org.hellojavaer.ddal.ddr.datasource.jdbc.DataSourceWrapper;
+import org.hellojavaer.ddal.ddr.datasource.manager.DataSourceParam;
+
 import java.util.*;
 
 /**
@@ -113,4 +117,80 @@ public class ShardRouteUtils {
         return map;
     }
 
+    public static Map<DataSourceWrapper, List<ShardRouteInfo>> groupRouteInfosByDataSource(DDRDataSource ddrDataSource,
+                                                                                           boolean readOnly,
+                                                                                           List<ShardRouteInfo> routeInfos) {
+        if (routeInfos == null || routeInfos.isEmpty()) {
+            return Collections.EMPTY_MAP;
+        }
+        Map<DataSourceWrapper, List<ShardRouteInfo>> result = new LinkedHashMap<>();
+        Map<String, DataSourceWrapper> dataSourceWrapperMap = new HashMap<>();
+        for (ShardRouteInfo routeInfo : routeInfos) {
+            DataSourceWrapper dataSourceWrapper = dataSourceWrapperMap.get(routeInfo.getScName());
+            if (dataSourceWrapper == null) {
+                DataSourceParam param = new DataSourceParam();
+                Set<String> schemas = new HashSet<>();
+                schemas.add(routeInfo.getScName());
+                param.setScNames(schemas);
+                param.setReadOnly(readOnly);
+                dataSourceWrapper = ddrDataSource.getDataSource(param);
+                for (String scName : dataSourceWrapper.getSchemas()) {
+                    Object preValue = dataSourceWrapperMap.put(scName, dataSourceWrapper);
+                    if (preValue != null) {
+                        throw new IllegalStateException("Duplicate dataSource binding on schema: " + scName);
+                    }
+                }
+            }
+            List<ShardRouteInfo> list = result.get(dataSourceWrapper);
+            if (list == null) {
+                list = new ArrayList<>();
+                result.put(dataSourceWrapper, list);
+            }
+            list.add(routeInfo);
+        }
+        return result;
+    }
+
+    public static Map<DataSourceWrapper, Set<ShardRouteInfo>> groupRouteInfosByDataSource(DDRDataSource ddrDataSource,
+                                                                                          boolean readOnly,
+                                                                                          Set<ShardRouteInfo> routeInfos) {
+        if (routeInfos == null || routeInfos.isEmpty()) {
+            return Collections.EMPTY_MAP;
+        }
+        Map<DataSourceWrapper, Set<ShardRouteInfo>> result = null;
+        if (routeInfos instanceof HashSet) {
+            result = new LinkedHashMap<>();
+        } else {
+            result = new HashMap<>();
+        }
+        Map<String, DataSourceWrapper> dataSourceWrapperMap = new HashMap<>();
+        for (ShardRouteInfo routeInfo : routeInfos) {
+            DataSourceWrapper dataSourceWrapper = dataSourceWrapperMap.get(routeInfo.getScName());
+            if (dataSourceWrapper == null) {
+                DataSourceParam param = new DataSourceParam();
+                Set<String> schemas = new HashSet<>();
+                schemas.add(routeInfo.getScName());
+                param.setScNames(schemas);
+                param.setReadOnly(readOnly);
+                dataSourceWrapper = ddrDataSource.getDataSource(param);
+                for (String scName : dataSourceWrapper.getSchemas()) {
+                    Object preValue = dataSourceWrapperMap.put(scName, dataSourceWrapper);
+                    if (preValue != null) {
+                        throw new IllegalStateException("Duplicate dataSource binding on schema: " + scName);
+                    }
+                }
+            }
+            Set<ShardRouteInfo> list = result.get(dataSourceWrapper);
+            if (list == null) {
+                if (routeInfos instanceof HashSet) {
+                    list = new LinkedHashSet<>();
+                } else {
+                    list = new HashSet<>();
+                }
+                result.put(dataSourceWrapper, list);
+            }
+            list.add(routeInfo);
+        }
+        return result;
+    }
 }
