@@ -23,7 +23,6 @@ import javax.sql.DataSource;
  */
 public interface DBClusterManager extends DataSource {
 
-    DataSource getDataSource();
-
+    DataSource determineDataSource();
 
 }

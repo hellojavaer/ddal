@@ -33,7 +33,7 @@ public class DefaultDBClusterManager implements DBClusterManager {
     private Map<String, DataSource> dataSources;
 
     @Override
-    public DataSource getDataSource() {
+    public DataSource determineDataSource() {
         String clusterName = DBClusterRouteContext.getClusterName();
         DataSource dataSource = dataSources.get(clusterName);
         if (dataSource == null) {
@@ -92,11 +92,11 @@ public class DefaultDBClusterManager implements DBClusterManager {
 
     @Override
     public Connection getConnection() throws SQLException {
-        return getDataSource().getConnection();
+        return determineDataSource().getConnection();
     }
 
     @Override
     public Connection getConnection(String username, String password) throws SQLException {
-        return getDataSource().getConnection(username, password);
+        return determineDataSource().getConnection(username, password);
     }
 }
