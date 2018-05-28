@@ -75,4 +75,34 @@ public class InsertTest extends BaseTestShardParser {
         Assert.equals(parsedResult.getSql(), "INSERT INTO db_02.user_0010 (id, name, `desc`) VALUES (?, ?, ?)");
     }
 
+    @Test
+    public void test04() {
+        ShardParser parser = buildParserForId();
+        // 1
+        try {
+            parser.parse("INSERT INTO user(id,name ) VALUES( 506,'n1'), (507,'n2')", null);
+            throw new Error();
+        } catch (Exception e) {
+        }
+
+        // 2
+        SQLParsedResult parsedResult = parser.parse("INSERT INTO user(id,name ) VALUES(506,'n1'), (634,'n2')", null);
+        Assert.equals(parsedResult.getSql(), "INSERT INTO db_02.user_0122 (id, name) VALUES (506, 'n1'), (634, 'n2')");
+
+        // 3
+        Map<Object, Object> map = new HashMap<>();
+        map.put(1, 507);
+        try {
+            parsedResult = parser.parse("INSERT INTO user(id,name ) VALUES(506,'n1'), (?,'n2')", map);
+            throw new Error();
+        } catch (Exception e) {
+        }
+
+        // 4
+        map = new HashMap<>();
+        map.put(1, 634);
+        parsedResult = parser.parse("INSERT INTO user(id,name ) VALUES(506,'n1'), (?,'n2')", map);
+        Assert.equals(parsedResult.getSql(), "INSERT INTO db_02.user_0122 (id, name) VALUES (506, 'n1'), (?, 'n2')");
+    }
+
 }

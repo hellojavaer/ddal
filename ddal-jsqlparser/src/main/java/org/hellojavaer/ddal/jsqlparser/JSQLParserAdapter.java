@@ -441,18 +441,30 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
         // route table
         List<Column> columns = insert.getColumns();
         if (columns != null) {
-            ExpressionList expressionList = (ExpressionList) insert.getItemsList();
-            List<Expression> valueList = expressionList.getExpressions();
-            for (int i = 0; i < columns.size(); i++) {
-                Column column = columns.get(i);
-                TableWrapper tab = getTableFromContext(column);
-                if (tab != null) {
-                    Expression expression = valueList.get(i);
-                    routeTable(tab, column, expression);
+            ItemsList itemsList = insert.getItemsList();
+            if (itemsList instanceof ExpressionList) {
+                procInsertColumns(columns, (ExpressionList) itemsList);
+            } else if (itemsList instanceof MultiExpressionList) {
+                for (ExpressionList expressionList : ((MultiExpressionList) itemsList).getExprList()) {
+                    procInsertColumns(columns, expressionList);
                 }
+            } else {
+                throw new UnsupportedSQLExpressionException(insert.toString());
             }
         }
         afterVisitBaseStatement();
+    }
+
+    private void procInsertColumns(List<Column> columns, ExpressionList expressionList) {
+        List<Expression> valueList = expressionList.getExpressions();
+        for (int i = 0; i < columns.size(); i++) {
+            Column column = columns.get(i);
+            TableWrapper tab = getTableFromContext(column);
+            if (tab != null) {
+                Expression expression = valueList.get(i);
+                routeTable(tab, column, expression);
+            }
+        }
     }
 
     /**
