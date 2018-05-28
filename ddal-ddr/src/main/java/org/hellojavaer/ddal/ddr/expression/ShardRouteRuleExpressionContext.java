@@ -77,11 +77,7 @@ public class ShardRouteRuleExpressionContext {
         if (name == null) {
             throw new IllegalArgumentException("name can't be null");
         }
-        Object value = getCurrentContext().getLocalVariables().get(name);
-        if (value == null) {
-            value = systemVariables.get(name);
-        }
-        return value;
+        return getCurrentContext().getLocalVariables().get(name);
     }
 
     public static Object setLocalVariable(String name, Object value) {
