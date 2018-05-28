@@ -77,7 +77,7 @@ public class ShardRouteRuleExpressionContext {
         return variables.get().remove(name);
     }
 
-    public static void reset() {
+    public static void clearContext() {
         variables.get().clear();
     }
 }
