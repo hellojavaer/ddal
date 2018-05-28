@@ -45,6 +45,7 @@ public class EnableDBClusterRouteAnnotation {
     @Around("@annotation(dbClusterRoute)")
     public Object around(ProceedingJoinPoint joinPoint, DBClusterRoute dbClusterRoute) throws Throwable {
         try {
+            DBClusterRouteContext.pushContext();
             Object[] args = joinPoint.getArgs();
             MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
             Method method = methodSignature.getMethod();
@@ -62,7 +63,7 @@ public class EnableDBClusterRouteAnnotation {
             DBClusterRouteContext.setClusterName(targetClusterName);
             return joinPoint.proceed(args);
         } finally {
-            DBClusterRouteContext.clearContext();
+            DBClusterRouteContext.popContext();
         }
     }
 }

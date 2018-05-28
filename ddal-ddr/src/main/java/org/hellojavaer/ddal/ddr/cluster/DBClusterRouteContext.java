@@ -20,6 +20,7 @@ import org.hellojavaer.ddal.ddr.expression.el.function.MathFunction;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 
 /**
@@ -28,68 +29,128 @@ import java.util.Map;
  */
 public class DBClusterRouteContext {
 
-    private static final ThreadLocal<String>              clusterNameCache = new ThreadLocal();
+    private static final Map<String, Object>              systemVariables = new HashMap<>();
 
-    private static final Map<String, Object>              systemVariables  = new HashMap<>();
+    private static final ThreadLocal<LinkedList<Context>> STACK           = new ThreadLocal<LinkedList<Context>>() {
 
-    private static final ThreadLocal<Map<String, Object>> variables        = new ThreadLocal() {
-
-                                                                               @Override
-                                                                               protected Map initialValue() {
-                                                                                   return new HashMap();
-                                                                               }
-                                                                           };
+                                                                              protected LinkedList<Context> initialValue() {
+                                                                                  LinkedList stack = new LinkedList<>();
+                                                                                  stack.add(new Context());
+                                                                                  return stack;
+                                                                              }
+                                                                          };
 
     static {
         setSystemVariable(MathFunction.class);
         setSystemVariable(FormatFunction.class);
     }
 
-    private static void setSystemVariable(Class<?> clazz) {
-        Method[] methods = clazz.getDeclaredMethods();
-        for (Method method : methods) {
-            systemVariables.put(method.getName(), method);
-        }
-    }
-
     public static void setClusterName(String name) {
-        clusterNameCache.set(name);
+        getCurrentContext().setClusterName(name);
     }
 
     public static String getClusterName() {
-        return clusterNameCache.get();
+        return getCurrentContext().getClusterName();
+    }
+
+    private static void setSystemVariable(Class<?> clazz) {
+        Method[] methods = clazz.getDeclaredMethods();
+        for (Method method : methods) {
+            setSystemVariable(method.getName(), method);
+        }
+    }
+
+    private static void setSystemVariable(String name, Object value) {
+        systemVariables.put(name, value);
+    }
+
+    public static Object getSystemVariable(String name) {
+        return systemVariables.get(name);
     }
 
     public static Object getVariable(String name) {
         if (name == null) {
             throw new IllegalArgumentException("name can't be null");
         }
-        Object value = variables.get().get(name);
+        for (Context context : STACK.get()) {
+            Object value = context.getLocalVariables().get(name);
+            if (value != null) {
+                return value;
+            }
+        }// else
+        return systemVariables.get(name);
+    }
+
+    public static Object getLocalVariable(String name) {
+        if (name == null) {
+            throw new IllegalArgumentException("name can't be null");
+        }
+        Object value = getCurrentContext().getLocalVariables().get(name);
         if (value == null) {
             value = systemVariables.get(name);
         }
         return value;
     }
 
-    public static Object setVariable(String name, Object value) {
+    public static Object setLocalVariable(String name, Object value) {
         if (name == null) {
             throw new IllegalArgumentException("name can't be null");
         }
         if (value == null) {
             throw new IllegalArgumentException("value can't be null");
         }
-        return variables.get().put(name, value);
+        return getCurrentContext().getLocalVariables().put(name, value);
     }
 
-    public static Object removeVariable(String name) {
+    public static Object removeLocalVariable(String name) {
         if (name == null) {
             throw new IllegalArgumentException("name can't be null");
         }
-        return variables.get().remove(name);
+        return getCurrentContext().getLocalVariables().remove(name);
+    }
+
+    public static void pushContext() {
+        STACK.get().addFirst(new Context());
+    }
+
+    public static void popContext() throws IndexOutOfBoundsException {
+        if (STACK.get().size() <= 1) {
+            throw new IndexOutOfBoundsException("root context can't be pop");
+        } else {
+            STACK.get().removeFirst();
+        }
     }
 
     public static void clearContext() {
-        clusterNameCache.remove();
-        variables.get().clear();
+        Context context = getCurrentContext();
+        context.getLocalVariables().clear();
+        context.setClusterName(null);
     }
+
+    private static Context getCurrentContext() {
+        return STACK.get().getFirst();
+    }
+
+    private static class Context {
+
+        private String              clusterName    = null;
+        private Map<String, Object> localVariables = new HashMap<>();
+
+        public String getClusterName() {
+            return clusterName;
+        }
+
+        public void setClusterName(String clusterName) {
+            this.clusterName = clusterName;
+        }
+
+        public Map<String, Object> getLocalVariables() {
+            return localVariables;
+        }
+
+        public void setLocalVariables(Map<String, Object> localVariables) {
+            this.localVariables = localVariables;
+        }
+    }
+
 }
