@@ -117,6 +117,10 @@ public class ShardRouteUtils {
         return map;
     }
 
+    /**
+     * 该方法通过把分片信息按数据源进行分组用以解决分布式事务的问题
+     * 
+     */
     public static Map<DataSourceWrapper, List<ShardRouteInfo>> groupRouteInfosByDataSource(DDRDataSource ddrDataSource,
                                                                                            boolean readOnly,
                                                                                            List<ShardRouteInfo> routeInfos) {
@@ -151,6 +155,10 @@ public class ShardRouteUtils {
         return result;
     }
 
+    /**
+     * 该方法通过把分片信息按数据源进行分组用以解决分布式事务的问题
+     *
+     */
     public static Map<DataSourceWrapper, Set<ShardRouteInfo>> groupRouteInfosByDataSource(DDRDataSource ddrDataSource,
                                                                                           boolean readOnly,
                                                                                           Set<ShardRouteInfo> routeInfos) {
