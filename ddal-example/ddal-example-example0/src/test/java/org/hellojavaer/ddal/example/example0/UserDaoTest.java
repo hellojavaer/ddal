@@ -16,8 +16,9 @@
 package org.hellojavaer.ddal.example.example0;
 
 import com.alibaba.fastjson.JSON;
-import org.hellojavaer.ddal.ddr.shard.ShardRouteInfo;
+import org.hellojavaer.ddal.ddr.cluster.DBClusterRouteContext;
 import org.hellojavaer.ddal.ddr.shard.ShardRouteContext;
+import org.hellojavaer.ddal.ddr.shard.ShardRouteInfo;
 import org.hellojavaer.ddal.ddr.shard.ShardRouteUtils;
 import org.hellojavaer.ddal.ddr.shard.ShardRouter;
 import org.hellojavaer.ddal.example.example0.dao.UserDao;
@@ -44,10 +45,14 @@ import java.util.Map;
 public class UserDaoTest {
 
     @Autowired
-    private UserDao userDao;
+    private UserDao     userDao;
 
     @Value("#{dataSource.shardRouter}")
     private ShardRouter shardRouter;
+
+    static {
+        DBClusterRouteContext.setClusterName("default");
+    }
 
     @Test
     @Transactional

@@ -22,23 +22,33 @@
         <property name="password" value="password"/>
     </bean>
 
+    <!-- rule是可选的,参数scRouteRule和tbRouteRule是也是可选的,如果没有配置在解析时返回原始表名 -->
     <bean id="idRule" class="org.hellojavaer.ddal.ddr.shard.rule.SpelShardRouteRule">
         <property name="scRouteRule" value="{scName}_{format('%02d', sdValue % 2)}"/>
         <property name="tbRouteRule" value="{tbName}_{format('%04d', sdValue % 8)}"/>
     </bean>
+
+    <!-- shardRouter是必选的,用于实现逻辑表名和路由规则的绑定 -->
     <bean id="shardRouter" class="org.hellojavaer.ddal.ddr.shard.simple.SimpleShardRouter">
         <property name="routeRuleBindings">
             <list>
                 <bean class="org.hellojavaer.ddal.ddr.shard.simple.SimpleShardRouteRuleBinding">
+                    <!-- scName是必选的,scName的路由结果会被用于在数据源管理器中做数据源选择 -->
                     <property name="scName" value="base"></property>
+                    <!-- tbName是可选的,当没有配置tbName时,表示当前路由规则绑定到了当前schema下的所有表 -->
                     <!--<property name="tbName" value="user"></property>-->
+                    <!-- rule是可选的,当没有配置时,解析时直接返回原表名 -->
                     <property name="rule" ref="idRule"></property>
+                    <!-- sdKey是可选的,当没有配置时,通过ShardRouteContext获取路由信息 -->
                     <property name="sdKey" value="id"></property>
+                    <!-- sdValues是可选的,sdValues用于将以上的配置转换为物理表,可用于扫表查询接口 -->
                     <property name="sdValues" value="[0..7]"></property>
                 </bean>
             </list>
         </property>
     </bean>
+
+    <!-- shardParser是必选的,配置用于解析sql -->
     <bean id="shardParser" class="org.hellojavaer.ddal.ddr.shard.simple.SimpleShardParser">
         <property name="sqlParser">
             <bean class="org.hellojavaer.ddal.ddr.sqlparse.cache.LRUSQLParserCache">
@@ -50,12 +60,15 @@
         </property>
         <property name="shardRouter" ref="shardRouter"/>
     </bean>
+
+    <!-- 数据源管理器(必选)有SingleDataSourceManager和DefaultReadWriteDataSourceManager,分别用于管理单数据源和多数据 -->
     <!--<bean id="dataSourceManager" class="org.hellojavaer.ddal.ddr.datasource.manager.SingleDataSourceManager">-->
     <!--<constructor-arg index="0" ref="wDs00"></constructor-arg>-->
     <!--</bean>-->
     <bean id="dataSourceManager"
           class="org.hellojavaer.ddal.ddr.datasource.manager.rw.DefaultReadWriteDataSourceManager">
         <property name="shardRouter" ref="shardRouter"/>
+        <!-- 配置只读数据源:可配置每个数据源的负载权重值 -->
         <property name="readOnlyDataSources">
             <list>
                 <bean class="org.hellojavaer.ddal.ddr.datasource.manager.rw.ReadOnlyDataSourceBinding">
@@ -77,9 +90,7 @@
                 </bean>
             </list>
         </property>
-        <property name="readOnlyDataSourceMonitorServer">
-            <bean class="org.hellojavaer.ddal.ddr.datasource.manager.rw.monitor.mbean.MBeanReadOnlyDataSourceMonitorServer"></bean>
-        </property>
+        <!-- 配置只写数据源-->
         <property name="writeOnlyDataSources">
             <list>
                 <bean class="org.hellojavaer.ddal.ddr.datasource.manager.rw.WriteOnlyDataSourceBinding">
@@ -88,11 +99,27 @@
                 </bean>
             </list>
         </property>
+        <!-- readOnlyDataSourceMonitorServer是可选的,该配置用于管理和调节只读数据源的负载 -->
+        <property name="readOnlyDataSourceMonitorServer">
+            <bean class="org.hellojavaer.ddal.ddr.datasource.manager.rw.monitor.mbean.MBeanReadOnlyDataSourceMonitorServer"></bean>
+        </property>
     </bean>
-    <bean id="dataSource" class="org.hellojavaer.ddal.ddr.datasource.jdbc.DefaultDDRDataSource">
+    <!-- ddrDataSource是必选的,用于包装组合底层分库分表的功能,对外提供统一接口 -->
+    <bean id="ddrDataSource" class="org.hellojavaer.ddal.ddr.datasource.jdbc.DefaultDDRDataSource">
         <property name="dataSourceManager" ref="dataSourceManager"/>
         <property name="shardParser" ref="shardParser"/>
     </bean>
+
+    <!-- DefaultDBClusterManager(数据库集群配置)是可选的,如果移除集群配置需要将DefaultDDRDataSource配置的id改为dataSource -->
+    <bean id="dataSource" class="org.hellojavaer.ddal.ddr.cluster.DefaultDBClusterManager">
+        <property name="dataSources">
+            <map>
+                <entry key="default" value-ref="ddrDataSource"/>
+            </map>
+        </property>
+    </bean>
+
+    <!-- sequence是可选的,用于提供分布式主键的功能-->
     <bean name="sequence" class="org.hellojavaer.ddal.sequence.SingleSequence" init-method="init">
         <property name="schemaName" value="base"/>
         <property name="tableName" value="user"/>

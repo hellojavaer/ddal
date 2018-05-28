@@ -35,6 +35,9 @@ public class DefaultDBClusterManager implements DBClusterManager {
 
     @Override
     public DataSource determineDataSource() {
+        if (dataSources == null || dataSources.isEmpty()) {
+            throw new IllegalStateException("dataSources can't be empty");
+        }
         String clusterName = DBClusterRouteContext.getClusterName();
         DataSource dataSource = dataSources.get(clusterName);
         if (dataSource == null) {
