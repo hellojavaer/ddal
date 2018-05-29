@@ -21,7 +21,7 @@ DDAL is dual licensed under **LGPL V2.1** and **Apache Software License, Version
 <dependency>
     <groupId>org.hellojavaer.ddal</groupId>
     <artifactId>ddal-datasource</artifactId>
-    <version>1.0.1-RELEASE</version>
+    <version>1.1.0-RELEASE</version>
 </dependency>
 ```
 
@@ -72,7 +72,12 @@ http://repo1.maven.org/maven2/org/hellojavaer/ddal/
 
 ## [Release Notes](https://github.com/hellojavaer/ddal/releases)
 
-## Extensions in the latest version 1.0.1-RELEASE
+## Extensions in the latest version 1.1.0-RELEASE
+
+- support DB cluster route
+- enhance ShardRouteUtils
+
+## Extensions in version 1.0.1-RELEASE
 
 - Support route rule binding on a schema (instead of a table)
 
