@@ -58,6 +58,7 @@ DDAL is dual licensed under **LGPL V2.1** and **Apache Software License, Version
 - Support read-write splitting
 - Support load balance of read
 - Support config at server-side
+- Support db cluster route
 - Provide multiple sequence implements
 
 ## Download
