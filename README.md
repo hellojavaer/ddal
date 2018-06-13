@@ -74,7 +74,7 @@ http://repo1.maven.org/maven2/org/hellojavaer/ddal/
 ## [Release Notes](https://github.com/hellojavaer/ddal/releases)
 
 ## Extensions in the latest version 1.1.1-RELEASE
-- LRUSQLParserCache provide max sql length limit
+- LRUSQLParserCache provide sql max length limit
 - Fix JSQLParserAdapter bug: SQLParsedResult.checkIfCrossPreparedStatement not work
 
 ## Extensions in version 1.1.0-RELEASE
