@@ -7,7 +7,7 @@
 
     <groupId>org.hellojavaer.ddal</groupId>
     <artifactId>ddal-server</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.1.1-RELEASE</version>
     <packaging>pom</packaging>
 
     <name>ddal-server</name>
