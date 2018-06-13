@@ -47,7 +47,7 @@ public class JSQLParserAdapterTest extends BaseTestShardParser {
     }
 
     @Test
-    public void testLimitCheck00() {
+    public void testSelectLimitCheck00() {
         String sql = "select * from user where id = ?";
         ShardRouter shardRouter = buildParserForId().getShardRouter();
         JSQLParserAdapter jsqlParserAdapter = new JSQLParserAdapter(sql, shardRouter, false);
@@ -65,7 +65,7 @@ public class JSQLParserAdapterTest extends BaseTestShardParser {
     }
 
     @Test
-    public void testLimitCheck01() {
+    public void testSelectLimitCheck01() {
         String sql = "select * from user where id = ? limit 10";
         ShardRouter shardRouter = buildParserForId().getShardRouter();
         JSQLParserAdapter jsqlParserAdapter = new JSQLParserAdapter(sql, shardRouter, false);
@@ -81,6 +81,44 @@ public class JSQLParserAdapterTest extends BaseTestShardParser {
         jdbcParams.put(1, 506);
         sqlParsedResult = sqlParsedState.parse(jdbcParams);
         Assert.equals(sqlParsedResult.getSql(), "SELECT * FROM db_02.user_0122 AS user WHERE id = ? LIMIT 10");
+    }
+
+    @Test
+    public void testUpdateLimitCheck00() {
+        String sql = "update user set name='abc' where id = ? limit 10";
+        ShardRouter shardRouter = buildParserForId().getShardRouter();
+        JSQLParserAdapter jsqlParserAdapter = new JSQLParserAdapter(sql, shardRouter, false);
+        SQLParsedState sqlParsedState = jsqlParserAdapter.parse();
+        Map<Object, Object> jdbcParams = new HashMap<>();
+        jdbcParams.put(1, 506);
+        SQLParsedResult sqlParsedResult = sqlParsedState.parse(jdbcParams);
+        Assert.equals(sqlParsedResult.getSql(), "UPDATE db_02.user_0122 SET name = 'abc' WHERE id = ? LIMIT 10");
+
+        jsqlParserAdapter = new JSQLParserAdapter(sql, shardRouter, true);
+        sqlParsedState = jsqlParserAdapter.parse();
+        jdbcParams = new HashMap<>();
+        jdbcParams.put(1, 506);
+        sqlParsedResult = sqlParsedState.parse(jdbcParams);
+        Assert.equals(sqlParsedResult.getSql(), "UPDATE db_02.user_0122 SET name = 'abc' WHERE id = ? LIMIT 10");
+    }
+
+    @Test
+    public void testDeleteLimitCheck00() {
+        String sql = "delete from user where id = ? limit 10";
+        ShardRouter shardRouter = buildParserForId().getShardRouter();
+        JSQLParserAdapter jsqlParserAdapter = new JSQLParserAdapter(sql, shardRouter, false);
+        SQLParsedState sqlParsedState = jsqlParserAdapter.parse();
+        Map<Object, Object> jdbcParams = new HashMap<>();
+        jdbcParams.put(1, 506);
+        SQLParsedResult sqlParsedResult = sqlParsedState.parse(jdbcParams);
+        Assert.equals(sqlParsedResult.getSql(), "DELETE FROM db_02.user_0122 WHERE id = ? LIMIT 10");
+
+        jsqlParserAdapter = new JSQLParserAdapter(sql, shardRouter, true);
+        sqlParsedState = jsqlParserAdapter.parse();
+        jdbcParams = new HashMap<>();
+        jdbcParams.put(1, 506);
+        sqlParsedResult = sqlParsedState.parse(jdbcParams);
+        Assert.equals(sqlParsedResult.getSql(), "DELETE FROM db_02.user_0122 WHERE id = ? LIMIT 10");
     }
 
     @Test
