@@ -248,8 +248,8 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
                     final SQLParsedResult result = new SQLParsedResult() {
 
                         @Override
-                        public void checkIfCrossPreparedStatement(Map<Object, Object> jdbcParam)
-                                                                                                throws CrossPreparedStatementException {
+                        public void checkIfCrossPreparedStatement(final Map<Object, Object> jdbcParams)
+                                                                                                       throws CrossPreparedStatementException {
                             for (Map.Entry<TableWrapper, String> entry : convertedTables.entrySet()) {
                                 TableWrapper tab = entry.getKey();
                                 route1(tab, jdbcParams, entry.getValue(), this.getSql());
@@ -322,18 +322,11 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
                                                            + sql + "]");
                 }
                 routeInfo = getRouteInfo(tab, sdValue);
-                String next = routeInfo.toString();
+                String newRoutedFulltableName = routeInfo.toString();
                 if (routedFullTableName == null) {
-                    routedFullTableName = next;
+                    routedFullTableName = newRoutedFulltableName;
                 } else {
-                    if (!routedFullTableName.equals(next)) {
-                        throw new AmbiguousRouteResultException("In sql[" + sql + "], table:'"
-                                                                + tab.getOriginalConfig().toString()
-                                                                + "' has multiple routing results["
-                                                                + routedFullTableName + "," + next
-                                                                + "]. Jdbc parameter is "
-                                                                + DDRJSONUtils.toJSONString(jdbcParams));
-                    }
+                    verifyRoutedFullTableName(tab, jdbcParams, routedFullTableName, routedSql, newRoutedFulltableName);
                 }
             } else {// range
                 RangeParam rangeParam = (RangeParam) sqlParam;
@@ -356,7 +349,10 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
                 if (end.isJdbcParamType()) {
                     Number number = (Number) jdbcParams.get(end.getValue());
                     if (number == null) {
-
+                        throw new IllegalSQLParameterException("Jdbc parameter can't be null. Jdbc parameter key is "
+                                                               + end.getValue() + ", jdbc parameter is "
+                                                               + DDRJSONUtils.toJSONString(jdbcParams)
+                                                               + " and sql is [" + sql + "]");
                     }
                     e0 = number.longValue();
                 } else {
@@ -368,30 +364,33 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
                 if (routedFullTableName == null) {
                     routedFullTableName = next;
                 } else {
-                    if (!routedFullTableName.equals(next)) {
-                        if (routedSql != null) {
-                            throw new CrossPreparedStatementException("Sql[" + sql + "] has been routed to ["
-                                                                      + routedSql + "] and table:'"
-                                                                      + tab.getOriginalConfig().toString()
-                                                                      + "' has been route to '" + routedFullTableName
-                                                                      + "'. But current jdbc parameter:"
-                                                                      + DDRJSONUtils.toJSONString(jdbcParams)
-                                                                      + " require route to " + next
-                                                                      + DDRJSONUtils.toJSONString(jdbcParams));
-                        } else {
-                            throw new AmbiguousRouteResultException("In sql[" + sql + "], table:'"
-                                                                    + tab.getOriginalConfig().toString()
-                                                                    + "' has multiple routing results["
-                                                                    + routedFullTableName + "," + next
-                                                                    + "]. Jdbc parameter is "
-                                                                    + DDRJSONUtils.toJSONString(jdbcParams));
-                        }
-                    }
+                    verifyRoutedFullTableName(tab, jdbcParams, routedFullTableName, routedSql, next);
                 }
 
             }
         }
         return routeInfo;
+    }
+
+    private void verifyRoutedFullTableName(TableWrapper tab, Map<Object, Object> jdbcParams,
+                                           String routedFullTableName, String routedSql, String newRoutedFulltableName) {
+        if (!routedFullTableName.equals(newRoutedFulltableName)) {
+            if (routedSql != null) {
+                throw new CrossPreparedStatementException("Sql[" + sql + "] has been routed to [" + routedSql
+                                                          + "] and table:'" + tab.getOriginalConfig().toString()
+                                                          + "' has been route to '" + routedFullTableName
+                                                          + "'. But current jdbc parameter:"
+                                                          + DDRJSONUtils.toJSONString(jdbcParams)
+                                                          + " require route to " + newRoutedFulltableName
+                                                          + DDRJSONUtils.toJSONString(jdbcParams));
+            } else {
+                throw new AmbiguousRouteResultException("In sql[" + sql + "], table:'"
+                                                        + tab.getOriginalConfig().toString()
+                                                        + "' has multiple routing results[" + routedFullTableName + ","
+                                                        + newRoutedFulltableName + "]. Jdbc parameter is "
+                                                        + DDRJSONUtils.toJSONString(jdbcParams));
+            }
+        }
     }
 
     private void afterVisitBaseStatement() {
@@ -523,6 +522,7 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
      */
     private void addRoutedTableIntoContext(TableWrapper table, ShardRouteConfig routeConfig, boolean appendAlias) {
         FrameContext frameContext = this.getStack().peek();
+        String scName = table.getSchemaName();
         String tbName = table.getName();
         String tbAliasName = tbName;
         if (table.getAlias() != null && table.getAlias().getName() != null) {
@@ -533,18 +533,17 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
             }
         }
         String sdKey = DDRStringUtils.toLowerCase(routeConfig.getSdKey());// sdKey可以为null,当为null时需要通过context路由
-        if (table.getSchemaName() != null) {
+        if (scName != null) {
             StringBuilder sb = new StringBuilder();
-            sb.append(DDRStringUtils.toLowerCase(table.getSchemaName()));
+            sb.append(DDRStringUtils.toLowerCase(scName));
             sb.append('.');
             sb.append(DDRStringUtils.toLowerCase(tbAliasName));
             sb.append('.');
             sb.append(sdKey);
             String key = sb.toString();
             putIntoContext(frameContext, key, table);
-            putIntoContext(frameContext, key.substring(table.getSchemaName().length() + 1), table);
-            putIntoContext(frameContext, key.substring(table.getSchemaName().length() + 2 + tbAliasName.length()),
-                           table);
+            putIntoContext(frameContext, key.substring(scName.length() + 1), table);
+            putIntoContext(frameContext, key.substring(scName.length() + 2 + tbAliasName.length()), table);
         } else {
             StringBuilder sb = new StringBuilder();
             sb.append(DDRStringUtils.toLowerCase(tbAliasName));
@@ -556,7 +555,7 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
         }
     }
 
-    private Object getRouteValue(Column column, Expression obj) {
+    protected Object getRouteValue(Column column, Expression obj) {
         if (obj == null) {
             return null;
         }
@@ -637,9 +636,7 @@ public class JSQLParserAdapter extends JSQLBaseVisitor {
                 s1 = e1;
                 e1 = temp;
             }
-            for (long l = s1; l <= e1; l++) {
-                routeTable(tab, column, l);
-            }
+            routeTable(tab, column, new RangeShardValue(s1, e1));
         }
     }
 
