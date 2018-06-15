@@ -21,7 +21,7 @@ DDAL is dual licensed under **LGPL V2.1** and **Apache Software License, Version
 <dependency>
     <groupId>org.hellojavaer.ddal</groupId>
     <artifactId>ddal-datasource</artifactId>
-    <version>1.1.0-RELEASE</version>
+    <version>1.1.1-RELEASE</version>
 </dependency>
 ```
 
